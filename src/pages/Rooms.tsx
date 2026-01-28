@@ -95,10 +95,13 @@ const Rooms = () => {
   const navigate = useNavigate();
   const [selectedRoom, setSelectedRoom] = useState(rooms[0]);
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
+  const [selectedConfig, setSelectedConfig] = useState<string>("double");
+  const [selectedMealPlan, setSelectedMealPlan] = useState<string>("bed_breakfast");
   const [isCheckingAvailability, setIsCheckingAvailability] = useState(false);
   const [checkingRoomNumber, setCheckingRoomNumber] = useState<number | null>(null);
   const [showWelcome, setShowWelcome] = useState(false);
   const [welcomeRoomNumber, setWelcomeRoomNumber] = useState<number | null>(null);
+  const [showConfigModal, setShowConfigModal] = useState(false);
 
   const handleRoomClick = async (roomNumber: number) => {
     setCheckingRoomNumber(roomNumber);

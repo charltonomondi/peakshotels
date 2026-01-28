@@ -9,17 +9,29 @@ import roomDeluxe from "@/assets/bed.jpg";
 import roomExecutive from "@/assets/bed1.jpg";
 import roomPresidential from "@/assets/bed5.jpg";
 
+// Define the types for room configuration and meal plans to ensure type safety.
+type RoomConfig = "single" | "double" | "twin";
+type MealPlan = "bed_breakfast" | "half_board" | "full_board";
+
+// Define the structure for room pricing to ensure a consistent data model.
+interface RoomPricing {
+  single: { bed_breakfast: number; half_board: number; full_board: number };
+  double: { bed_breakfast: number; half_board: number; full_board: number };
+  twin: { bed_breakfast: number; half_board: number; full_board: number };
+}
+
+// Hardcoded data for the different room types, including their names, images, and detailed pricing.
 const roomTypes = [
   {
     id: "standard",
     name: "Standard Room",
     priceRange: "From KES 8,400",
-    priceDetails: {
-      single: { bb: 8400, hb: 10400, fb: 12400 },
-      double: { bb: 11400, hb: 15400, fb: 19400 },
-      twin: { bb: 6200, hb: 8200, fb: 10200 }
-    },
     image: roomDeluxe,
+    pricing: {
+      single: { bed_breakfast: 8400, half_board: 10400, full_board: 12400 },
+      double: { bed_breakfast: 11400, half_board: 15400, full_board: 19400 },
+      twin: { bed_breakfast: 6200, half_board: 8200, full_board: 10200 }
+    },
     features: [
       {
         icon: Bed,
@@ -77,12 +89,12 @@ const roomTypes = [
     id: "superior",
     name: "Superior Room",
     priceRange: "From KES 9,600",
-    priceDetails: {
-      single: { bb: 9600, hb: 11600, fb: 13600 },
-      double: { bb: 12600, hb: 16600, fb: 20600 },
-      twin: { bb: 6800, hb: 8800, fb: 10800 }
-    },
     image: roomExecutive,
+    pricing: {
+      single: { bed_breakfast: 9600, half_board: 11600, full_board: 13600 },
+      double: { bed_breakfast: 12600, half_board: 16600, full_board: 20600 },
+      twin: { bed_breakfast: 6800, half_board: 8800, full_board: 10800 }
+    },
     features: [
       {
         icon: Bed,
@@ -144,12 +156,12 @@ const roomTypes = [
     id: "executive",
     name: "Executive Room",
     priceRange: "From KES 13,400",
-    priceDetails: {
-      single: { bb: 13400, hb: 15400, fb: 17400 },
-      double: { bb: 16900, hb: 20900, fb: 24900 },
-      twin: null
-    },
     image: roomPresidential,
+    pricing: {
+      single: { bed_breakfast: 13400, half_board: 15400, full_board: 17400 },
+      double: { bed_breakfast: 16900, half_board: 20900, full_board: 24900 },
+      twin: { bed_breakfast: 0, half_board: 0, full_board: 0 } // No twin option for executive
+    },
     features: [
       {
         icon: Bed,
@@ -213,13 +225,30 @@ const roomTypes = [
   }
 ];
 
+// Labels for displaying meal plan options in the UI.
+const mealPlanLabels = {
+  bed_breakfast: "Bed & Breakfast",
+  half_board: "Half Board",
+  full_board: "Full Board"
+};
+
+// Labels for displaying room configuration options in the UI.
+const roomConfigLabels = {
+  single: "Single Room",
+  double: "Double Room",
+  twin: "Twin Room (per person)"
+};
+
+
 const RoomFeatures = () => {
   const { roomNumber } = useParams<{ roomNumber: string }>();
   const navigate = useNavigate();
   const [roomImages, setRoomImages] = useState<string[]>([]);
-  const [selectedRoom, setSelectedRoom] = useState<(typeof roomTypes)[0] | null>(null);
+  const [selectedRoom, setSelectedRoom] = useState<(typeof roomTypes)[0] & { pricing: RoomPricing } | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [showBookingModal, setShowBookingModal] = useState(false);
+  const [bookingStep, setBookingStep] = useState(1);
+
   const [bookingData, setBookingData] = useState({
     checkIn: "",
     checkOut: "",
@@ -243,7 +272,7 @@ const RoomFeatures = () => {
       const roomCategory = getRoomCategory(parseInt(roomNumber || "0"));
       const roomType = roomTypes.find(r => r.id === roomCategory);
       if (roomType) {
-        setSelectedRoom(roomType);
+        setSelectedRoom(roomType as (typeof roomTypes)[0] & { pricing: RoomPricing });
         setRoomImages([roomType.image, roomType.image, roomType.image]); // Use same image 3 times for demo
       }
       setIsLoading(false);
@@ -258,11 +287,8 @@ const RoomFeatures = () => {
   };
 
   const handleBookNow = () => {
+    setBookingStep(1);
     setShowBookingModal(true);
-  };
-
-  const handleProceedToBookingConfig = () => {
-    navigate(`/booking?roomNumber=${roomNumber}&roomType=${selectedRoom?.id}&step=3`);
   };
 
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -283,11 +309,29 @@ const RoomFeatures = () => {
     console.log("Booking submitted:", {
       room: selectedRoom,
       roomNumber,
+      bookingDetails: bookingData,
+      totalPrice,
       guestData
     });
     alert("Booking submitted successfully! We will contact you shortly.");
     setShowBookingModal(false);
   };
+
+  const nights = bookingData.checkIn && bookingData.checkOut
+    ? Math.ceil((new Date(bookingData.checkOut).getTime() - new Date(bookingData.checkIn).getTime()) / (1000 * 60 * 60 * 24))
+    : 0;
+
+  const getRoomPrice = () => {
+    if (!selectedRoom) return 0;
+    const basePrice = selectedRoom.pricing[bookingData.roomConfig][bookingData.mealPlan];
+    if (bookingData.roomConfig === "twin") {
+      return basePrice * bookingData.guests;
+    }
+    return basePrice;
+  };
+
+  const totalPrice = getRoomPrice() * nights * bookingData.numberOfRooms;
+
 
   if (isLoading) {
     return (
@@ -515,22 +559,22 @@ const RoomFeatures = () => {
                       </div>
                       <div className="grid grid-cols-4 gap-1 text-muted-foreground">
                         <div>Single</div>
-                        <div className="text-right">{selectedRoom.priceDetails.single.bb.toLocaleString()}</div>
-                        <div className="text-right">{selectedRoom.priceDetails.single.hb.toLocaleString()}</div>
-                        <div className="text-right">{selectedRoom.priceDetails.single.fb.toLocaleString()}</div>
+                        <div className="text-right">{selectedRoom.pricing.single.bed_breakfast.toLocaleString()}</div>
+                        <div className="text-right">{selectedRoom.pricing.single.half_board.toLocaleString()}</div>
+                        <div className="text-right">{selectedRoom.pricing.single.full_board.toLocaleString()}</div>
                       </div>
                       <div className="grid grid-cols-4 gap-1 text-muted-foreground">
                         <div>Double</div>
-                        <div className="text-right">{selectedRoom.priceDetails.double.bb.toLocaleString()}</div>
-                        <div className="text-right">{selectedRoom.priceDetails.double.hb.toLocaleString()}</div>
-                        <div className="text-right">{selectedRoom.priceDetails.double.fb.toLocaleString()}</div>
+                        <div className="text-right">{selectedRoom.pricing.double.bed_breakfast.toLocaleString()}</div>
+                        <div className="text-right">{selectedRoom.pricing.double.half_board.toLocaleString()}</div>
+                        <div className="text-right">{selectedRoom.pricing.double.full_board.toLocaleString()}</div>
                       </div>
-                      {selectedRoom.priceDetails.twin && (
+                      {selectedRoom.id !== "executive" && (
                         <div className="grid grid-cols-4 gap-1 text-muted-foreground">
                           <div>Twin</div>
-                          <div className="text-right">{selectedRoom.priceDetails.twin.bb.toLocaleString()}</div>
-                          <div className="text-right">{selectedRoom.priceDetails.twin.hb.toLocaleString()}</div>
-                          <div className="text-right">{selectedRoom.priceDetails.twin.fb.toLocaleString()}</div>
+                          <div className="text-right">{selectedRoom.pricing.twin.bed_breakfast.toLocaleString()}</div>
+                          <div className="text-right">{selectedRoom.pricing.twin.half_board.toLocaleString()}</div>
+                          <div className="text-right">{selectedRoom.pricing.twin.full_board.toLocaleString()}</div>
                         </div>
                       )}
                     </div>
@@ -586,14 +630,14 @@ const RoomFeatures = () => {
               initial={{ scale: 0.9, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.9, opacity: 0 }}
-              className="bg-background rounded-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto"
+              className="bg-background rounded-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto"
               onClick={(e) => e.stopPropagation()}
             >
               {/* Modal Header */}
               <div className="p-6 border-b sticky top-0 bg-background z-10">
                 <div className="flex items-center justify-between">
                   <div>
-                    <h2 className="font-heading text-2xl font-bold text-foreground">Guest Details</h2>
+                    <h2 className="font-heading text-2xl font-bold text-foreground">Complete Your Booking</h2>
                     <p className="text-sm text-muted-foreground mt-1">
                       {selectedRoom.name} - Room {roomNumber}
                     </p>
@@ -605,118 +649,149 @@ const RoomFeatures = () => {
                     <X className="h-6 w-6" />
                   </button>
                 </div>
-              </div>
-
-              {/* Modal Content - Guest Details Form */}
-              <div className="p-6 space-y-6">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div>
-                    <label className="block text-sm font-medium text-foreground mb-2">First Name *</label>
-                    <input
-                      type="text"
-                      required
-                      value={guestData.firstName}
-                      onChange={(e) => setGuestData({ ...guestData, firstName: e.target.value })}
-                      className="w-full px-4 py-2 border border-border rounded-lg focus:ring-2 focus:ring-accent focus:border-transparent"
-                      placeholder="Enter your first name"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-foreground mb-2">Last Name *</label>
-                    <input
-                      type="text"
-                      required
-                      value={guestData.lastName}
-                      onChange={(e) => setGuestData({ ...guestData, lastName: e.target.value })}
-                      className="w-full px-4 py-2 border border-border rounded-lg focus:ring-2 focus:ring-accent focus:border-transparent"
-                      placeholder="Enter your last name"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-foreground mb-2">Email *</label>
-                    <input
-                      type="email"
-                      required
-                      value={guestData.email}
-                      onChange={(e) => setGuestData({ ...guestData, email: e.target.value })}
-                      className="w-full px-4 py-2 border border-border rounded-lg focus:ring-2 focus:ring-accent focus:border-transparent"
-                      placeholder="your.email@example.com"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-foreground mb-2">Phone *</label>
-                    <input
-                      type="tel"
-                      required
-                      value={guestData.phone}
-                      onChange={(e) => setGuestData({ ...guestData, phone: e.target.value })}
-                      className="w-full px-4 py-2 border border-border rounded-lg focus:ring-2 focus:ring-accent focus:border-transparent"
-                      placeholder="+254 XXX XXX XXX"
-                    />
-                  </div>
-                  <div className="md:col-span-2">
-                    <label className="block text-sm font-medium text-foreground mb-2">Special Requests (Optional)</label>
-                    <textarea
-                      value={guestData.specialRequests}
-                      onChange={(e) => setGuestData({ ...guestData, specialRequests: e.target.value })}
-                      rows={4}
-                      className="w-full px-4 py-2 border border-border rounded-lg focus:ring-2 focus:ring-accent focus:border-transparent"
-                      placeholder="Any special requirements or requests..."
-                    />
-                  </div>
-                  <div className="md:col-span-2">
-                    <label className="block text-sm font-medium text-foreground mb-2">ID Card/Passport (Optional)</label>
-                    <input
-                      type="file"
-                      accept="image/*,.pdf"
-                      onChange={handleFileUpload}
-                      className="w-full px-4 py-2 border border-border rounded-lg focus:ring-2 focus:ring-accent focus:border-transparent"
-                    />
-                  </div>
-                </div>
-
-                {/* Room Summary */}
-                <div className="bg-accent/10 p-6 rounded-lg">
-                  <h3 className="font-semibold text-foreground mb-4">Booking Summary</h3>
-                  <div className="space-y-2 text-sm">
-                    <div className="flex justify-between">
-                      <span className="text-muted-foreground">Room Type:</span>
-                      <span className="font-semibold">{selectedRoom.name}</span>
+                <div className="flex items-center gap-4 mt-4">
+                  {[1, 2].map((step) => (
+                    <div key={step} className="flex items-center gap-2">
+                      <div className={`w-8 h-8 rounded-full flex items-center justify-center font-bold ${bookingStep === step ? 'bg-accent text-accent-foreground' : 'bg-muted'}`}>
+                        {step}
+                      </div>
+                      <span className={`font-semibold ${bookingStep === step ? 'text-foreground' : 'text-muted-foreground'}`}>
+                        {step === 1 ? 'Configuration' : 'Guest Details'}
+                      </span>
                     </div>
-                    <div className="flex justify-between">
-                      <span className="text-muted-foreground">Room Number:</span>
-                      <span className="font-semibold">{roomNumber}</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-muted-foreground">Starting From:</span>
-                      <span className="font-semibold text-accent">{selectedRoom.priceRange}</span>
-                    </div>
-                  </div>
-                  <p className="text-xs text-muted-foreground mt-4 italic">
-                    * Final pricing will be confirmed based on your selected dates, room configuration, and meal plan.
-                  </p>
+                  ))}
                 </div>
               </div>
 
-              {/* Modal Footer */}
-              <div className="p-6 border-t bg-secondary/50">
-                <div className="flex gap-4">
-                  <Button
-                    variant="outline"
-                    onClick={() => setShowBookingModal(false)}
-                    className="flex-1"
+              <AnimatePresence mode="wait">
+                {/* Step 1: Configuration */}
+                {bookingStep === 1 && (
+                  <motion.div
+                    key="step1"
+                    initial={{ opacity: 0, x: 20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    exit={{ opacity: 0, x: -20 }}
+                    className="p-6 space-y-6"
                   >
-                    Cancel
-                  </Button>
-                  <Button
-                    variant="gold"
-                    onClick={handleSubmitBooking}
-                    className="flex-1"
+                    {/* Date Selection */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      <div>
+                        <label className="block text-sm font-medium text-foreground mb-2">Check-in Date</label>
+                        <input
+                          type="date"
+                          required
+                          value={bookingData.checkIn}
+                          onChange={(e) => setBookingData({ ...bookingData, checkIn: e.target.value })}
+                          className="w-full px-4 py-2 border border-border rounded-lg"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-foreground mb-2">Check-out Date</label>
+                        <input
+                          type="date"
+                          required
+                          value={bookingData.checkOut}
+                          onChange={(e) => setBookingData({ ...bookingData, checkOut: e.target.value })}
+                          className="w-full px-4 py-2 border border-border rounded-lg"
+                        />
+                      </div>
+                    </div>
+
+                    {/* Room Configuration */}
+                    <div>
+                      <h3 className="font-semibold text-foreground mb-4">Room Configuration</h3>
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        {(Object.keys(roomConfigLabels) as RoomConfig[]).map((config) => {
+                          if (selectedRoom.id === "executive" && config === "twin") return null;
+                          return (
+                            <div
+                              key={config}
+                              onClick={() => setBookingData({ ...bookingData, roomConfig: config })}
+                              className={`cursor-pointer p-4 rounded-lg border-2 ${bookingData.roomConfig === config ? 'border-accent' : 'border-border'}`}
+                            >
+                              {roomConfigLabels[config]}
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+
+                    {/* Meal Plan */}
+                    <div>
+                      <h3 className="font-semibold text-foreground mb-4">Meal Plan</h3>
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        {(Object.keys(mealPlanLabels) as MealPlan[]).map((plan) => (
+                          <div
+                            key={plan}
+                            onClick={() => setBookingData({ ...bookingData, mealPlan: plan })}
+                            className={`cursor-pointer p-4 rounded-lg border-2 ${bookingData.mealPlan === plan ? 'border-accent' : 'border-border'}`}
+                          >
+                            <p>{mealPlanLabels[plan]}</p>
+                            <p className="font-bold">KES {selectedRoom.pricing[bookingData.roomConfig][plan].toLocaleString()}</p>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                    
+                    {/* Total Price */}
+                    {nights > 0 && (
+                      <div className="bg-accent/10 p-4 rounded-lg text-right">
+                        <p className="text-muted-foreground">
+                          {getRoomPrice().toLocaleString()} KES/night x {nights} night(s)
+                        </p>
+                        <p className="text-2xl font-bold text-foreground">
+                          Total: KES {totalPrice.toLocaleString()}
+                        </p>
+                      </div>
+                    )}
+                    
+                    <div className="flex justify-end gap-4 pt-6 border-t">
+                      <Button variant="outline" onClick={() => setShowBookingModal(false)}>Cancel</Button>
+                      <Button variant="gold" onClick={() => setBookingStep(2)} disabled={!bookingData.checkIn || !bookingData.checkOut}>
+                        Continue
+                      </Button>
+                    </div>
+                  </motion.div>
+                )}
+
+                {/* Step 2: Guest Details */}
+                {bookingStep === 2 && (
+                  <motion.div
+                    key="step2"
+                    initial={{ opacity: 0, x: 20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    exit={{ opacity: 0, x: -20 }}
+                    className="p-6 space-y-6"
                   >
-                    Submit Booking
-                  </Button>
-                </div>
-              </div>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      <div>
+                        <label className="block text-sm font-medium text-foreground mb-2">First Name *</label>
+                        <input type="text" required value={guestData.firstName} onChange={(e) => setGuestData({ ...guestData, firstName: e.target.value })} className="w-full px-4 py-2 border border-border rounded-lg" />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-foreground mb-2">Last Name *</label>
+                        <input type="text" required value={guestData.lastName} onChange={(e) => setGuestData({ ...guestData, lastName: e.target.value })} className="w-full px-4 py-2 border border-border rounded-lg" />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-foreground mb-2">Email *</label>
+                        <input type="email" required value={guestData.email} onChange={(e) => setGuestData({ ...guestData, email: e.target.value })} className="w-full px-4 py-2 border border-border rounded-lg" />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-foreground mb-2">Phone *</label>
+                        <input type="tel" required value={guestData.phone} onChange={(e) => setGuestData({ ...guestData, phone: e.target.value })} className="w-full px-4 py-2 border border-border rounded-lg" />
+                      </div>
+                      <div className="md:col-span-2">
+                        <label className="block text-sm font-medium text-foreground mb-2">Special Requests</label>
+                        <textarea value={guestData.specialRequests} onChange={(e) => setGuestData({ ...guestData, specialRequests: e.target.value })} rows={3} className="w-full px-4 py-2 border border-border rounded-lg" />
+                      </div>
+                    </div>
+                    <div className="flex justify-between gap-4 pt-6 border-t">
+                      <Button variant="outline" onClick={() => setBookingStep(1)}>Back</Button>
+                      <Button variant="gold" onClick={handleSubmitBooking}>Confirm Booking</Button>
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
             </motion.div>
           </motion.div>
         )}
