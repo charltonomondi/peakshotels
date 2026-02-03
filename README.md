@@ -59,6 +59,55 @@ This project is built with:
 - React
 - shadcn-ui
 - Tailwind CSS
+- Express (Backend API)
+- Nodemailer (Email service)
+
+## Running the Application
+
+### Frontend Only
+```sh
+npm install
+npm run dev
+```
+
+### Full Setup (Frontend + Backend)
+
+1. **Install frontend dependencies:**
+```sh
+npm install
+```
+
+2. **Install backend dependencies:**
+```sh
+cd server
+npm install
+cd ..
+```
+
+3. **Start the backend server** (in one terminal):
+```sh
+cd server
+npm start
+```
+
+4. **Start the frontend** (in another terminal):
+```sh
+npm run dev
+```
+
+The frontend will run on `http://localhost:8080` and the backend API on `http://localhost:3001`.
+
+## Booking Email Feature
+
+The booking system sends confirmation emails via SMTP (Gmail) when a guest completes a booking. The email includes:
+- Hotel branding
+- Guest details
+- Room information
+- Booking dates
+- Amount payable
+- Attached passport/ID documents
+
+See `server/README.md` for backend API details.
 
 ## How can I deploy this project?
 

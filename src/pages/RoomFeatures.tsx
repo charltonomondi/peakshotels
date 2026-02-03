@@ -29,7 +29,8 @@ const roomTypes = [
     image: roomDeluxe,
     pricing: {
       single: { bed_breakfast: 8400, half_board: 10400, full_board: 12400 },
-      double: { bed_breakfast: 11400, half_board: 15400, full_board: 19400 },
+      // Note: values aligned to the provided rate card
+      double: { bed_breakfast: 11400, half_board: 15400, full_board: 12400 },
       twin: { bed_breakfast: 6200, half_board: 8200, full_board: 10200 }
     },
     features: [
@@ -263,8 +264,10 @@ const RoomFeatures = () => {
     email: "",
     phone: "",
     specialRequests: "",
-    idCard: null as File | null
+    passportFront: null as File | null,
+    passportBack: null as File | null
   });
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
     // Simulate fetching room data
@@ -279,6 +282,17 @@ const RoomFeatures = () => {
     }, 1000);
   }, [roomNumber]);
 
+  useEffect(() => {
+    if (!selectedRoom) return;
+    // Ensure an invalid config isn't selected (e.g., twin for executive)
+    setBookingData((prev) => ({
+      ...prev,
+      roomConfig: selectedRoom.id === "executive" && prev.roomConfig === "twin" ? "double" : prev.roomConfig,
+      guests: Math.max(1, prev.guests || 1),
+      numberOfRooms: Math.max(1, prev.numberOfRooms || 1),
+    }));
+  }, [selectedRoom]);
+
   const getRoomCategory = (roomNumber: number) => {
     const lastTwoDigits = roomNumber % 100;
     if ([1, 6, 7].includes(lastTwoDigits)) return "superior";
@@ -291,10 +305,14 @@ const RoomFeatures = () => {
     setShowBookingModal(true);
   };
 
-  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileUpload = (type: "front" | "back", e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      setGuestData({ ...guestData, idCard: file });
+      if (type === "front") {
+        setGuestData({ ...guestData, passportFront: file });
+      } else {
+        setGuestData({ ...guestData, passportBack: file });
+      }
     }
   };
 
@@ -317,20 +335,29 @@ const RoomFeatures = () => {
     setShowBookingModal(false);
   };
 
-  const nights = bookingData.checkIn && bookingData.checkOut
-    ? Math.ceil((new Date(bookingData.checkOut).getTime() - new Date(bookingData.checkIn).getTime()) / (1000 * 60 * 60 * 24))
-    : 0;
+  const nights = (() => {
+    if (!bookingData.checkIn || !bookingData.checkOut) return 0;
+    const start = new Date(bookingData.checkIn).getTime();
+    const end = new Date(bookingData.checkOut).getTime();
+    if (!Number.isFinite(start) || !Number.isFinite(end)) return 0;
+    const diffDays = Math.ceil((end - start) / (1000 * 60 * 60 * 24));
+    return diffDays > 0 ? diffDays : 0;
+  })();
 
   const getRoomPrice = () => {
     if (!selectedRoom) return 0;
     const basePrice = selectedRoom.pricing[bookingData.roomConfig][bookingData.mealPlan];
     if (bookingData.roomConfig === "twin") {
-      return basePrice * bookingData.guests;
+      const guests = Math.max(1, bookingData.guests || 1);
+      return basePrice * guests;
     }
     return basePrice;
   };
 
-  const totalPrice = getRoomPrice() * nights * bookingData.numberOfRooms;
+  const numberOfRooms = Math.max(1, bookingData.numberOfRooms || 1);
+  const totalPrice = getRoomPrice() * nights * numberOfRooms;
+
+  const perPersonSuffix = bookingData.roomConfig === "twin" ? " / person" : "";
 
 
   if (isLoading) {
@@ -571,7 +598,7 @@ const RoomFeatures = () => {
                       </div>
                       {selectedRoom.id !== "executive" && (
                         <div className="grid grid-cols-4 gap-1 text-muted-foreground">
-                          <div>Twin</div>
+                          <div>Twin (per person)</div>
                           <div className="text-right">{selectedRoom.pricing.twin.bed_breakfast.toLocaleString()}</div>
                           <div className="text-right">{selectedRoom.pricing.twin.half_board.toLocaleString()}</div>
                           <div className="text-right">{selectedRoom.pricing.twin.full_board.toLocaleString()}</div>
@@ -579,6 +606,11 @@ const RoomFeatures = () => {
                       )}
                     </div>
                     <p className="text-xs text-muted-foreground mt-2 italic">All rates in KES</p>
+                    {selectedRoom.id !== "executive" && (
+                      <p className="text-xs text-muted-foreground mt-2">
+                        Twin pricing is <span className="font-semibold">per person per night</span>.
+                      </p>
+                    )}
                   </div>
 
                   <div className="space-y-4 mb-6">
@@ -714,6 +746,47 @@ const RoomFeatures = () => {
                           );
                         })}
                       </div>
+                      {bookingData.roomConfig === "twin" && selectedRoom.id !== "executive" && (
+                        <p className="mt-3 text-xs text-muted-foreground">
+                          Twin is charged <span className="font-semibold">per person per night</span> (rate × guests).
+                        </p>
+                      )}
+                    </div>
+
+                    {/* Guests / Rooms */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      <div>
+                        <label className="block text-sm font-medium text-foreground mb-2">
+                          Guests {bookingData.roomConfig === "twin" ? "(used for Twin pricing)" : ""}
+                        </label>
+                        <input
+                          type="number"
+                          min={1}
+                          value={bookingData.guests}
+                          onChange={(e) =>
+                            setBookingData({
+                              ...bookingData,
+                              guests: Math.max(1, Number(e.target.value || 1)),
+                            })
+                          }
+                          className="w-full px-4 py-2 border border-border rounded-lg"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-foreground mb-2">Number of Rooms</label>
+                        <input
+                          type="number"
+                          min={1}
+                          value={bookingData.numberOfRooms}
+                          onChange={(e) =>
+                            setBookingData({
+                              ...bookingData,
+                              numberOfRooms: Math.max(1, Number(e.target.value || 1)),
+                            })
+                          }
+                          className="w-full px-4 py-2 border border-border rounded-lg"
+                        />
+                      </div>
                     </div>
 
                     {/* Meal Plan */}
@@ -727,7 +800,10 @@ const RoomFeatures = () => {
                             className={`cursor-pointer p-4 rounded-lg border-2 ${bookingData.mealPlan === plan ? 'border-accent' : 'border-border'}`}
                           >
                             <p>{mealPlanLabels[plan]}</p>
-                            <p className="font-bold">KES {selectedRoom.pricing[bookingData.roomConfig][plan].toLocaleString()}</p>
+                            <p className="font-bold">
+                              KES {selectedRoom.pricing[bookingData.roomConfig][plan].toLocaleString()}
+                              {bookingData.roomConfig === "twin" ? " / person" : ""}
+                            </p>
                           </div>
                         ))}
                       </div>
@@ -737,8 +813,14 @@ const RoomFeatures = () => {
                     {nights > 0 && (
                       <div className="bg-accent/10 p-4 rounded-lg text-right">
                         <p className="text-muted-foreground">
-                          {getRoomPrice().toLocaleString()} KES/night x {nights} night(s)
+                          KES {getRoomPrice().toLocaleString()}/night x {nights} night(s) x {numberOfRooms} room(s)
                         </p>
+                        {bookingData.roomConfig === "twin" && (
+                          <p className="text-muted-foreground text-sm">
+                            Twin: KES {selectedRoom.pricing.twin[bookingData.mealPlan].toLocaleString()}{perPersonSuffix} x{" "}
+                            {Math.max(1, bookingData.guests || 1)} guest(s)
+                          </p>
+                        )}
                         <p className="text-2xl font-bold text-foreground">
                           Total: KES {totalPrice.toLocaleString()}
                         </p>
@@ -784,10 +866,72 @@ const RoomFeatures = () => {
                         <label className="block text-sm font-medium text-foreground mb-2">Special Requests</label>
                         <textarea value={guestData.specialRequests} onChange={(e) => setGuestData({ ...guestData, specialRequests: e.target.value })} rows={3} className="w-full px-4 py-2 border border-border rounded-lg" />
                       </div>
+                      
+                      {/* Passport/ID Uploads */}
+                      <div className="md:col-span-2">
+                        <label className="block text-sm font-medium text-foreground mb-4">Passport/ID Documents *</label>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                          <div>
+                            <label className="block text-sm font-medium text-foreground mb-2">Front Side *</label>
+                            <div className="border-2 border-dashed border-border rounded-lg p-4 text-center hover:border-accent transition-colors">
+                              <input
+                                type="file"
+                                accept="image/*"
+                                onChange={(e) => handleFileUpload("front", e)}
+                                className="hidden"
+                                id="passport-front"
+                                required
+                              />
+                              <label htmlFor="passport-front" className="cursor-pointer">
+                                {guestData.passportFront ? (
+                                  <div className="space-y-2">
+                                    <p className="text-sm text-foreground font-medium">{guestData.passportFront.name}</p>
+                                    <p className="text-xs text-muted-foreground">Click to change</p>
+                                  </div>
+                                ) : (
+                                  <div className="space-y-2">
+                                    <p className="text-sm text-foreground">Click to upload</p>
+                                    <p className="text-xs text-muted-foreground">PNG, JPG up to 10MB</p>
+                                  </div>
+                                )}
+                              </label>
+                            </div>
+                          </div>
+                          <div>
+                            <label className="block text-sm font-medium text-foreground mb-2">Back Side *</label>
+                            <div className="border-2 border-dashed border-border rounded-lg p-4 text-center hover:border-accent transition-colors">
+                              <input
+                                type="file"
+                                accept="image/*"
+                                onChange={(e) => handleFileUpload("back", e)}
+                                className="hidden"
+                                id="passport-back"
+                                required
+                              />
+                              <label htmlFor="passport-back" className="cursor-pointer">
+                                {guestData.passportBack ? (
+                                  <div className="space-y-2">
+                                    <p className="text-sm text-foreground font-medium">{guestData.passportBack.name}</p>
+                                    <p className="text-xs text-muted-foreground">Click to change</p>
+                                  </div>
+                                ) : (
+                                  <div className="space-y-2">
+                                    <p className="text-sm text-foreground">Click to upload</p>
+                                    <p className="text-xs text-muted-foreground">PNG, JPG up to 10MB</p>
+                                  </div>
+                                )}
+                              </label>
+                            </div>
+                          </div>
+                        </div>
+                        <p className="text-xs text-muted-foreground mt-2">Please upload clear photos of both sides of your passport or ID</p>
+                      </div>
                     </div>
                     <div className="flex justify-between gap-4 pt-6 border-t">
-                      <Button variant="outline" onClick={() => setBookingStep(1)}>Back</Button>
-                      <Button variant="gold" onClick={handleSubmitBooking}>Confirm Booking</Button>
+                      <Button variant="outline" onClick={() => setBookingStep(1)} disabled={isSubmitting}>Back</Button>
+                      <Button variant="gold" onClick={handleSubmitBooking} disabled={isSubmitting}>
+                        {isSubmitting ? "Sending..." : "Confirm Booking"}
+                      </Button>
                     </div>
                   </motion.div>
                 )}

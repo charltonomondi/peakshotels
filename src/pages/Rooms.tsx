@@ -18,7 +18,8 @@ const rooms = [
     priceRange: "From KES 8,400",
     priceDetails: {
       single: { bb: 8400, hb: 10400, fb: 12400 },
-      double: { bb: 11400, hb: 15400, fb: 19400 },
+      // Note: values aligned to the provided rate card
+      double: { bb: 11400, hb: 15400, fb: 12400 },
       twin: { bb: 6200, hb: 8200, fb: 10200 }
     },
     size: "35 sqm",

@@ -117,8 +117,7 @@ const Booking = () => {
     email: "",
     phone: "",
     specialRequests: "",
-    idCard: null as File | null,
-  });
+      });
 
   useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search);
@@ -170,21 +169,46 @@ const Booking = () => {
     navigate(`/room-features/${roomNumber}`);
   };
 
-  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      setFormData({ ...formData, idCard: file });
-    }
-  };
-
-  const handleSubmit = (e: React.FormEvent) => {
+  
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (step < 5) {
       setStep(step + 1);
-    } else {
-      // Handle final submission
-      console.log("Booking submitted:", formData);
-      alert("Booking submitted successfully!");
+      return;
+    }
+
+    try {
+      const payload = {
+        firstName: formData.firstName,
+        lastName: formData.lastName,
+        email: formData.email,
+        phone: formData.phone,
+        specialRequests: formData.specialRequests,
+        roomNumber: formData.roomNumber,
+        roomType: selectedRoom?.name || formData.roomType,
+        roomCategory: formData.roomType,
+        roomConfig: formData.roomConfig,
+        mealPlan: formData.mealPlan,
+        checkIn: formData.checkIn,
+        checkOut: formData.checkOut,
+        guests: parseInt(formData.guests),
+        numberOfRooms: formData.rooms,
+        nights,
+        totalPrice,
+        perNightPrice: getRoomPrice(),
+      };
+
+      const resp = await fetch("http://localhost:3001/api/send-booking-email", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ ...payload, guests: String(payload.guests) }),
+      });
+      if (!resp.ok) throw new Error(`Email send failed (${resp.status})`);
+
+      alert("Booking confirmed and email sent to guest.");
+    } catch (err) {
+      console.error("Booking email error", err);
+      alert("Booking submitted, but failed to send email. Please contact the hotel.");
     }
   };
 
@@ -622,16 +646,7 @@ const Booking = () => {
                           className="w-full px-4 py-2 border border-border rounded-lg focus:ring-2 focus:ring-accent focus:border-transparent"
                         />
                       </div>
-                      <div className="md:col-span-2">
-                        <label className="block text-sm font-medium text-foreground mb-2">ID Card/Passport (Optional)</label>
-                        <input
-                          type="file"
-                          accept="image/*,.pdf"
-                          onChange={handleFileUpload}
-                          className="w-full px-4 py-2 border border-border rounded-lg focus:ring-2 focus:ring-accent focus:border-transparent"
-                        />
-                      </div>
-                    </div>
+                                          </div>
 
                     {/* Booking Summary */}
                     <div className="mt-8 bg-accent/10 p-6 rounded-lg">

@@ -1,9 +1,13 @@
 import { Link } from "react-router-dom";
+import { useState } from "react";
 import { MapPin, Phone, Mail, Clock, Facebook, Instagram, Twitter, Youtube } from "lucide-react";
 import logo from "@/assets/logo.jpeg";
 import footerBg from "@/assets/footer.jpg";
 
 const Footer = () => {
+  const [logoError, setLogoError] = useState(false);
+  const [logoLoading, setLogoLoading] = useState(true);
+
   return (
     <footer className="relative bg-primary text-primary-foreground" style={{ backgroundImage: `url(${footerBg})`, backgroundSize: 'cover', backgroundPosition: 'center' }}>
       <div className="absolute inset-0 bg-amber-900/80"></div>
@@ -12,7 +16,29 @@ const Footer = () => {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12">
           {/* Brand Column */}
           <div className="space-y-6">
-            <img src={logo} alt="Peaks Hotel" className="h-20 w-auto bg-background rounded-lg p-2" />
+            {logoError ? (
+              <div className="h-20 w-20 bg-background flex items-center justify-center rounded-lg p-2">
+                <span className="text-accent font-bold text-xl">PH</span>
+              </div>
+            ) : (
+              <img 
+                src={logo} 
+                alt="Peaks Hotel" 
+                className={`h-20 w-auto bg-background rounded-lg p-2 transition-opacity duration-300 ${logoLoading ? 'opacity-0' : 'opacity-100'}`}
+                onLoad={() => setLogoLoading(false)}
+                onError={() => {
+                  setLogoError(true);
+                  setLogoLoading(false);
+                }}
+                loading="lazy"
+                decoding="async"
+                width="80"
+                height="80"
+              />
+            )}
+            {logoLoading && !logoError && (
+              <div className="h-20 w-20 bg-background rounded-lg p-2 animate-pulse" />
+            )}
             <p className="text-primary-foreground/80 text-sm leading-relaxed">
               Experience unparalleled luxury at the foot of Mount Kenya. Peaks Hotel offers a perfect blend of African elegance and modern comfort.
             </p>

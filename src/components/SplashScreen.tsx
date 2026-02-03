@@ -8,6 +8,8 @@ interface SplashScreenProps {
 
 const SplashScreen = ({ onComplete }: SplashScreenProps) => {
   const [show, setShow] = useState(true);
+  const [logoError, setLogoError] = useState(false);
+  const [logoLoading, setLogoLoading] = useState(true);
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -40,11 +42,29 @@ const SplashScreen = ({ onComplete }: SplashScreenProps) => {
           className="mb-8"
         >
           <div className="relative w-32 h-32 mx-auto">
-            <img
-              src={logo}
-              alt="Peaks Hotel"
-              className="w-full h-full object-cover rounded-full shadow-2xl border-4 border-primary-foreground/20"
-            />
+            {logoError ? (
+              <div className="w-full h-full bg-primary-foreground/20 flex items-center justify-center rounded-full shadow-2xl border-4 border-primary-foreground/20">
+                <span className="text-primary-foreground font-bold text-3xl">PH</span>
+              </div>
+            ) : (
+              <img
+                src={logo}
+                alt="Peaks Hotel"
+                className={`w-full h-full object-cover rounded-full shadow-2xl border-4 border-primary-foreground/20 transition-opacity duration-300 ${logoLoading ? 'opacity-0' : 'opacity-100'}`}
+                onLoad={() => setLogoLoading(false)}
+                onError={() => {
+                  setLogoError(true);
+                  setLogoLoading(false);
+                }}
+                loading="eager"
+                decoding="async"
+                width="128"
+                height="128"
+              />
+            )}
+            {logoLoading && !logoError && (
+              <div className="absolute inset-0 bg-primary-foreground/10 rounded-full animate-pulse" />
+            )}
             <motion.div
               animate={{ rotate: 360 }}
               transition={{ duration: 2, repeat: Infinity, ease: "linear" }}

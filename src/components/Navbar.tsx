@@ -57,6 +57,8 @@ const languages = [
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [selectedLanguage, setSelectedLanguage] = useState(languages[0]);
+  const [logoError, setLogoError] = useState(false);
+  const [logoLoading, setLogoLoading] = useState(true);
   const location = useLocation();
 
   const renderNavItem = (item, index) => {
@@ -208,7 +210,29 @@ const Navbar = () => {
               className="relative h-32 pt-4 mt-6"
               style={{ clipPath: 'polygon(20% 0%, 80% 0%, 100% 100%, 0% 100%)' }}
             >
-              <img src={logo} alt="Peaks Hotel" className="h-32 w-auto object-cover" />
+              {logoError ? (
+                <div className="h-32 w-32 bg-accent/10 flex items-center justify-center rounded-lg">
+                  <span className="text-accent font-bold text-lg">PH</span>
+                </div>
+              ) : (
+                <img 
+                  src={logo} 
+                  alt="Peaks Hotel" 
+                  className={`h-32 w-auto object-cover transition-opacity duration-300 ${logoLoading ? 'opacity-0' : 'opacity-100'}`}
+                  onLoad={() => setLogoLoading(false)}
+                  onError={() => {
+                    setLogoError(true);
+                    setLogoLoading(false);
+                  }}
+                  loading="eager"
+                  decoding="async"
+                  width="128"
+                  height="128"
+                />
+              )}
+              {logoLoading && !logoError && (
+                <div className="absolute inset-0 bg-accent/5 animate-pulse rounded-lg" />
+              )}
             </div>
           </Link>
 
