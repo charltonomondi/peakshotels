@@ -1,7 +1,7 @@
 import { Link } from "react-router-dom";
 import { useState } from "react";
 import { MapPin, Phone, Mail, Clock, Facebook, Instagram, Twitter, Youtube } from "lucide-react";
-import logo from "@/assets/logo.jpeg";
+import logo from "/logo.jpeg";
 import footerBg from "@/assets/footer.jpg";
 
 const Footer = () => {

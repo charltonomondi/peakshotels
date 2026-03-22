@@ -1,6 +1,6 @@
 import { motion } from "framer-motion";
 import { useEffect, useState } from "react";
-import logo from "@/assets/logo.jpeg";
+import logo from "/logo.jpeg";
 
 interface SplashScreenProps {
   onComplete: () => void;

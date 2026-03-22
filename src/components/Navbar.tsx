@@ -12,7 +12,7 @@ import {
   DropdownMenuSubTrigger,
 } from "@/components/ui/dropdown-menu";
 import { motion, AnimatePresence } from "framer-motion";
-import logo from "@/assets/logo.jpeg";
+import logo from "/logo.jpeg";
 
 const navItems = [
   { name: "Home", path: "/" },

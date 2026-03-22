@@ -1,10 +1,37 @@
+import { useState, useMemo } from "react";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { CalendarDays, Users, ChevronDown } from "lucide-react";
 import poolVideo from "@/assets/video/Pool.mp4";
 
 const Hero = () => {
+  const navigate = useNavigate();
+  const todayStr = useMemo(() => new Date().toISOString().split("T")[0], []);
+  const [checkIn, setCheckIn] = useState<string>(todayStr);
+  const [checkOut, setCheckOut] = useState<string>(todayStr);
+  const [guests, setGuests] = useState<number>(2);
+
+  const handleCheckAvailability = () => {
+    if (!checkIn || !checkOut) return;
+    const inDate = new Date(checkIn);
+    const outDate = new Date(checkOut);
+    if (isNaN(inDate.getTime()) || isNaN(outDate.getTime())) return;
+    if (outDate <= inDate) {
+      // ensure at least one night
+      const next = new Date(inDate);
+      next.setDate(inDate.getDate() + 1);
+      setCheckOut(next.toISOString().split("T")[0]);
+      return;
+    }
+    const params = new URLSearchParams({
+      checkIn,
+      checkOut,
+      guests: String(guests),
+    }).toString();
+    navigate(`/booking?${params}`);
+  };
+
   return (
     <section className="relative min-h-[80vh] flex items-center justify-center overflow-hidden">
       
@@ -27,7 +54,7 @@ const Hero = () => {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6 }}
-            className="text-accent font-medium tracking-[0.3em] uppercase mb-6"n
+            className="text-accent font-medium tracking-[0.3em] uppercase mb-6"
           >
             Welcome to Peaks Hotel
           </motion.p>
@@ -81,6 +108,9 @@ const Hero = () => {
                 </label>
                 <input
                   type="date"
+                  value={checkIn}
+                  min={todayStr}
+                  onChange={(e) => setCheckIn(e.target.value)}
                   className="w-full px-4 py-3 border border-border rounded-lg bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-accent"
                 />
               </div>
@@ -91,6 +121,9 @@ const Hero = () => {
                 </label>
                 <input
                   type="date"
+                  value={checkOut}
+                  min={checkIn || todayStr}
+                  onChange={(e) => setCheckOut(e.target.value)}
                   className="w-full px-4 py-3 border border-border rounded-lg bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-accent"
                 />
               </div>
@@ -99,15 +132,19 @@ const Hero = () => {
                   <Users className="h-4 w-4" />
                   Guests
                 </label>
-                <select className="w-full px-4 py-3 border border-border rounded-lg bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-accent">
-                  <option>1 Guest</option>
-                  <option>2 Guests</option>
-                  <option>3 Guests</option>
-                  <option>4+ Guests</option>
+                <select
+                  value={guests}
+                  onChange={(e) => setGuests(Number(e.target.value))}
+                  className="w-full px-4 py-3 border border-border rounded-lg bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-accent"
+                >
+                  <option value={1}>1 Guest</option>
+                  <option value={2}>2 Guests</option>
+                  <option value={3}>3 Guests</option>
+                  <option value={4}>4+ Guests</option>
                 </select>
               </div>
               <div className="flex items-end">
-                <Button variant="gold" size="xl" className="w-full">
+                <Button variant="gold" size="xl" className="w-full" onClick={handleCheckAvailability}>
                   Check Availability
                 </Button>
               </div>

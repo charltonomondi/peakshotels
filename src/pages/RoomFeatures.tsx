@@ -4,10 +4,13 @@ import { motion, AnimatePresence } from "framer-motion";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { Button } from "@/components/ui/button";
-import { Bed, Wifi, Tv, Coffee, Utensils, Calendar, ArrowLeft, Shield, Wind, Music, Moon, Bath, UserCheck, Info, Star, X } from "lucide-react";
+import { Bed, Wifi, Tv, Coffee, Utensils, Calendar, ArrowLeft, Shield, Wind, Music, Moon, Bath, UserCheck, Info, Star, X, Smartphone, Building2, CreditCard as CardIcon } from "lucide-react";
 import roomDeluxe from "@/assets/bed.jpg";
 import roomExecutive from "@/assets/bed1.jpg";
 import roomPresidential from "@/assets/bed5.jpg";
+import MpesaPayment from "@/components/MpesaPayment";
+import PaystackPayment from "@/components/PaystackPayment";
+import BankTransferPayment from "@/components/BankTransferPayment";
 
 // Define the types for room configuration and meal plans to ensure type safety.
 type RoomConfig = "single" | "double" | "twin";
@@ -268,6 +271,8 @@ const RoomFeatures = () => {
     passportBack: null as File | null
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [paymentMethod, setPaymentMethod] = useState<"mpesa" | "paystack" | "bank_transfer">("mpesa");
+  const [paymentTrigger, setPaymentTrigger] = useState(0);
 
   useEffect(() => {
     // Simulate fetching room data
@@ -322,17 +327,17 @@ const RoomFeatures = () => {
       alert("Please fill in all required fields");
       return;
     }
-    
-    // Here you would typically send the booking data to your backend
-    console.log("Booking submitted:", {
-      room: selectedRoom,
-      roomNumber,
-      bookingDetails: bookingData,
-      totalPrice,
-      guestData
-    });
-    alert("Booking submitted successfully! We will contact you shortly.");
+    // proceed to payment method selection
+    setBookingStep(3);
+  };
+
+  const handlePaymentSuccess = (transactionCode: string) => {
+    alert("Payment successful! Reference: " + transactionCode);
     setShowBookingModal(false);
+  };
+
+  const handlePaymentError = (error: string) => {
+    alert("Payment failed: " + error);
   };
 
   const nights = (() => {
@@ -682,13 +687,13 @@ const RoomFeatures = () => {
                   </button>
                 </div>
                 <div className="flex items-center gap-4 mt-4">
-                  {[1, 2].map((step) => (
+                  {[1, 2, 3].map((step) => (
                     <div key={step} className="flex items-center gap-2">
                       <div className={`w-8 h-8 rounded-full flex items-center justify-center font-bold ${bookingStep === step ? 'bg-accent text-accent-foreground' : 'bg-muted'}`}>
                         {step}
                       </div>
                       <span className={`font-semibold ${bookingStep === step ? 'text-foreground' : 'text-muted-foreground'}`}>
-                        {step === 1 ? 'Configuration' : 'Guest Details'}
+                        {step === 1 ? 'Configuration' : step === 2 ? 'Guest Details' : 'Payment Method'}
                       </span>
                     </div>
                   ))}
@@ -930,12 +935,127 @@ const RoomFeatures = () => {
                     <div className="flex justify-between gap-4 pt-6 border-t">
                       <Button variant="outline" onClick={() => setBookingStep(1)} disabled={isSubmitting}>Back</Button>
                       <Button variant="gold" onClick={handleSubmitBooking} disabled={isSubmitting}>
-                        {isSubmitting ? "Sending..." : "Confirm Booking"}
+                        {isSubmitting ? "Processing..." : "Continue to Payment"}
                       </Button>
                     </div>
                   </motion.div>
                 )}
               </AnimatePresence>
+
+              {/* Step 3: Payment Method and Payment */}
+              {bookingStep === 3 && (
+                <motion.div
+                  key="step3"
+                  initial={{ opacity: 0, x: 20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: -20 }}
+                  className="p-6 space-y-6"
+                >
+                  <h3 className="font-semibold text-foreground">Choose your mode of payment</h3>
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <label className={`cursor-pointer p-4 rounded-lg border-2 ${paymentMethod === 'mpesa' ? 'border-accent bg-accent/5' : 'border-border hover:border-accent/50'}`}> 
+                      <div className="flex items-center gap-3">
+                        <input
+                          type="radio"
+                          name="paymentMethod"
+                          value="mpesa"
+                          checked={paymentMethod === 'mpesa'}
+                          onChange={() => setPaymentMethod('mpesa')}
+                        />
+                        <Smartphone className="h-5 w-5 text-accent" />
+                        <span className="font-semibold">M-Pesa</span>
+                      </div>
+                      <p className="text-xs text-muted-foreground mt-1">Instant STK push to your phone</p>
+                    </label>
+
+                    <label className={`cursor-pointer p-4 rounded-lg border-2 ${paymentMethod === 'paystack' ? 'border-accent bg-accent/5' : 'border-border hover:border-accent/50'}`}>
+                      <div className="flex items-center gap-3">
+                        <input
+                          type="radio"
+                          name="paymentMethod"
+                          value="paystack"
+                          checked={paymentMethod === 'paystack'}
+                          onChange={() => setPaymentMethod('paystack')}
+                        />
+                        <CardIcon className="h-5 w-5 text-accent" />
+                        <span className="font-semibold">Visa / Card</span>
+                      </div>
+                      <p className="text-xs text-muted-foreground mt-1">Pay with Visa, Mastercard, etc.</p>
+                    </label>
+
+                    <label className={`cursor-pointer p-4 rounded-lg border-2 ${paymentMethod === 'bank_transfer' ? 'border-accent bg-accent/5' : 'border-border hover:border-accent/50'}`}>
+                      <div className="flex items-center gap-3">
+                        <input
+                          type="radio"
+                          name="paymentMethod"
+                          value="bank_transfer"
+                          checked={paymentMethod === 'bank_transfer'}
+                          onChange={() => setPaymentMethod('bank_transfer')}
+                        />
+                        <Building2 className="h-5 w-5 text-accent" />
+                        <span className="font-semibold">Bank Transfer</span>
+                      </div>
+                      <p className="text-xs text-muted-foreground mt-1">Transfer directly from your bank</p>
+                    </label>
+                  </div>
+
+                  {/* Payment widgets */}
+                  <div>
+                    {paymentMethod === 'mpesa' && (
+                      <MpesaPayment
+                        email={guestData.email}
+                        phone={guestData.phone}
+                        amount={totalPrice}
+                        onSuccess={handlePaymentSuccess}
+                        onError={handlePaymentError}
+                        triggerPayment={paymentTrigger}
+                      />
+                    )}
+                    {paymentMethod === 'paystack' && (
+                      <PaystackPayment
+                        email={guestData.email}
+                        phone={guestData.phone}
+                        amount={totalPrice}
+                        onSuccess={handlePaymentSuccess}
+                        onError={handlePaymentError}
+                      />
+                    )}
+                    {paymentMethod === 'bank_transfer' && (
+                      <BankTransferPayment
+                        amount={totalPrice}
+                        onSuccess={handlePaymentSuccess}
+                        onError={handlePaymentError}
+                      />
+                    )}
+                  </div>
+
+                  {/* Summary and Actions */}
+                  <div className="bg-accent/10 p-4 rounded-lg">
+                    <div className="flex items-center justify-between">
+                      <span className="font-semibold text-foreground">Total Amount</span>
+                      <span className="font-bold text-accent text-xl">KES {totalPrice.toLocaleString()}</span>
+                    </div>
+                    <p className="text-xs text-muted-foreground mt-1">An STK push will be sent to {guestData.phone} for M-Pesa.</p>
+                  </div>
+
+                  <div className="flex justify-between gap-4 pt-6 border-t">
+                    <Button variant="outline" onClick={() => setBookingStep(2)}>Back</Button>
+                    <Button
+                      variant="gold"
+                      onClick={() => {
+                        if (paymentMethod === 'mpesa') {
+                          setPaymentTrigger((p) => p + 1);
+                        } else {
+                          // For other methods, rely on their internal buttons/flows
+                          alert('Follow the instructions in the selected payment box to complete payment.');
+                        }
+                      }}
+                    >
+                      Pay Now
+                    </Button>
+                  </div>
+                </motion.div>
+              )}
             </motion.div>
           </motion.div>
         )}

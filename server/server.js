@@ -1,11 +1,17 @@
 import express from "express";
 import nodemailer from "nodemailer";
 import cors from "cors";
+import axios from "axios";
 import path from "path";
 import { fileURLToPath } from "url";
+import crypto from "crypto";
+import dotenv from "dotenv";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
+
+// Load environment variables from server/.env
+dotenv.config({ path: path.join(__dirname, '.env') });
 
 const app = express();
 const PORT = 3001;
@@ -681,6 +687,280 @@ app.post("/api/test-email", async (req, res) => {
 });
 
 // Test SMTP connection on startup
+
+// ============================================
+// M-Pesa Daraja API 2.0 STK Push Implementation
+// ============================================
+
+// Helper function to generate Daraja API access token
+async function getDarajaAccessToken() {
+  try {
+    const consumerKey = process.env.MPESA_CONSUMER_KEY;
+    const consumerSecret = process.env.MPESA_CONSUMER_SECRET;
+    
+    if (!consumerKey || !consumerSecret) {
+      throw new Error("M-Pesa credentials not configured");
+    }
+    
+    const auth = Buffer.from(`${consumerKey}:${consumerSecret}`).toString('base64');
+    
+    // Use sandbox or production URL based on environment
+    const isSandbox = process.env.NODE_ENV !== 'production' || process.env.MPESA_USE_SANDBOX === 'true';
+    const baseUrl = isSandbox ? "https://sandbox.safaricom.co.ke" : "https://api.safaricom.co.ke";
+    
+    console.log(`Daraja Access Token - URL: ${baseUrl}/oauth/v1/generate?grant_type=client_credentials`);
+    
+    const response = await axios.get(
+      `${baseUrl}/oauth/v1/generate?grant_type=client_credentials`,
+      {
+        headers: {
+          "Authorization": `Basic ${auth}`
+        }
+      }
+    );
+    
+    console.log("Access token received");
+    return response.data.access_token;
+  } catch (error) {
+    console.error("Error getting Daraja access token:", error.response?.data || error.message);
+    throw new Error("Failed to get access token: " + (error.response?.data?.error || error.message));
+  }
+}
+
+// Helper function to generate STK push password
+function generateSTKPassword(shortcode, passkey, timestamp) {
+  return crypto.createHash('md5').update(shortcode + passkey + timestamp).digest('hex');
+}
+
+// M-Pesa STK Push endpoint (via Daraja API 2.0)
+app.post("/api/daraja/stk-push", async (req, res) => {
+  try {
+    const { phone, amount, email, firstName, lastName } = req.body;
+
+    if (!phone || !amount) {
+      return res.status(400).json({ success: false, message: "Phone and amount are required" });
+    }
+
+    // Format phone number to required format (2547XXXXXXXX)
+    const cleanPhone = phone.replace(/\D/g, "");
+    const formattedPhone = cleanPhone.startsWith("0")
+      ? "254" + cleanPhone.substring(1)
+      : cleanPhone.startsWith("254")
+      ? cleanPhone
+      : "254" + cleanPhone;
+
+    const shortcode = process.env.MPESA_SHORTCODE;
+    const passkey = process.env.MPESA_PASSKEY;
+    const callbackUrl = process.env.MPESA_CALLBACK_URL;
+
+    if (!shortcode || !passkey || !callbackUrl) {
+      return res.status(500).json({
+        success: false,
+        message: "M-Pesa Daraja configuration missing",
+        hint: "Check MPESA_SHORTCODE, MPESA_PASSKEY, and MPESA_CALLBACK_URL in .env"
+      });
+    }
+
+    // Get access token
+    const accessToken = await getDarajaAccessToken();
+
+    // Generate timestamp and password
+    const timestamp = new Date().toISOString().replace(/[-:T]/g, '').split('.')[0];
+    const stkPassword = generateSTKPassword(shortcode, passkey, timestamp);
+
+    // Generate unique transaction references
+    const transactionType = "CustomerPayBillOnline";
+    const accountReference = "PEAKS" + Date.now();
+    const transactionDesc = "Hotel Booking Payment - Peaks Hotel";
+
+    // STK Push request body
+    const stkRequest = {
+      BusinessShortCode: shortcode,
+      Password: stkPassword,
+      Timestamp: timestamp,
+      TransactionType: transactionType,
+      Amount: Math.round(amount),
+      PartyA: formattedPhone,
+      PartyB: shortcode,
+      PhoneNumber: formattedPhone,
+      CallBackURL: callbackUrl,
+      AccountReference: accountReference,
+      TransactionDesc: transactionDesc,
+      Remark: "Hotel Booking Payment"
+    };
+
+    console.log('Initiating Daraja STK push...');
+    console.log('   Phone:', formattedPhone);
+    console.log('   Amount:', amount);
+    console.log('   Account Ref:', accountReference);
+
+    // Use sandbox or production URL based on environment
+    const isSandbox = process.env.NODE_ENV !== 'production' || process.env.MPESA_USE_SANDBOX === 'true';
+    const baseUrl = isSandbox ? "https://sandbox.safaricom.co.ke" : "https://api.safaricom.co.ke";
+    
+    console.log(`STK Push - URL: ${baseUrl}/mpesa/stkpush/v1/processrequest`);
+
+    // Send STK push request
+    const response = await axios.post(
+      `${baseUrl}/mpesa/stkpush/v1/processrequest`,
+      stkRequest,
+      {
+        headers: {
+          "Authorization": `Bearer ${accessToken}`,
+          "Content-Type": "application/json"
+        }
+      }
+    );
+
+    console.log("Daraja STK Push initiated successfully:", response.data);
+
+    return res.json({
+      success: true,
+      message: "STK push sent! Please check your phone.",
+      checkoutRequestID: response.data.CheckoutRequestID,
+      merchantRequestID: response.data.MerchantRequestID,
+      responseCode: response.data.ResponseCode,
+      responseDescription: response.data.ResponseDescription
+    });
+  } catch (error) {
+    console.error("Daraja STK Push error:", error.response?.data || error.message || error);
+    
+    const errorMessage = error.response?.data?.errorMessage || error.response?.data?.ResponseDescription || error.message || "STK Push failed";
+    
+    return res.status(500).json({
+      success: false,
+      error: "STK Push failed",
+      details: errorMessage,
+      response: error.response?.data
+    });
+  }
+});
+
+// M-Pesa callback endpoint (for Daraja API webhooks)
+app.post("/api/mpesa/callback", async (req, res) => {
+  try {
+    const callbackData = req.body;
+    console.log("Daraja webhook received:", JSON.stringify(callbackData, null, 2));
+
+    // Extract callback data
+    const result = callbackData.Body?.stkCallback || callbackData;
+    
+    if (result.ResultCode === 0) {
+      // Payment successful
+      const checkoutRequestID = result.CheckoutRequestID;
+      const merchantRequestID = result.MerchantRequestID;
+      
+      // Extract payment details from callback
+      const callbackMetadata = result.CallbackMetadata?.Item || [];
+      let transactionCode = "";
+      let amount = "";
+      let phone = "";
+      let transactionDate = "";
+
+      callbackMetadata.forEach(item => {
+        if (item.Name === "MpesaReceiptNumber") {
+          transactionCode = item.Value;
+        } else if (item.Name === "Amount") {
+          amount = item.Value;
+        } else if (item.Name === "PhoneNumber") {
+          phone = item.Value;
+        } else if (item.Name === "TransactionDate") {
+          transactionDate = item.Value;
+        }
+      });
+
+      console.log(`M-Pesa payment successful: ${transactionCode} from ${phone} amount KES ${amount}`);
+
+      // Here you would typically:
+      // 1. Update the booking/payment record in your database
+      // 2. Send confirmation email
+      // 3. Notify the frontend
+
+      // For now, just log the payment details
+      console.log("   CheckoutRequestID:", checkoutRequestID);
+      console.log("   MerchantRequestID:", merchantRequestID);
+      console.log("   TransactionDate:", transactionDate);
+
+      res.json({ success: true, message: "Callback processed" });
+    } else {
+      // Payment failed or was cancelled
+      console.log(`M-Pesa payment failed/cancelled: ${result.ResultDesc}`);
+      res.json({ success: false, message: result.ResultDesc });
+    }
+  } catch (error) {
+    console.error("Daraja webhook error:", error.message);
+    res.status(500).json({ success: false, message: "Webhook processing failed" });
+  }
+});
+
+// M-Pesa transaction status check endpoint (STK Push Query)
+// Sandbox URL: https://sandbox.safaricom.co.ke/mpesa/stkpushquery/v1/query
+// Production URL: https://api.safaricom.co.ke/mpesa/stkpushquery/v1/query
+app.get("/api/daraja/status", async (req, res) => {
+  try {
+    const { checkoutRequestID } = req.query;
+
+    if (!checkoutRequestID) {
+      return res.status(400).json({ success: false, message: "CheckoutRequestID is required" });
+    }
+
+    const shortcode = process.env.MPESA_SHORTCODE;
+    const passkey = process.env.MPESA_PASSKEY;
+    
+    // Get access token
+    const accessToken = await getDarajaAccessToken();
+
+    // Generate timestamp and password
+    const timestamp = new Date().toISOString().replace(/[-:T]/g, '').split('.')[0];
+    const password = generateSTKPassword(shortcode, passkey, timestamp);
+
+    // STK Push Query request body
+    const queryRequest = {
+      BusinessShortCode: shortcode,
+      Password: password,
+      Timestamp: timestamp,
+      CheckoutRequestID: checkoutRequestID
+    };
+
+    // Use sandbox or production URL based on environment
+    const isSandbox = process.env.NODE_ENV !== 'production' || process.env.MPESA_USE_SANDBOX === 'true';
+    const baseUrl = isSandbox ? "https://sandbox.safaricom.co.ke" : "https://api.safaricom.co.ke";
+    
+    console.log(`STK Push Query - URL: ${baseUrl}/mpesa/stkpushquery/v1/query`);
+    console.log('Request Body:', JSON.stringify(queryRequest, null, 2));
+
+    const response = await axios.post(
+      `${baseUrl}/mpesa/stkpushquery/v1/query`,
+      queryRequest,
+      {
+        headers: {
+          "Authorization": `Bearer ${accessToken}`,
+          "Content-Type": "application/json"
+        }
+      }
+    );
+
+    console.log("Daraja status query result:", response.data);
+
+    if (response.data.ResultCode === 0) {
+      return res.json({
+        success: true,
+        transactionStatus: "success",
+        message: response.data.ResultDesc
+      });
+    } else {
+      return res.json({
+        success: true,
+        transactionStatus: "pending",
+        message: response.data.ResultDesc
+      });
+    }
+  } catch (error) {
+    console.error("Daraja status query error:", error.response?.data || error.message);
+    res.status(500).json({ success: false, message: "Status check failed" });
+  }
+});
+
 transporter.verify()
   .then(() => {
     console.log("✅ SMTP server connection verified successfully");

@@ -4,7 +4,10 @@ import { motion, AnimatePresence } from "framer-motion";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { Button } from "@/components/ui/button";
-import { CalendarDays, Users, Bed, Check, CreditCard, X, Info, AlertCircle } from "lucide-react";
+import { CalendarDays, Users, Bed, Check, CreditCard, X, Info, AlertCircle, Smartphone, Building2, CreditCard as CardIcon } from "lucide-react";
+import MpesaPayment from "@/components/MpesaPayment";
+import PaystackPayment from "@/components/PaystackPayment";
+import BankTransferPayment from "@/components/BankTransferPayment";
 import roomDeluxe from "@/assets/bed.jpg";
 import roomExecutive from "@/assets/bed1.jpg";
 import roomPresidential from "@/assets/bed5.jpg";
@@ -13,6 +16,9 @@ import heroBackground from "@/assets/bed2.jpg";
 // Room configuration types
 type RoomConfig = "single" | "double" | "twin";
 type MealPlan = "bed_breakfast" | "half_board" | "full_board";
+
+// Payment method types
+type PaymentMethod = "mpesa" | "paystack" | "bank_transfer";
 
 interface RoomPricing {
   single: { bed_breakfast: number; half_board: number; full_board: number };
@@ -65,6 +71,18 @@ const roomConfigLabels = {
   twin: "Twin Room (per person)"
 };
 
+const paymentMethodLabels = {
+  mpesa: "M-Pesa",
+  paystack: "Credit/Debit Card",
+  bank_transfer: "Bank Transfer"
+};
+
+const paymentMethodIcons = {
+  mpesa: Smartphone,
+  paystack: CardIcon,
+  bank_transfer: Building2
+};
+
 // Room numbers by floor
 const roomNumbers = {
   1: Array.from({ length: 12 }, (_, i) => 101 + i), // 101-112
@@ -103,6 +121,7 @@ const Booking = () => {
   const [showWelcomeModal, setShowWelcomeModal] = useState(false);
   const [roomImages, setRoomImages] = useState<string[]>([]);
   const [showPolicies, setShowPolicies] = useState(false);
+  const [paymentTrigger, setPaymentTrigger] = useState(0);
   const [formData, setFormData] = useState({
     checkIn: "",
     checkOut: "",
@@ -117,7 +136,8 @@ const Booking = () => {
     email: "",
     phone: "",
     specialRequests: "",
-      });
+    paymentMethod: "mpesa" as PaymentMethod,
+  });
 
   useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search);
@@ -172,8 +192,23 @@ const Booking = () => {
   
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (step < 5) {
+    
+    // For steps 1-5, move to next step
+    if (step < 6) {
       setStep(step + 1);
+      return;
+    }
+
+    // For step 6 (payment method selection), move to step 7
+    if (step === 6) {
+      setStep(7);
+      return;
+    }
+
+    // For step 7, handle payment based on selected method
+    if (step === 7) {
+      // Trigger the payment by incrementing paymentTrigger
+      setPaymentTrigger(prev => prev + 1);
       return;
     }
 
@@ -196,6 +231,7 @@ const Booking = () => {
         nights,
         totalPrice,
         perNightPrice: getRoomPrice(),
+        paymentMethod: formData.paymentMethod,
       };
 
       const resp = await fetch("http://localhost:3001/api/send-booking-email", {
@@ -210,6 +246,52 @@ const Booking = () => {
       console.error("Booking email error", err);
       alert("Booking submitted, but failed to send email. Please contact the hotel.");
     }
+  };
+
+  const handlePaymentSuccess = async (transactionCode: string) => {
+    // Create booking with payment reference
+    try {
+      const payload = {
+        firstName: formData.firstName,
+        lastName: formData.lastName,
+        email: formData.email,
+        phone: formData.phone,
+        specialRequests: formData.specialRequests,
+        roomNumber: formData.roomNumber,
+        roomType: selectedRoom?.name || formData.roomType,
+        roomCategory: formData.roomType,
+        roomConfig: formData.roomConfig,
+        mealPlan: formData.mealPlan,
+        checkIn: formData.checkIn,
+        checkOut: formData.checkOut,
+        guests: parseInt(formData.guests),
+        numberOfRooms: formData.rooms,
+        nights,
+        totalPrice,
+        perNightPrice: getRoomPrice(),
+        paymentMethod: formData.paymentMethod,
+        transactionCode: transactionCode,
+        status: 'confirmed',
+      };
+
+      const resp = await fetch("http://localhost:3001/api/send-booking-email", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ ...payload, guests: String(payload.guests) }),
+      });
+      if (!resp.ok) throw new Error(`Email send failed (${resp.status})`);
+
+      alert("Payment successful! Booking confirmed and email sent to guest.");
+      navigate("/");
+    } catch (err) {
+      console.error("Booking email error", err);
+      alert("Payment successful, but failed to send email. Please contact the hotel.");
+    }
+  };
+
+  const handlePaymentError = (error: string) => {
+    console.error("Payment error:", error);
+    alert("Payment failed: " + error);
   };
 
   return (
@@ -264,7 +346,9 @@ const Booking = () => {
               { num: 2, label: "Room Type" },
               { num: 3, label: "Configuration" },
               { num: 4, label: "Room Number" },
-              { num: 5, label: "Guest Info" }
+              { num: 5, label: "Guest Details" },
+              { num: 6, label: "Payment Method" },
+              { num: 7, label: "Payment" }
             ].map((s, idx) => (
               <div key={s.num} className="flex items-center">
                 <div className="flex flex-col items-center">
@@ -277,7 +361,7 @@ const Booking = () => {
                   </div>
                   <span className="text-xs mt-1 text-muted-foreground">{s.label}</span>
                 </div>
-                {idx < 4 && (
+                {idx < 5 && (
                   <div className={`w-8 h-0.5 mx-2 ${step > s.num ? "bg-accent" : "bg-muted"}`} />
                 )}
               </div>
@@ -646,7 +730,7 @@ const Booking = () => {
                           className="w-full px-4 py-2 border border-border rounded-lg focus:ring-2 focus:ring-accent focus:border-transparent"
                         />
                       </div>
-                                          </div>
+                    </div>
 
                     {/* Booking Summary */}
                     <div className="mt-8 bg-accent/10 p-6 rounded-lg">
@@ -690,8 +774,187 @@ const Booking = () => {
                         Back
                       </Button>
                       <Button type="submit" variant="gold" size="lg">
-                        <CreditCard className="h-4 w-4 mr-2" />
-                        Confirm Booking
+                        Continue to Payment Method
+                      </Button>
+                    </div>
+                  </motion.div>
+                )}
+
+                {/* Step 6: Payment Method Selection */}
+                {step === 6 && (
+                  <motion.div
+                    key="step6"
+                    initial={{ opacity: 0, x: 20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    exit={{ opacity: 0, x: -20 }}
+                    className="bg-card p-8 rounded-xl shadow-elegant"
+                  >
+                    <h2 className="font-heading text-2xl font-bold text-foreground mb-6">Select Payment Method</h2>
+                    
+                    {/* Payment Method Selection */}
+                    <div className="mb-8">
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        {(Object.keys(paymentMethodLabels) as PaymentMethod[]).map((method) => {
+                          const Icon = paymentMethodIcons[method];
+                          return (
+                            <div
+                              key={method}
+                              onClick={() => setFormData({ ...formData, paymentMethod: method })}
+                              className={`cursor-pointer p-4 rounded-lg border-2 transition-all ${
+                                formData.paymentMethod === method
+                                  ? "border-accent bg-accent/5"
+                                  : "border-border hover:border-accent/50"
+                              }`}
+                            >
+                              <div className="flex items-center gap-3 mb-2">
+                                <Icon className="h-6 w-6 text-accent" />
+                                <div className="font-semibold text-foreground">{paymentMethodLabels[method]}</div>
+                              </div>
+                              {method === 'mpesa' && (
+                                <p className="text-xs text-muted-foreground">Instant payment via STK push</p>
+                              )}
+                              {method === 'paystack' && (
+                                <p className="text-xs text-muted-foreground">Pay with Visa, Mastercard, etc.</p>
+                              )}
+                              {method === 'bank_transfer' && (
+                                <p className="text-xs text-muted-foreground">Direct bank transfer</p>
+                              )}
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+
+                    {/* Booking Summary */}
+                    <div className="mt-8 bg-accent/10 p-6 rounded-lg">
+                      <h3 className="font-semibold text-foreground mb-4">Booking Summary</h3>
+                      <div className="grid grid-cols-2 gap-4 text-sm">
+                        <div>
+                          <span className="text-muted-foreground">Check-in:</span>
+                          <p className="font-semibold">{formData.checkIn}</p>
+                        </div>
+                        <div>
+                          <span className="text-muted-foreground">Check-out:</span>
+                          <p className="font-semibold">{formData.checkOut}</p>
+                        </div>
+                        <div>
+                          <span className="text-muted-foreground">Room Type:</span>
+                          <p className="font-semibold">{selectedRoom?.name}</p>
+                        </div>
+                        <div>
+                          <span className="text-muted-foreground">Room Number:</span>
+                          <p className="font-semibold">{formData.roomNumber}</p>
+                        </div>
+                        <div>
+                          <span className="text-muted-foreground">Configuration:</span>
+                          <p className="font-semibold">{roomConfigLabels[formData.roomConfig]}</p>
+                        </div>
+                        <div>
+                          <span className="text-muted-foreground">Meal Plan:</span>
+                          <p className="font-semibold">{mealPlanLabels[formData.mealPlan]}</p>
+                        </div>
+                        <div className="col-span-2 border-t border-border pt-4 mt-2">
+                          <div className="flex justify-between items-center">
+                            <span className="font-bold text-foreground">Total Amount:</span>
+                            <span className="font-bold text-accent text-2xl">KES {totalPrice.toLocaleString()}</span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="mt-6 flex justify-between">
+                      <Button type="button" variant="outline" onClick={() => setStep(5)}>
+                        Back
+                      </Button>
+                      <Button type="submit" variant="gold" size="lg">
+                        Continue to Payment
+                      </Button>
+                    </div>
+                  </motion.div>
+                )}
+
+                {/* Step 7: Payment */}
+                {step === 7 && (
+                  <motion.div
+                    key="step7"
+                    initial={{ opacity: 0, x: 20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    exit={{ opacity: 0, x: -20 }}
+                    className="bg-card p-8 rounded-xl shadow-elegant"
+                  >
+                    <h2 className="font-heading text-2xl font-bold text-foreground mb-6">Complete Payment</h2>
+                    
+                    {/* Payment Method Component */}
+                    {formData.paymentMethod === 'mpesa' && (
+                      <MpesaPayment
+                        email={formData.email}
+                        phone={formData.phone}
+                        amount={totalPrice}
+                        onSuccess={handlePaymentSuccess}
+                        onError={handlePaymentError}
+                        triggerPayment={paymentTrigger}
+                      />
+                    )}
+                    {formData.paymentMethod === 'paystack' && (
+                      <PaystackPayment
+                        email={formData.email}
+                        phone={formData.phone}
+                        amount={totalPrice}
+                        onSuccess={handlePaymentSuccess}
+                        onError={handlePaymentError}
+                      />
+                    )}
+                    {formData.paymentMethod === 'bank_transfer' && (
+                      <BankTransferPayment
+                        amount={totalPrice}
+                        onSuccess={handlePaymentSuccess}
+                        onError={handlePaymentError}
+                      />
+                    )}
+
+                    {/* Booking Summary */}
+                    <div className="mt-8 bg-accent/10 p-6 rounded-lg">
+                      <h3 className="font-semibold text-foreground mb-4">Booking Summary</h3>
+                      <div className="grid grid-cols-2 gap-4 text-sm">
+                        <div>
+                          <span className="text-muted-foreground">Check-in:</span>
+                          <p className="font-semibold">{formData.checkIn}</p>
+                        </div>
+                        <div>
+                          <span className="text-muted-foreground">Check-out:</span>
+                          <p className="font-semibold">{formData.checkOut}</p>
+                        </div>
+                        <div>
+                          <span className="text-muted-foreground">Room Type:</span>
+                          <p className="font-semibold">{selectedRoom?.name}</p>
+                        </div>
+                        <div>
+                          <span className="text-muted-foreground">Room Number:</span>
+                          <p className="font-semibold">{formData.roomNumber}</p>
+                        </div>
+                        <div>
+                          <span className="text-muted-foreground">Configuration:</span>
+                          <p className="font-semibold">{roomConfigLabels[formData.roomConfig]}</p>
+                        </div>
+                        <div>
+                          <span className="text-muted-foreground">Meal Plan:</span>
+                          <p className="font-semibold">{mealPlanLabels[formData.mealPlan]}</p>
+                        </div>
+                        <div className="col-span-2 border-t border-border pt-4 mt-2">
+                          <div className="flex justify-between items-center">
+                            <span className="font-bold text-foreground">Total Amount:</span>
+                            <span className="font-bold text-accent text-2xl">KES {totalPrice.toLocaleString()}</span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="mt-6 flex justify-between">
+                      <Button type="button" variant="outline" onClick={() => setStep(6)}>
+                        Back
+                      </Button>
+                      <Button type="submit" variant="gold" size="lg">
+                        Pay Now
                       </Button>
                     </div>
                   </motion.div>
