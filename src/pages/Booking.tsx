@@ -8,6 +8,8 @@ import { CalendarDays, Users, Bed, Check, CreditCard, X, Info, AlertCircle, Smar
 import MpesaPayment from "@/components/MpesaPayment";
 import PaystackPayment from "@/components/PaystackPayment";
 import BankTransferPayment from "@/components/BankTransferPayment";
+import { supabase } from "@/lib/supabase";
+import { useLoyaltyAuth, calcPoints } from "@/lib/loyaltyAuth";
 import roomDeluxe from "@/assets/bed.jpg";
 import roomExecutive from "@/assets/bed1.jpg";
 import roomPresidential from "@/assets/bed5.jpg";
@@ -27,6 +29,17 @@ interface RoomPricing {
 }
 
 const roomTypes = [
+  {
+    id: "test",
+    name: "🧪 Test Room (KES 1)",
+    image: roomDeluxe,
+    isTest: true,
+    pricing: {
+      single: { bed_breakfast: 1, half_board: 1, full_board: 1 },
+      double: { bed_breakfast: 1, half_board: 1, full_board: 1 },
+      twin:   { bed_breakfast: 1, half_board: 1, full_board: 1 },
+    },
+  },
   { 
     id: "standard", 
     name: "Standard Rooms", 
@@ -54,7 +67,7 @@ const roomTypes = [
     pricing: {
       single: { bed_breakfast: 13400, half_board: 15400, full_board: 17400 },
       double: { bed_breakfast: 16900, half_board: 20900, full_board: 24900 },
-      twin: { bed_breakfast: 0, half_board: 0, full_board: 0 } // No twin option for executive
+      twin: { bed_breakfast: 0, half_board: 0, full_board: 0 }
     }
   },
 ];
@@ -91,8 +104,12 @@ const roomNumbers = {
   4: [407, 408, 409, 410, 411, 412] // 407-412
 };
 
+// Test room numbers (only shown for test room type)
+const testRoomNumbers = { 0: [999] };
+
 // Function to determine room category
 const getRoomCategory = (roomNumber: number) => {
+  if (roomNumber === 999) return "test";
   const lastTwoDigits = roomNumber % 100;
   if ([1, 6, 7].includes(lastTwoDigits)) return "superior";
   if (lastTwoDigits === 12) return "executive";
@@ -101,15 +118,12 @@ const getRoomCategory = (roomNumber: number) => {
 
 // Get rooms by category and floor
 const getRoomsByCategory = (category: string) => {
+  if (category === "test") return testRoomNumbers;
   const result: { [floor: number]: number[] } = {};
-
   Object.entries(roomNumbers).forEach(([floor, rooms]) => {
     const floorRooms = rooms.filter(room => getRoomCategory(room) === category);
-    if (floorRooms.length > 0) {
-      result[parseInt(floor)] = floorRooms;
-    }
+    if (floorRooms.length > 0) result[parseInt(floor)] = floorRooms;
   });
-
   return result;
 };
 
@@ -157,39 +171,98 @@ const Booking = () => {
     ? Math.ceil((new Date(formData.checkOut).getTime() - new Date(formData.checkIn).getTime()) / (1000 * 60 * 60 * 24))
     : 0;
   
+  // Auto-set guests when room config changes
+  const guestsPerRoom = { single: 1, double: 2, twin: 2 };
+
+  const handleConfigChange = (config: RoomConfig) => {
+    setFormData(prev => ({
+      ...prev,
+      roomConfig: config,
+      guests: String(guestsPerRoom[config]),
+    }));
+  };
+
   const getRoomPrice = () => {
     if (!selectedRoom) return 0;
     const basePrice = selectedRoom.pricing[formData.roomConfig][formData.mealPlan];
-    // For twin rooms, multiply by number of guests
-    if (formData.roomConfig === "twin") {
-      return basePrice * parseInt(formData.guests);
-    }
+    // Twin: price is per person, so multiply by guests per room (2)
+    if (formData.roomConfig === "twin") return basePrice * 2;
     return basePrice;
   };
-  
-  const totalPrice = getRoomPrice() * nights * formData.rooms;
+
+  // Total = price per room × rooms × nights
+  const totalPrice = getRoomPrice() * formData.rooms * nights;
+
+  const [bookedRooms, setBookedRooms] = useState<Set<string>>(new Set());
+  const [availabilityError, setAvailabilityError] = useState<string | null>(null);
+  const [loadingAvailability, setLoadingAvailability] = useState(false);
+
+  // Poll booked rooms every 10s while on step 4 so confirmed bookings show in real-time
+  useEffect(() => {
+    if (step !== 4 || !formData.checkIn || !formData.checkOut) return;
+
+    loadBookedRooms();
+    const interval = setInterval(loadBookedRooms, 10000);
+    return () => clearInterval(interval);
+  }, [step, formData.checkIn, formData.checkOut]);
+
+  async function loadBookedRooms() {
+    if (!formData.checkIn || !formData.checkOut) return;
+    setLoadingAvailability(true);
+    try {
+      // Query Supabase directly — no proxy dependency
+      const { data: bookings } = await supabase
+        .from("bookings")
+        .select("room_number")
+        .in("status", ["pending", "confirmed"])
+        .lt("check_in", formData.checkOut)
+        .gt("check_out", formData.checkIn);
+
+      const booked = new Set<string>(
+        (bookings ?? []).map((b: any) => b.room_number).filter(Boolean)
+      );
+      setBookedRooms(booked);
+    } catch (_) {
+      // keep existing state on error
+    } finally {
+      setLoadingAvailability(false);
+    }
+  }
 
   const handleRoomSelection = async (roomNumber: number) => {
-    setIsCheckingAvailability(true);
-    setSelectedRoomCategory(null);
+    setAvailabilityError(null);
 
-    // Simulate availability check
-    await new Promise(resolve => setTimeout(resolve, 5000));
-
-    setIsCheckingAvailability(false);
-
-    // Set room images based on room type
-    const selectedRoomType = roomTypes.find(r => r.id === formData.roomType);
-    if (selectedRoomType) {
-      setRoomImages([selectedRoomType.image, selectedRoomType.image, selectedRoomType.image]); // Use same image 3 times for demo
+    if (bookedRooms.has(String(roomNumber))) {
+      setAvailabilityError(`Room ${roomNumber} is already booked for your selected dates. Please choose another room.`);
+      return;
     }
 
+    setIsCheckingAvailability(true);
+    // Re-fetch to confirm (catches race conditions)
+    try {
+      const { data: bookings } = await supabase
+        .from("bookings")
+        .select("room_number")
+        .in("status", ["pending", "confirmed"])
+        .lt("check_in", formData.checkOut)
+        .gt("check_out", formData.checkIn);
+
+      const latest = new Set<string>(
+        (bookings ?? []).map((b: any) => b.room_number).filter(Boolean)
+      );
+      setBookedRooms(latest);
+      if (latest.has(String(roomNumber))) {
+        setAvailabilityError(`Room ${roomNumber} was just booked. Please choose another room.`);
+        setIsCheckingAvailability(false);
+        return;
+      }
+    } catch (_) { /* proceed optimistically */ }
+
+    setIsCheckingAvailability(false);
     setFormData({ ...formData, roomNumber: roomNumber.toString() });
-    // Redirect to room features page
-    navigate(`/room-features/${roomNumber}`);
+    setStep(5);
   };
 
-  
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
@@ -234,7 +307,7 @@ const Booking = () => {
         paymentMethod: formData.paymentMethod,
       };
 
-      const resp = await fetch("http://localhost:3001/api/send-booking-email", {
+      const resp = await fetch("/api/send-booking-email", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ ...payload, guests: String(payload.guests) }),
@@ -248,10 +321,94 @@ const Booking = () => {
     }
   };
 
+  const { member, refreshMember } = useLoyaltyAuth();
+
   const handlePaymentSuccess = async (transactionCode: string) => {
-    // Create booking with payment reference
+    const isMpesa = formData.paymentMethod === "mpesa";
+    const isBank = formData.paymentMethod === "bank_transfer";
+    const bookingStatus = (isMpesa || isBank) ? "pending" : "confirmed";
+    const paymentStatus = (isMpesa || isBank) ? "pending" : "paid";
+    const totalGuests = guestsPerRoom[formData.roomConfig] * formData.rooms;
+    const finalAmount = Math.max(1, totalPrice);
+
+    // Look up room_id from Supabase by room_number
+    let roomId: string | null = null;
     try {
-      const payload = {
+      const { data: roomRow } = await supabase
+        .from("rooms")
+        .select("id")
+        .eq("room_number", formData.roomNumber)
+        .single();
+      roomId = roomRow?.id ?? null;
+    } catch (_) {}
+
+    // Write booking directly to Supabase — no proxy needed
+    let bookingRef = "";
+    const { data: booking, error: bookingError } = await supabase
+      .from("bookings")
+      .insert({
+        room_id: roomId,
+        guest_name: `${formData.firstName} ${formData.lastName}`,
+        guest_email: formData.email || null,
+        guest_phone: formData.phone,
+        check_in: formData.checkIn,
+        check_out: formData.checkOut,
+        num_guests: totalGuests,
+        number_of_rooms: formData.rooms,
+        total_amount: finalAmount,
+        room_number: formData.roomNumber,
+        room_type: selectedRoom?.name || formData.roomType,
+        room_config: formData.roomConfig,
+        meal_plan: formData.mealPlan,
+        price_per_night: getRoomPrice(),
+        payment_method: formData.paymentMethod,
+        payment_status: paymentStatus,
+        transaction_ref: transactionCode || null,
+        special_requests: formData.specialRequests || null,
+        status: bookingStatus,
+      } as any)
+      .select("reference, id")
+      .single();
+
+    if (bookingError) {
+      console.error("❌ Booking save error:", bookingError.message);
+      // Still proceed — don't block the user
+    } else {
+      bookingRef = booking?.reference || "";
+      console.log("✅ Booking saved to DB:", bookingRef);
+
+      // Award loyalty points if member is logged in
+      if (member && booking?.id) {
+        const pts = calcPoints(finalAmount);
+        if (pts > 0) {
+          await supabase.from("bookings").update({
+            loyalty_member_id: member.id,
+            loyalty_points_earned: pts,
+          }).eq("id", booking.id);
+
+          await supabase.from("loyalty_members").update({
+            points: member.points + pts,
+          }).eq("id", member.id);
+
+          await supabase.from("loyalty_transactions").insert({
+            member_id: member.id,
+            booking_id: booking.id,
+            type: "earned",
+            points: pts,
+            description: `Booking ${bookingRef} — Room ${formData.roomNumber}`,
+          });
+
+          await refreshMember();
+          console.log(`✅ Awarded ${pts} loyalty points`);
+        }
+      }
+    }
+
+    // Send confirmation email via Express server (best-effort)
+    fetch("/api/send-booking-email", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
         firstName: formData.firstName,
         lastName: formData.lastName,
         email: formData.email,
@@ -264,29 +421,27 @@ const Booking = () => {
         mealPlan: formData.mealPlan,
         checkIn: formData.checkIn,
         checkOut: formData.checkOut,
-        guests: parseInt(formData.guests),
+        guests: String(totalGuests),
         numberOfRooms: formData.rooms,
         nights,
-        totalPrice,
+        totalPrice: finalAmount,
         perNightPrice: getRoomPrice(),
         paymentMethod: formData.paymentMethod,
-        transactionCode: transactionCode,
-        status: 'confirmed',
-      };
+        transactionCode,
+        status: bookingStatus,
+      }),
+    }).catch(err => console.warn("Email send failed (non-critical):", err));
 
-      const resp = await fetch("http://localhost:3001/api/send-booking-email", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ ...payload, guests: String(payload.guests) }),
-      });
-      if (!resp.ok) throw new Error(`Email send failed (${resp.status})`);
-
-      alert("Payment successful! Booking confirmed and email sent to guest.");
-      navigate("/");
-    } catch (err) {
-      console.error("Booking email error", err);
-      alert("Payment successful, but failed to send email. Please contact the hotel.");
+    if (isBank) {
+      alert(`Booking submitted (Ref: ${bookingRef || "pending"}).\nOur team will verify your bank transfer and confirm within 1–2 business hours.`);
+    } else if (isMpesa) {
+      const pts = member ? calcPoints(finalAmount) : 0;
+      alert(`M-Pesa STK push sent! Check your phone to complete payment.\n\nBooking Ref: ${bookingRef || "pending"}${pts > 0 ? `\n+${pts} loyalty points will be awarded on confirmation.` : "\nJoin Peaks Loyalty to earn points on this stay!"}`);
+    } else {
+      const pts = member ? calcPoints(finalAmount) : 0;
+      alert(`Payment successful! Booking confirmed.\nRef: ${bookingRef}${pts > 0 ? `\n+${pts} loyalty points added to your account!` : "\nJoin Peaks Loyalty to earn points on future stays!"}\nCheck your email for confirmation.`);
     }
+    navigate("/");
   };
 
   const handlePaymentError = (error: string) => {
@@ -338,31 +493,29 @@ const Booking = () => {
       </section>
 
       {/* Progress Steps */}
-      <section className="py-8 bg-secondary">
+      <section className="py-4 md:py-6 bg-secondary overflow-x-auto">
         <div className="container mx-auto px-4">
-          <div className="flex items-center justify-center gap-4 flex-wrap">
+          <div className="flex items-center justify-start md:justify-center gap-2 md:gap-4 min-w-max md:min-w-0 mx-auto">
             {[
               { num: 1, label: "Dates" },
               { num: 2, label: "Room Type" },
-              { num: 3, label: "Configuration" },
-              { num: 4, label: "Room Number" },
-              { num: 5, label: "Guest Details" },
-              { num: 6, label: "Payment Method" },
-              { num: 7, label: "Payment" }
+              { num: 3, label: "Config" },
+              { num: 4, label: "Room #" },
+              { num: 5, label: "Details" },
+              { num: 6, label: "Payment" },
+              { num: 7, label: "Pay" }
             ].map((s, idx) => (
               <div key={s.num} className="flex items-center">
                 <div className="flex flex-col items-center">
-                  <div
-                    className={`w-10 h-10 rounded-full flex items-center justify-center font-semibold transition-colors ${
-                      step >= s.num ? "bg-accent text-accent-foreground" : "bg-muted text-muted-foreground"
-                    }`}
-                  >
+                  <div className={`w-7 h-7 md:w-10 md:h-10 rounded-full flex items-center justify-center font-semibold text-xs md:text-sm transition-colors ${
+                    step >= s.num ? "bg-accent text-accent-foreground" : "bg-muted text-muted-foreground"
+                  }`}>
                     {s.num}
                   </div>
-                  <span className="text-xs mt-1 text-muted-foreground">{s.label}</span>
+                  <span className="text-[10px] md:text-xs mt-1 text-muted-foreground whitespace-nowrap">{s.label}</span>
                 </div>
-                {idx < 5 && (
-                  <div className={`w-8 h-0.5 mx-2 ${step > s.num ? "bg-accent" : "bg-muted"}`} />
+                {idx < 6 && (
+                  <div className={`w-4 md:w-8 h-0.5 mx-1 md:mx-2 ${step > s.num ? "bg-accent" : "bg-muted"}`} />
                 )}
               </div>
             ))}
@@ -371,7 +524,7 @@ const Booking = () => {
       </section>
 
       {/* Booking Form */}
-      <section className="py-12 bg-background">
+      <section className="py-6 md:py-12 bg-background">
         <div className="container mx-auto px-4">
           <div className="max-w-4xl mx-auto">
             <form onSubmit={handleSubmit}>
@@ -383,9 +536,9 @@ const Booking = () => {
                     initial={{ opacity: 0, x: 20 }}
                     animate={{ opacity: 1, x: 0 }}
                     exit={{ opacity: 0, x: -20 }}
-                    className="bg-card p-8 rounded-xl shadow-elegant"
+                    className="bg-card p-4 md:p-8 rounded-xl shadow-elegant"
                   >
-                    <h2 className="font-heading text-2xl font-bold text-foreground mb-6">Select Dates & Guests</h2>
+                    <h2 className="font-heading text-2xl font-bold text-foreground mb-6">Select Your Dates</h2>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                       <div>
                         <label className="block text-sm font-medium text-foreground mb-2">
@@ -395,6 +548,7 @@ const Booking = () => {
                         <input
                           type="date"
                           required
+                          min={new Date().toISOString().split("T")[0]}
                           value={formData.checkIn}
                           onChange={(e) => setFormData({ ...formData, checkIn: e.target.value })}
                           className="w-full px-4 py-2 border border-border rounded-lg focus:ring-2 focus:ring-accent focus:border-transparent"
@@ -408,42 +562,16 @@ const Booking = () => {
                         <input
                           type="date"
                           required
+                          min={formData.checkIn || new Date().toISOString().split("T")[0]}
                           value={formData.checkOut}
                           onChange={(e) => setFormData({ ...formData, checkOut: e.target.value })}
                           className="w-full px-4 py-2 border border-border rounded-lg focus:ring-2 focus:ring-accent focus:border-transparent"
                         />
                       </div>
-                      <div>
-                        <label className="block text-sm font-medium text-foreground mb-2">
-                          <Users className="inline h-4 w-4 mr-2" />
-                          Number of Guests
-                        </label>
-                        <select
-                          value={formData.guests}
-                          onChange={(e) => setFormData({ ...formData, guests: e.target.value })}
-                          className="w-full px-4 py-2 border border-border rounded-lg focus:ring-2 focus:ring-accent focus:border-transparent"
-                        >
-                          {[1, 2, 3, 4].map(num => (
-                            <option key={num} value={num}>{num} Guest{num > 1 ? 's' : ''}</option>
-                          ))}
-                        </select>
-                      </div>
-                      <div>
-                        <label className="block text-sm font-medium text-foreground mb-2">
-                          <Bed className="inline h-4 w-4 mr-2" />
-                          Number of Rooms
-                        </label>
-                        <select
-                          value={formData.rooms}
-                          onChange={(e) => setFormData({ ...formData, rooms: parseInt(e.target.value) })}
-                          className="w-full px-4 py-2 border border-border rounded-lg focus:ring-2 focus:ring-accent focus:border-transparent"
-                        >
-                          {[1, 2, 3, 4, 5].map(num => (
-                            <option key={num} value={num}>{num} Room{num > 1 ? 's' : ''}</option>
-                          ))}
-                        </select>
-                      </div>
                     </div>
+                    {nights > 0 && (
+                      <p className="mt-4 text-sm text-accent font-medium">{nights} night{nights !== 1 ? "s" : ""} selected</p>
+                    )}
                     <div className="mt-6 flex justify-end">
                       <Button type="button" variant="gold" onClick={() => setStep(2)}>
                         Continue
@@ -459,7 +587,7 @@ const Booking = () => {
                     initial={{ opacity: 0, x: 20 }}
                     animate={{ opacity: 1, x: 0 }}
                     exit={{ opacity: 0, x: -20 }}
-                    className="bg-card p-8 rounded-xl shadow-elegant"
+                    className="bg-card p-4 md:p-8 rounded-xl shadow-elegant"
                   >
                     <h2 className="font-heading text-2xl font-bold text-foreground mb-6">Choose Room Type</h2>
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -471,12 +599,20 @@ const Booking = () => {
                             formData.roomType === room.id
                               ? "border-accent shadow-lg"
                               : "border-border hover:border-accent/50"
-                          }`}
+                          } ${"isTest" in room && room.isTest ? "border-dashed border-yellow-400 bg-yellow-50 dark:bg-yellow-950/20" : ""}`}
                         >
-                          <img src={room.image} alt={room.name} className="w-full h-48 object-cover" />
+                          {"isTest" in room && room.isTest ? (
+                            <div className="w-full h-20 bg-yellow-100 dark:bg-yellow-900/30 flex items-center justify-center text-3xl">🧪</div>
+                          ) : (
+                            <img src={room.image} alt={room.name} className="w-full h-48 object-cover" />
+                          )}
                           <div className="p-4">
                             <h3 className="font-semibold text-foreground mb-2">{room.name}</h3>
-                            <p className="text-sm text-muted-foreground">Starting from KES {room.pricing.single.bed_breakfast.toLocaleString()}</p>
+                            {"isTest" in room && room.isTest ? (
+                              <p className="text-xs text-yellow-700 dark:text-yellow-400 font-medium">Sandbox testing only — KES 1 M-Pesa charge</p>
+                            ) : (
+                              <p className="text-sm text-muted-foreground">Starting from KES {room.pricing.single.bed_breakfast.toLocaleString()}</p>
+                            )}
                           </div>
                         </div>
                       ))}
@@ -499,7 +635,7 @@ const Booking = () => {
                     initial={{ opacity: 0, x: 20 }}
                     animate={{ opacity: 1, x: 0 }}
                     exit={{ opacity: 0, x: -20 }}
-                    className="bg-card p-8 rounded-xl shadow-elegant"
+                    className="bg-card p-4 md:p-8 rounded-xl shadow-elegant"
                   >
                     <h2 className="font-heading text-2xl font-bold text-foreground mb-6">Room Configuration & Meal Plan</h2>
                     
@@ -508,13 +644,12 @@ const Booking = () => {
                       <h3 className="font-semibold text-foreground mb-4">Select Room Configuration</h3>
                       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                         {(Object.keys(roomConfigLabels) as RoomConfig[]).map((config) => {
-                          // Skip twin for executive rooms
                           if (formData.roomType === "executive" && config === "twin") return null;
-                          
+                          const gpR = guestsPerRoom[config];
                           return (
                             <div
                               key={config}
-                              onClick={() => setFormData({ ...formData, roomConfig: config })}
+                              onClick={() => handleConfigChange(config)}
                               className={`cursor-pointer p-4 rounded-lg border-2 transition-all ${
                                 formData.roomConfig === config
                                   ? "border-accent bg-accent/5"
@@ -522,12 +657,40 @@ const Booking = () => {
                               }`}
                             >
                               <div className="font-semibold text-foreground mb-1">{roomConfigLabels[config]}</div>
-                              <div className="text-sm text-muted-foreground">
-                                {config === "twin" && "(Per person pricing)"}
+                              <div className="text-sm text-muted-foreground flex items-center gap-1">
+                                <Users className="h-3 w-3" />
+                                {gpR} guest{gpR > 1 ? "s" : ""} per room
+                                {config === "twin" && " (pp pricing)"}
                               </div>
                             </div>
                           );
                         })}
+                      </div>
+
+                      {/* Number of Rooms — shown after config is chosen */}
+                      <div className="mt-6 p-4 bg-secondary rounded-lg">
+                        <label className="block text-sm font-medium text-foreground mb-3">
+                          <Bed className="inline h-4 w-4 mr-2" />
+                          Number of Rooms
+                          <span className="text-muted-foreground font-normal ml-2 text-xs">
+                            ({guestsPerRoom[formData.roomConfig]} guest{guestsPerRoom[formData.roomConfig] > 1 ? "s" : ""} per room
+                            {formData.rooms > 1 ? ` × ${formData.rooms} rooms = ${guestsPerRoom[formData.roomConfig] * formData.rooms} guests total` : ""})
+                          </span>
+                        </label>
+                        <div className="flex items-center gap-3">
+                          <button
+                            type="button"
+                            onClick={() => setFormData(p => ({ ...p, rooms: Math.max(1, p.rooms - 1) }))}
+                            className="w-10 h-10 rounded-full border-2 border-border flex items-center justify-center text-lg font-bold hover:border-accent transition-colors"
+                          >−</button>
+                          <span className="text-2xl font-bold text-foreground w-12 text-center">{formData.rooms}</span>
+                          <button
+                            type="button"
+                            onClick={() => setFormData(p => ({ ...p, rooms: Math.min(10, p.rooms + 1) }))}
+                            className="w-10 h-10 rounded-full border-2 border-border flex items-center justify-center text-lg font-bold hover:border-accent transition-colors"
+                          >+</button>
+                          <span className="text-sm text-muted-foreground ml-2">room{formData.rooms > 1 ? "s" : ""}</span>
+                        </div>
                       </div>
                     </div>
 
@@ -575,18 +738,22 @@ const Booking = () => {
                           <span className="font-semibold">{mealPlanLabels[formData.mealPlan]}</span>
                         </div>
                         <div className="flex justify-between">
-                          <span className="text-muted-foreground">Price per night:</span>
+                          <span className="text-muted-foreground">Price per room/night:</span>
                           <span className="font-semibold">KES {getRoomPrice().toLocaleString()}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-muted-foreground">Number of rooms:</span>
+                          <span className="font-semibold">{formData.rooms}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-muted-foreground">Total guests:</span>
+                          <span className="font-semibold">{guestsPerRoom[formData.roomConfig] * formData.rooms}</span>
                         </div>
                         {nights > 0 && (
                           <>
                             <div className="flex justify-between">
                               <span className="text-muted-foreground">Number of nights:</span>
                               <span className="font-semibold">{nights}</span>
-                            </div>
-                            <div className="flex justify-between">
-                              <span className="text-muted-foreground">Number of rooms:</span>
-                              <span className="font-semibold">{formData.rooms}</span>
                             </div>
                             <div className="border-t border-border pt-2 mt-2 flex justify-between">
                               <span className="font-bold text-foreground">Total:</span>
@@ -635,7 +802,7 @@ const Booking = () => {
                     initial={{ opacity: 0, x: 20 }}
                     animate={{ opacity: 1, x: 0 }}
                     exit={{ opacity: 0, x: -20 }}
-                    className="bg-card p-8 rounded-xl shadow-elegant"
+                    className="bg-card p-4 md:p-8 rounded-xl shadow-elegant"
                   >
                     <h2 className="font-heading text-2xl font-bold text-foreground mb-4">Select Room Number</h2>
                     <p className="text-muted-foreground mb-6">
@@ -643,20 +810,48 @@ const Booking = () => {
                     </p>
 
                     <div className="space-y-6">
+                      {loadingAvailability && (
+                        <div className="flex items-center gap-2 text-sm text-muted-foreground p-3 bg-secondary rounded-lg">
+                          <div className="h-4 w-4 border-2 border-accent border-t-transparent rounded-full animate-spin" />
+                          Checking availability for your dates...
+                        </div>
+                      )}
+
+                      {availabilityError && (
+                        <div className="flex items-start gap-2 p-3 bg-red-50 dark:bg-red-950/20 border border-red-200 dark:border-red-800 rounded-lg text-sm text-red-700 dark:text-red-400">
+                          <AlertCircle className="h-4 w-4 mt-0.5 flex-shrink-0" />
+                          {availabilityError}
+                        </div>
+                      )}
+
+                      <div className="flex items-center gap-4 text-xs text-muted-foreground">
+                        <span className="flex items-center gap-1"><span className="w-4 h-4 rounded bg-secondary inline-block" /> Available</span>
+                        <span className="flex items-center gap-1"><span className="w-4 h-4 rounded bg-red-100 dark:bg-red-900/30 border border-red-300 inline-block" /> Booked</span>
+                      </div>
+
                       {Object.entries(getRoomsByCategory(formData.roomType)).map(([floor, rooms]) => (
                         <div key={floor}>
                           <h3 className="font-semibold text-foreground mb-3">Floor {floor}</h3>
-                          <div className="grid grid-cols-4 md:grid-cols-6 lg:grid-cols-8 gap-3">
-                            {rooms.map((roomNumber) => (
-                              <button
-                                key={roomNumber}
-                                type="button"
-                                onClick={() => handleRoomSelection(roomNumber)}
-                                className="bg-secondary hover:bg-accent hover:text-accent-foreground rounded-lg p-3 text-center font-medium transition-colors"
-                              >
-                                {roomNumber}
-                              </button>
-                            ))}
+                          <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 gap-2 md:gap-3">
+                            {rooms.map((roomNumber) => {
+                              const isBooked = bookedRooms.has(String(roomNumber));
+                              return (
+                                <button
+                                  key={roomNumber}
+                                  type="button"
+                                  disabled={isBooked || isCheckingAvailability}
+                                  onClick={() => handleRoomSelection(roomNumber)}
+                                  title={isBooked ? `Room ${roomNumber} — Already booked` : `Room ${roomNumber} — Available`}
+                                  className={`rounded-lg p-2 md:p-3 text-center font-medium transition-colors text-sm md:text-base relative ${
+                                    isBooked
+                                      ? "bg-red-100 dark:bg-red-900/30 text-red-400 dark:text-red-500 border border-red-300 dark:border-red-700 cursor-not-allowed line-through"
+                                      : "bg-secondary hover:bg-accent hover:text-accent-foreground cursor-pointer"
+                                  }`}
+                                >
+                                  {roomNumber}
+                                </button>
+                              );
+                            })}
                           </div>
                         </div>
                       ))}
@@ -677,7 +872,7 @@ const Booking = () => {
                     initial={{ opacity: 0, x: 20 }}
                     animate={{ opacity: 1, x: 0 }}
                     exit={{ opacity: 0, x: -20 }}
-                    className="bg-card p-8 rounded-xl shadow-elegant"
+                    className="bg-card p-4 md:p-8 rounded-xl shadow-elegant"
                   >
                     <h2 className="font-heading text-2xl font-bold text-foreground mb-6">Guest Information</h2>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -760,6 +955,14 @@ const Booking = () => {
                           <span className="text-muted-foreground">Meal Plan:</span>
                           <p className="font-semibold">{mealPlanLabels[formData.mealPlan]}</p>
                         </div>
+                        <div>
+                          <span className="text-muted-foreground">Rooms:</span>
+                          <p className="font-semibold">{formData.rooms} room{formData.rooms > 1 ? "s" : ""}</p>
+                        </div>
+                        <div>
+                          <span className="text-muted-foreground">Total Guests:</span>
+                          <p className="font-semibold">{guestsPerRoom[formData.roomConfig] * formData.rooms}</p>
+                        </div>
                         <div className="col-span-2 border-t border-border pt-4 mt-2">
                           <div className="flex justify-between items-center">
                             <span className="font-bold text-foreground">Total Amount:</span>
@@ -787,7 +990,7 @@ const Booking = () => {
                     initial={{ opacity: 0, x: 20 }}
                     animate={{ opacity: 1, x: 0 }}
                     exit={{ opacity: 0, x: -20 }}
-                    className="bg-card p-8 rounded-xl shadow-elegant"
+                    className="bg-card p-4 md:p-8 rounded-xl shadow-elegant"
                   >
                     <h2 className="font-heading text-2xl font-bold text-foreground mb-6">Select Payment Method</h2>
                     
@@ -880,7 +1083,7 @@ const Booking = () => {
                     initial={{ opacity: 0, x: 20 }}
                     animate={{ opacity: 1, x: 0 }}
                     exit={{ opacity: 0, x: -20 }}
-                    className="bg-card p-8 rounded-xl shadow-elegant"
+                    className="bg-card p-4 md:p-8 rounded-xl shadow-elegant"
                   >
                     <h2 className="font-heading text-2xl font-bold text-foreground mb-6">Complete Payment</h2>
                     
@@ -893,6 +1096,22 @@ const Booking = () => {
                         onSuccess={handlePaymentSuccess}
                         onError={handlePaymentError}
                         triggerPayment={paymentTrigger}
+                        bookingData={{
+                          firstName: formData.firstName,
+                          lastName: formData.lastName,
+                          roomNumber: formData.roomNumber,
+                          roomType: selectedRoom?.name || formData.roomType,
+                          roomConfig: formData.roomConfig,
+                          mealPlan: formData.mealPlan,
+                          checkIn: formData.checkIn,
+                          checkOut: formData.checkOut,
+                          guests: parseInt(formData.guests),
+                          numberOfRooms: formData.rooms,
+                          nights,
+                          totalPrice,
+                          perNightPrice: getRoomPrice(),
+                          specialRequests: formData.specialRequests,
+                        }}
                       />
                     )}
                     {formData.paymentMethod === 'paystack' && (

@@ -12,8 +12,8 @@ const Footer = () => {
     <footer className="relative bg-primary text-primary-foreground" style={{ backgroundImage: `url(${footerBg})`, backgroundSize: 'cover', backgroundPosition: 'center' }}>
       <div className="absolute inset-0 bg-amber-900/80"></div>
       {/* Main Footer */}
-      <div className="relative container mx-auto px-4 py-24">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12">
+      <div className="relative container mx-auto px-4 py-12 md:py-16 lg:py-24">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 md:gap-10 lg:gap-12">
           {/* Brand Column */}
           <div className="space-y-6">
             {logoError ? (

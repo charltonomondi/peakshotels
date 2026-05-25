@@ -51,41 +51,24 @@ const Testimonials = () => {
         </motion.div>
 
         {/* Testimonials Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6 lg:gap-8">
           {testimonials.map((testimonial, index) => (
-            <motion.div
-              key={testimonial.name}
-              initial={{ opacity: 0, y: 30 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.6, delay: index * 0.1 }}
-              className="bg-primary-foreground/5 backdrop-blur-sm p-8 rounded-xl border border-primary-foreground/10"
-            >
-              <Quote className="h-10 w-10 text-accent/50 mb-6" />
-              
-              {/* Rating */}
-              <div className="flex gap-1 mb-4">
+            <motion.div key={testimonial.name} initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.6, delay: index * 0.1 }}
+              className="bg-primary-foreground/5 backdrop-blur-sm p-5 md:p-8 rounded-xl border border-primary-foreground/10">
+              <Quote className="h-7 w-7 md:h-10 md:w-10 text-accent/50 mb-4 md:mb-6" />
+              <div className="flex gap-1 mb-3 md:mb-4">
                 {[...Array(testimonial.rating)].map((_, i) => (
-                  <Star key={i} className="h-5 w-5 fill-accent text-accent" />
+                  <Star key={i} className="h-4 w-4 md:h-5 md:w-5 fill-accent text-accent" />
                 ))}
               </div>
-
-              <p className="text-primary-foreground/90 mb-6 leading-relaxed">
-                "{testimonial.text}"
-              </p>
-
-              {/* Author */}
-              <div className="flex items-center gap-4">
-                <div className="w-12 h-12 bg-accent rounded-full flex items-center justify-center text-accent-foreground font-semibold">
+              <p className="text-primary-foreground/90 mb-4 md:mb-6 leading-relaxed text-sm md:text-base">"{testimonial.text}"</p>
+              <div className="flex items-center gap-3 md:gap-4">
+                <div className="w-10 h-10 md:w-12 md:h-12 bg-accent rounded-full flex items-center justify-center text-accent-foreground font-semibold text-sm md:text-base shrink-0">
                   {testimonial.avatar}
                 </div>
                 <div>
-                  <p className="font-semibold text-primary-foreground">
-                    {testimonial.name}
-                  </p>
-                  <p className="text-sm text-primary-foreground/60">
-                    {testimonial.role}
-                  </p>
+                  <p className="font-semibold text-primary-foreground text-sm md:text-base">{testimonial.name}</p>
+                  <p className="text-xs md:text-sm text-primary-foreground/60">{testimonial.role}</p>
                 </div>
               </div>
             </motion.div>

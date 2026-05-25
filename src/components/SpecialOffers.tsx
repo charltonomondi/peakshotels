@@ -56,31 +56,17 @@ const SpecialOffers = () => {
         </motion.div>
 
         {/* Offers Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6 lg:gap-8">
           {offers.map((offer, index) => (
-            <motion.div
-              key={offer.title}
-              initial={{ opacity: 0, y: 30 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.6, delay: index * 0.1 }}
-              className={`${offer.bgColor} rounded-2xl p-8 border border-border`}
-            >
-              <div className="w-16 h-16 bg-accent rounded-2xl flex items-center justify-center mb-6">
-                <offer.icon className="h-8 w-8 text-accent-foreground" />
+            <motion.div key={offer.title} initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.6, delay: index * 0.1 }}
+              className={`${offer.bgColor} rounded-2xl p-5 md:p-8 border border-border`}>
+              <div className="w-12 h-12 md:w-16 md:h-16 bg-accent rounded-2xl flex items-center justify-center mb-4 md:mb-6">
+                <offer.icon className="h-6 w-6 md:h-8 md:w-8 text-accent-foreground" />
               </div>
-              
-              <p className="text-accent font-bold text-xl mb-2">{offer.discount}</p>
-              <h3 className="font-heading text-2xl font-bold text-foreground mb-3">
-                {offer.title}
-              </h3>
-              <p className="text-muted-foreground mb-4">
-                {offer.description}
-              </p>
-              <p className="text-sm text-muted-foreground/70 mb-6">
-                {offer.validUntil}
-              </p>
-              
+              <p className="text-accent font-bold text-lg md:text-xl mb-1 md:mb-2">{offer.discount}</p>
+              <h3 className="font-heading text-xl md:text-2xl font-bold text-foreground mb-2 md:mb-3">{offer.title}</h3>
+              <p className="text-muted-foreground mb-3 md:mb-4 text-sm">{offer.description}</p>
+              <p className="text-xs text-muted-foreground/70 mb-4 md:mb-6">{offer.validUntil}</p>
               <Button variant="elegant" className="w-full" asChild>
                 <Link to="/booking">Book This Offer</Link>
               </Button>

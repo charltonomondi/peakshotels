@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Building2, Copy, CheckCircle, AlertCircle, Info } from "lucide-react";
+import { Building2, Copy, CheckCircle, Info } from "lucide-react";
 
 interface BankTransferPaymentProps {
   amount: number;
@@ -16,13 +16,11 @@ const bankDetails = {
   swiftCode: "EQBLKENA",
 };
 
-const BankTransferPayment: React.FC<BankTransferPaymentProps> = ({
-  amount,
-  onSuccess,
-  onError,
-}) => {
+const BankTransferPayment: React.FC<BankTransferPaymentProps> = ({ amount, onSuccess }) => {
   const [copied, setCopied] = useState<string | null>(null);
   const [hasTransferred, setHasTransferred] = useState(false);
+  // Generate a stable reference for this session
+  const [reference] = useState(() => "BANK_" + Date.now().toString().slice(-8));
 
   const copyToClipboard = (text: string, field: string) => {
     navigator.clipboard.writeText(text);
@@ -32,9 +30,8 @@ const BankTransferPayment: React.FC<BankTransferPaymentProps> = ({
 
   const handleConfirmTransfer = () => {
     setHasTransferred(true);
-    // In a real app, you'd wait for bank webhook confirmation
-    // For demo purposes, we simulate success
-    const reference = "BANK_" + Math.floor(Math.random() * 1000000000 + 1);
+    // Booking is saved as "pending" — hotel staff will verify and confirm
+    // We pass the reference so the booking record is created with payment_status=pending
     onSuccess(reference);
   };
 
@@ -137,11 +134,11 @@ const BankTransferPayment: React.FC<BankTransferPaymentProps> = ({
           I have made the transfer
         </Button>
       ) : (
-        <div className="text-center p-4 bg-green-50 dark:bg-green-950/20 rounded-lg">
-          <CheckCircle className="h-8 w-8 text-green-600 mx-auto mb-2" />
-          <p className="font-medium text-foreground">Transfer confirmed!</p>
+        <div className="text-center p-4 bg-amber-50 dark:bg-amber-950/20 rounded-lg">
+          <CheckCircle className="h-8 w-8 text-amber-600 mx-auto mb-2" />
+          <p className="font-medium text-foreground">Transfer submitted — pending verification</p>
           <p className="text-sm text-muted-foreground mt-1">
-            We will verify your payment and confirm your booking shortly.
+            Our team will verify your payment within 1–2 business hours and send a confirmation email.
           </p>
         </div>
       )}

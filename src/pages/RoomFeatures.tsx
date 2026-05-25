@@ -11,6 +11,7 @@ import roomPresidential from "@/assets/bed5.jpg";
 import MpesaPayment from "@/components/MpesaPayment";
 import PaystackPayment from "@/components/PaystackPayment";
 import BankTransferPayment from "@/components/BankTransferPayment";
+import { supabase } from "@/lib/supabase";
 
 // Define the types for room configuration and meal plans to ensure type safety.
 type RoomConfig = "single" | "double" | "twin";
@@ -331,9 +332,94 @@ const RoomFeatures = () => {
     setBookingStep(3);
   };
 
-  const handlePaymentSuccess = (transactionCode: string) => {
-    alert("Payment successful! Reference: " + transactionCode);
+  const handlePaymentSuccess = async (transactionCode: string) => {
+    const isMpesa = paymentMethod === "mpesa";
+    const isBank = paymentMethod === "bank_transfer";
+    const bookingStatus = (isMpesa || isBank) ? "pending" : "confirmed";
+    const paymentStatus = (isMpesa || isBank) ? "pending" : "paid";
+    const finalAmount = Math.max(1, totalPrice);
+
+    // Look up room_id
+    let roomId: string | null = null;
+    try {
+      const { data: roomRow } = await supabase
+        .from("rooms").select("id").eq("room_number", roomNumber).single();
+      roomId = roomRow?.id ?? null;
+    } catch (_) {}
+
+    // Save directly to Supabase
+    let bookingRef = "";
+    const { data: booking, error: bookingError } = await supabase
+      .from("bookings")
+      .insert({
+        room_id: roomId,
+        guest_name: `${guestData.firstName} ${guestData.lastName}`,
+        guest_email: guestData.email || null,
+        guest_phone: guestData.phone,
+        check_in: bookingData.checkIn,
+        check_out: bookingData.checkOut,
+        num_guests: bookingData.guests,
+        number_of_rooms: bookingData.numberOfRooms,
+        total_amount: finalAmount,
+        room_number: roomNumber,
+        room_type: selectedRoom?.name || "",
+        room_config: bookingData.roomConfig,
+        meal_plan: bookingData.mealPlan,
+        price_per_night: getRoomPrice(),
+        payment_method: paymentMethod,
+        payment_status: paymentStatus,
+        transaction_ref: transactionCode || null,
+        special_requests: guestData.specialRequests || null,
+        status: bookingStatus,
+      } as any)
+      .select("reference, id")
+      .single();
+
+    if (bookingError) {
+      console.error("❌ Booking save error:", bookingError.message);
+    } else {
+      bookingRef = booking?.reference || "";
+      console.log("✅ Booking saved:", bookingRef);
+    }
+
+    // Send confirmation email (best-effort)
+    fetch("/api/send-booking-email", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        firstName: guestData.firstName,
+        lastName: guestData.lastName,
+        email: guestData.email,
+        phone: guestData.phone,
+        specialRequests: guestData.specialRequests,
+        roomNumber,
+        roomType: selectedRoom?.name,
+        roomCategory: selectedRoom?.id,
+        roomConfig: bookingData.roomConfig,
+        mealPlan: bookingData.mealPlan,
+        checkIn: bookingData.checkIn,
+        checkOut: bookingData.checkOut,
+        guests: String(bookingData.guests),
+        numberOfRooms: bookingData.numberOfRooms,
+        nights,
+        totalPrice: finalAmount,
+        perNightPrice: getRoomPrice(),
+        paymentMethod,
+        transactionCode,
+        status: bookingStatus,
+      }),
+    }).catch(err => console.warn("Email send failed:", err));
+
     setShowBookingModal(false);
+
+    if (isBank) {
+      alert(`Booking submitted (Ref: ${bookingRef || "pending"}).\nOur team will verify your bank transfer and confirm within 1–2 business hours.`);
+    } else if (isMpesa) {
+      alert(`M-Pesa STK push sent! Check your phone.\n\nBooking Ref: ${bookingRef || "pending"}\nYour booking is saved and will be confirmed once payment is received.`);
+    } else {
+      alert(`Payment successful! Booking confirmed.\nRef: ${bookingRef}\nCheck your email for confirmation.`);
+    }
+    navigate("/");
   };
 
   const handlePaymentError = (error: string) => {
@@ -1009,6 +1095,22 @@ const RoomFeatures = () => {
                         onSuccess={handlePaymentSuccess}
                         onError={handlePaymentError}
                         triggerPayment={paymentTrigger}
+                        bookingData={{
+                          firstName: guestData.firstName,
+                          lastName: guestData.lastName,
+                          roomNumber: roomNumber || '',
+                          roomType: selectedRoom?.name || 'Standard Room',
+                          roomConfig: bookingData.roomConfig,
+                          mealPlan: bookingData.mealPlan,
+                          checkIn: bookingData.checkIn,
+                          checkOut: bookingData.checkOut,
+                          guests: bookingData.guests,
+                          numberOfRooms: bookingData.numberOfRooms,
+                          nights,
+                          totalPrice,
+                          perNightPrice: getRoomPrice(),
+                          specialRequests: guestData.specialRequests,
+                        }}
                       />
                     )}
                     {paymentMethod === 'paystack' && (

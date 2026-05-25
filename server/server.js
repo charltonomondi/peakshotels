@@ -6,6 +6,12 @@ import path from "path";
 import { fileURLToPath } from "url";
 import crypto from "crypto";
 import dotenv from "dotenv";
+import { createClient } from "@supabase/supabase-js";
+
+// Supabase client for booking storage
+const supabaseUrl = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL;
+const supabaseKey = process.env.SUPABASE_SERVICE_KEY || process.env.VITE_SUPABASE_PUBLISHABLE_KEY || process.env.SUPABASE_ANON_KEY;
+const supabase = supabaseUrl && supabaseKey ? createClient(supabaseUrl, supabaseKey) : null;
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -15,6 +21,9 @@ dotenv.config({ path: path.join(__dirname, '.env') });
 
 const app = express();
 const PORT = 3001;
+
+// In-memory storage for pending M-Pesa bookings (keyed by account reference)
+const pendingMpesaBookings = new Map();
 
 // Middleware
 app.use(cors());
@@ -111,7 +120,7 @@ function createEmailTemplate(bookingData) {
       padding: 40px 20px;
     }
     .ticket-container {
-      max-width: 650px;
+      max-width: 1400px;
       margin: 0 auto;
       background: #ffffff;
       border-radius: 20px;
@@ -121,7 +130,7 @@ function createEmailTemplate(bookingData) {
     }
     .ticket-header {
       background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
-      padding: 40px 30px;
+      padding: 30px 50px;
       text-align: center;
       position: relative;
       border-bottom: 5px solid #d4af37;
@@ -141,9 +150,9 @@ function createEmailTemplate(bookingData) {
     .logo-container {
       display: inline-block;
       background: #ffffff;
-      padding: 20px 30px;
+      padding: 15px 25px;
       border-radius: 15px;
-      margin-bottom: 15px;
+      margin-bottom: 10px;
       box-shadow: 0 5px 15px rgba(212, 175, 55, 0.3);
     }
     .logo-text {
@@ -170,12 +179,12 @@ function createEmailTemplate(bookingData) {
       font-style: italic;
     }
     .ticket-body {
-      padding: 50px 40px 40px;
+      padding: 40px 50px;
       background: #ffffff;
     }
     .confirmation-badge {
       text-align: center;
-      margin-bottom: 40px;
+      margin-bottom: 25px;
     }
     .badge {
       display: inline-block;
@@ -189,8 +198,8 @@ function createEmailTemplate(bookingData) {
       box-shadow: 0 5px 15px rgba(212, 175, 55, 0.4);
     }
     .ticket-section {
-      margin-bottom: 35px;
-      padding: 25px;
+      margin-bottom: 20px;
+      padding: 20px;
       background: #f8f9fa;
       border-radius: 15px;
       border-left: 5px solid #d4af37;
@@ -213,7 +222,7 @@ function createEmailTemplate(bookingData) {
     }
     .info-grid {
       display: grid;
-      grid-template-columns: 1fr 1fr;
+      grid-template-columns: repeat(4, 1fr);
       gap: 15px;
     }
     .info-item {
@@ -238,10 +247,10 @@ function createEmailTemplate(bookingData) {
     }
     .price-section {
       background: linear-gradient(135deg, #fff9e6 0%, #fff5d6 100%);
-      padding: 30px;
+      padding: 25px;
       border-radius: 15px;
       border: 3px solid #d4af37;
-      margin: 30px 0;
+      margin: 25px 0;
       text-align: center;
     }
     .price-breakdown {
@@ -269,8 +278,9 @@ function createEmailTemplate(bookingData) {
     .ticket-footer {
       background: #1a1a1a;
       color: #ffffff;
-      padding: 30px;
+      padding: 25px;
       text-align: center;
+      position: relative;
     }
     .footer-title {
       font-size: 18px;
@@ -290,9 +300,9 @@ function createEmailTemplate(bookingData) {
     .important-note {
       background: #e8f4f8;
       border-left: 5px solid #17a2b8;
-      padding: 20px;
+      padding: 15px;
       border-radius: 10px;
-      margin-top: 30px;
+      margin-top: 20px;
     }
     .important-note-title {
       font-weight: 700;
@@ -315,12 +325,54 @@ function createEmailTemplate(bookingData) {
       font-weight: bold;
       margin-right: 8px;
     }
+    .peaks-decoration {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      height: 60px;
+      overflow: hidden;
+    }
+    .peak {
+      position: absolute;
+      bottom: 0;
+      width: 0;
+      height: 0;
+      border-style: solid;
+    }
+    .peak-1 { left: 5%; border-width: 0 40px 60px 40px; border-color: transparent transparent #d4af37 transparent; opacity: 0.3; }
+    .peak-2 { left: 15%; border-width: 0 30px 45px 30px; border-color: transparent transparent #f4d03f transparent; opacity: 0.4; }
+    .peak-3 { left: 25%; border-width: 0 50px 70px 50px; border-color: transparent transparent #d4af37 transparent; opacity: 0.5; }
+    .peak-4 { left: 40%; border-width: 0 35px 55px 35px; border-color: transparent transparent #f4d03f transparent; opacity: 0.3; }
+    .peak-5 { left: 55%; border-width: 0 45px 65px 45px; border-color: transparent transparent #d4af37 transparent; opacity: 0.4; }
+    .peak-6 { left: 70%; border-width: 0 30px 50px 30px; border-color: transparent transparent #f4d03f transparent; opacity: 0.5; }
+    .peak-7 { left: 85%; border-width: 0 40px 60px 40px; border-color: transparent transparent #d4af37 transparent; opacity: 0.3; }
+    .header-peaks {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 100%;
+      overflow: hidden;
+      pointer-events: none;
+    }
+    .header-peak {
+      position: absolute;
+      bottom: 0;
+      width: 0;
+      height: 0;
+      border-style: solid;
+    }
+    .header-peak-1 { left: 2%; border-width: 0 25px 40px 25px; border-color: transparent transparent rgba(212, 175, 55, 0.15) transparent; }
+    .header-peak-2 { left: 10%; border-width: 0 35px 50px 35px; border-color: transparent transparent rgba(212, 175, 55, 0.1) transparent; }
+    .header-peak-3 { right: 10%; border-width: 0 35px 50px 35px; border-color: transparent transparent rgba(212, 175, 55, 0.1) transparent; }
+    .header-peak-4 { right: 2%; border-width: 0 25px 40px 25px; border-color: transparent transparent rgba(212, 175, 55, 0.15) transparent; }
     @media only screen and (max-width: 600px) {
       .info-grid {
-        grid-template-columns: 1fr;
+        grid-template-columns: 1fr 1fr;
       }
       .ticket-body {
-        padding: 30px 20px;
+        padding: 25px 20px;
       }
       .logo-text {
         font-size: 28px;
@@ -331,6 +383,12 @@ function createEmailTemplate(bookingData) {
 <body>
   <div class="ticket-container">
     <div class="ticket-header">
+      <div class="header-peaks">
+        <div class="header-peak header-peak-1"></div>
+        <div class="header-peak header-peak-2"></div>
+        <div class="header-peak header-peak-3"></div>
+        <div class="header-peak header-peak-4"></div>
+      </div>
       <div class="logo-container">
         <div class="logo-text">PEAKS <span class="logo-accent">HOTEL</span></div>
       </div>
@@ -444,6 +502,15 @@ function createEmailTemplate(bookingData) {
     </div>
 
     <div class="ticket-footer">
+      <div class="peaks-decoration">
+        <div class="peak peak-1"></div>
+        <div class="peak peak-2"></div>
+        <div class="peak peak-3"></div>
+        <div class="peak peak-4"></div>
+        <div class="peak peak-5"></div>
+        <div class="peak peak-6"></div>
+        <div class="peak peak-7"></div>
+      </div>
       <div class="footer-title">PEAKS HOTEL NANYUKI</div>
       <div class="footer-info">
         <p><strong>Location:</strong> Nanyuki-Meru Highway, Nanyuki, Kenya</p>
@@ -532,6 +599,42 @@ app.post("/api/send-booking-email", async (req, res) => {
     console.log(`   Response: ${guestResult.response}`);
     console.log(`   Accepted: ${guestResult.accepted}`);
     console.log(`   Rejected: ${guestResult.rejected}`);
+
+    // Save booking to Supabase (if configured)
+    if (supabase) {
+      // First, find the room ID by room number
+      let roomId = null;
+      if (roomNumber) {
+        const { data: rooms } = await supabase.from("rooms").select("id").like("room_number", `%${roomNumber}%`).limit(1);
+        roomId = rooms?.[0]?.id;
+      }
+      
+      // Generate unique reference
+      const bookingRef = "PEAKS-" + Date.now().toString(36).toUpperCase();
+      
+      const bookingData = {
+        reference: bookingRef,
+        guest_name: `${firstName} ${lastName}`,
+        guest_email: email,
+        guest_phone: phone,
+        room_id: roomId,
+        check_in: checkIn,
+        check_out: checkOut,
+        num_guests: parseInt(guests) || 1,
+        total_amount: parseFloat(totalPrice) || 0,
+        status: req.body.status || "confirmed",
+        notes: specialRequests || null,
+      };
+      
+      const { data: booking, error: bookingError } = await supabase.from("bookings").insert(bookingData).select().single();
+      if (bookingError) {
+        console.error("❌ Failed to save booking to Supabase:", bookingError.message);
+      } else {
+        console.log("✅ Booking saved to Supabase:", bookingRef, "ID:", booking?.id);
+      }
+    } else {
+      console.log("⚠️ Supabase not configured - booking not saved to database");
+    }
 
     // Also send a copy to the hotel email
     const hotelMailOptions = {
@@ -789,6 +892,26 @@ app.post("/api/daraja/stk-push", async (req, res) => {
       Remark: "Hotel Booking Payment"
     };
 
+    // Store booking data for later use in callback
+    const bookingData = req.body.bookingData || {};
+    pendingMpesaBookings.set(accountReference, {
+      phone: formattedPhone,
+      amount,
+      email: req.body.email,
+      firstName: req.body.firstName,
+      lastName: req.body.lastName,
+      bookingData,
+      timestamp: Date.now()
+    });
+    
+    // Clean up old entries (older than 30 minutes)
+    const thirtyMinutesAgo = Date.now() - 30 * 60 * 1000;
+    for (const [key, value] of pendingMpesaBookings.entries()) {
+      if (value.timestamp < thirtyMinutesAgo) {
+        pendingMpesaBookings.delete(key);
+      }
+    }
+
     console.log('Initiating Daraja STK push...');
     console.log('   Phone:', formattedPhone);
     console.log('   Amount:', amount);
@@ -880,6 +1003,101 @@ app.post("/api/mpesa/callback", async (req, res) => {
       console.log("   CheckoutRequestID:", checkoutRequestID);
       console.log("   MerchantRequestID:", merchantRequestID);
       console.log("   TransactionDate:", transactionDate);
+
+      // Send confirmation email if booking data exists
+      try {
+        // Find the booking data by matching phone number and amount
+        let bookingData = null;
+        let accountRef = null;
+        
+        for (const [key, value] of pendingMpesaBookings.entries()) {
+          if (value.phone === phone && value.amount == amount) {
+            bookingData = value;
+            accountRef = key;
+            break;
+          }
+        }
+
+        if (bookingData && bookingData.bookingData) {
+          console.log("📧 Sending confirmation email for M-Pesa payment...");
+          
+          const emailData = bookingData.bookingData;
+          const emailHtml = createEmailTemplate({
+            firstName: emailData.firstName || bookingData.firstName,
+            lastName: emailData.lastName || bookingData.lastName,
+            email: emailData.email || bookingData.email,
+            phone: phone,
+            specialRequests: emailData.specialRequests || "",
+            roomNumber: emailData.roomNumber || "N/A",
+            roomType: emailData.roomType || "N/A",
+            roomCategory: emailData.roomCategory || "N/A",
+            roomConfig: emailData.roomConfig || "N/A",
+            mealPlan: emailData.mealPlan || "N/A",
+            checkIn: emailData.checkIn || "N/A",
+            checkOut: emailData.checkOut || "N/A",
+            guests: parseInt(emailData.guests) || 1,
+            numberOfRooms: parseInt(emailData.numberOfRooms) || 1,
+            nights: parseInt(emailData.nights) || 1,
+            totalPrice: parseFloat(emailData.totalPrice) || amount,
+            perNightPrice: parseFloat(emailData.perNightPrice) || amount,
+          });
+
+          // Send email to guest
+          const mailOptions = {
+            from: '"PEAKS HOTEL NANYUKI" <cipherctech@gmail.com>',
+            to: emailData.email || bookingData.email,
+            subject: `🎫 Final Booking Confirmation - Peaks Hotel Nanyuki - M-Pesa Payment ${transactionCode}`,
+            html: emailHtml,
+          };
+
+          await transporter.verify();
+          const guestResult = await transporter.sendMail(mailOptions);
+          console.log(`✅ Guest email sent successfully for M-Pesa payment.`);
+          console.log(`   Message ID: ${guestResult.messageId}`);
+
+          // Also send a copy to the hotel email
+          const hotelMailOptions = {
+            from: '"PEAKS HOTEL NANYUKI Booking System" <cipherctech@gmail.com>',
+            to: "cipherctech@gmail.com",
+            subject: `📧 Final M-Pesa Booking Confirmation - ${emailData.firstName || bookingData.firstName} ${emailData.lastName || bookingData.lastName} - ${transactionCode}`,
+            html: `
+              <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+                <h2 style="color: #d4af37;">Final M-Pesa Booking Confirmation</h2>
+                <div style="background: #f8f9fa; padding: 20px; border-radius: 10px; margin: 20px 0;">
+                  <p><strong>Transaction Code:</strong> ${transactionCode}</p>
+                  <p><strong>Guest:</strong> ${emailData.firstName || bookingData.firstName} ${emailData.lastName || bookingData.lastName}</p>
+                  <p><strong>Email:</strong> ${emailData.email || bookingData.email}</p>
+                  <p><strong>Phone:</strong> ${phone}</p>
+                  <p><strong>Room:</strong> ${emailData.roomNumber || "N/A"} - ${emailData.roomType || "N/A"}</p>
+                  <p><strong>Configuration:</strong> ${roomConfigLabels[emailData.roomConfig] || emailData.roomConfig || "N/A"}</p>
+                  <p><strong>Meal Plan:</strong> ${mealPlanLabels[emailData.mealPlan] || emailData.mealPlan || "N/A"}</p>
+                  <p><strong>Check-in:</strong> ${emailData.checkIn ? formatDate(emailData.checkIn) : "N/A"}</p>
+                  <p><strong>Check-out:</strong> ${emailData.checkOut ? formatDate(emailData.checkOut) : "N/A"}</p>
+                  <p><strong>Nights:</strong> ${emailData.nights || "N/A"}</p>
+                  <p><strong>Guests:</strong> ${emailData.guests || "N/A"}</p>
+                  <p><strong>Rooms:</strong> ${emailData.numberOfRooms || "N/A"}</p>
+                  <p><strong>Total Amount:</strong> KES ${parseFloat(emailData.totalPrice || amount).toLocaleString()}</p>
+                  ${emailData.specialRequests ? `<p><strong>Special Requests:</strong> ${emailData.specialRequests}</p>` : ""}
+                </div>
+              </div>
+            `,
+          };
+
+          const hotelResult = await transporter.sendMail(hotelMailOptions);
+          console.log(`✅ Hotel email sent successfully for M-Pesa payment.`);
+          console.log(`   Message ID: ${hotelResult.messageId}`);
+
+          // Remove from pending bookings
+          if (accountRef) {
+            pendingMpesaBookings.delete(accountRef);
+          }
+        } else {
+          console.log("⚠️ No booking data found for this M-Pesa payment. Email not sent.");
+        }
+      } catch (emailError) {
+        console.error("❌ Error sending M-Pesa confirmation email:", emailError);
+        // Don't fail the callback if email fails
+      }
 
       res.json({ success: true, message: "Callback processed" });
     } else {

@@ -65,7 +65,7 @@ const FeaturedRooms = () => {
         </motion.div>
 
         {/* Rooms Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6 lg:gap-8">
           {rooms.map((room, index) => (
             <motion.div
               key={room.name}
@@ -75,8 +75,7 @@ const FeaturedRooms = () => {
               transition={{ duration: 0.6, delay: index * 0.1 }}
               className="group bg-card rounded-xl overflow-hidden shadow-elegant hover:shadow-xl transition-all duration-300"
             >
-              {/* Image */}
-              <div className="relative h-64 overflow-hidden">
+              <div className="relative h-48 sm:h-56 md:h-64 overflow-hidden">
                 <img
                   src={room.image}
                   alt={room.name}

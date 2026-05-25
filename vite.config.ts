@@ -9,11 +9,38 @@ export default defineConfig(({ mode }) => ({
     host: "::",
     port: 8080,
     proxy: {
-      '/api': {
+      // Proxy to Admin Console for public APIs (bookings, rooms, mpesa)
+      '/api/public': {
+        target: 'http://localhost:5173',
+        changeOrigin: true,
+        secure: false,
+      },
+      '/api/mpesa': {
+        target: 'http://localhost:5173',
+        changeOrigin: true,
+        secure: false,
+      },
+      // Proxy to Express server for email and Daraja
+      '/api/daraja': {
         target: 'http://localhost:3001',
         changeOrigin: true,
         secure: false,
-      }
+      },
+      '/api/send-booking-email': {
+        target: 'http://localhost:3001',
+        changeOrigin: true,
+        secure: false,
+      },
+      '/api/paystack': {
+        target: 'http://localhost:3001',
+        changeOrigin: true,
+        secure: false,
+      },
+      '/api/health': {
+        target: 'http://localhost:3001',
+        changeOrigin: true,
+        secure: false,
+      },
     }
   },
   plugins: [react(), mode === "development" && componentTagger()].filter(Boolean),

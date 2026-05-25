@@ -1,6 +1,6 @@
 import { useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
-import { CreditCard, Loader2, CheckCircle, AlertCircle, Info } from "lucide-react";
+import { CreditCard, CheckCircle, Info } from "lucide-react";
 
 interface PaystackPaymentProps {
   email: string;
@@ -40,7 +40,7 @@ const PaystackPayment: React.FC<PaystackPaymentProps> = ({
     }
   }, []);
 
-  const API_BASE = import.meta.env.VITE_API_BASE_URL || "http://localhost:3001";
+  const API_BASE = import.meta.env.VITE_API_BASE_URL || "";
 
   const handlePayment = () => {
     if (!window.PaystackPop) {
@@ -58,17 +58,22 @@ const PaystackPayment: React.FC<PaystackPaymentProps> = ({
         phone: phone,
       },
       callback: function (response: any) {
+        console.log("✅ Paystack payment successful, reference:", response.reference);
         // Send reference to backend for verification
         fetch(`${API_BASE}/api/paystack/verify?reference=${response.reference}`)
           .then(res => res.json())
           .then(data => {
+            console.log("📧 Paystack verification response:", data);
             if (data.success) {
+              console.log("✅ Paystack verification successful, calling onSuccess");
               onSuccess(response.reference);
             } else {
+              console.error("❌ Paystack verification failed:", data.message);
               onError(data.message || "Payment verification failed");
             }
           })
           .catch(err => {
+            console.error("❌ Paystack verification error:", err);
             onError("Verification failed: " + err.message);
           });
       },

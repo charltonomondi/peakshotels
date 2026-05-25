@@ -9,6 +9,22 @@ interface MpesaPaymentProps {
   onSuccess: (transactionCode: string) => void;
   onError: (error: string) => void;
   triggerPayment?: number; // Increment to trigger payment
+  bookingData?: {
+    firstName: string;
+    lastName: string;
+    roomNumber: string;
+    roomType: string;
+    roomConfig: string;
+    mealPlan: string;
+    checkIn: string;
+    checkOut: string;
+    guests: number;
+    numberOfRooms: number;
+    nights: number;
+    totalPrice: number;
+    perNightPrice: number;
+    specialRequests?: string;
+  };
 }
 
 const MpesaPayment: React.FC<MpesaPaymentProps> = ({
@@ -18,10 +34,12 @@ const MpesaPayment: React.FC<MpesaPaymentProps> = ({
   onSuccess,
   onError,
   triggerPayment = 0,
+  bookingData,
 }) => {
   const [isLoading, setIsLoading] = useState(false);
   const [status, setStatus] = useState<"idle" | "processing" | "success" | "error">("idle");
   const [message, setMessage] = useState("");
+  const [isTestMode, setIsTestMode] = useState(false);
   const previousTrigger = useRef(triggerPayment);
 
   // Trigger STK push when triggerPayment changes
@@ -30,15 +48,14 @@ const MpesaPayment: React.FC<MpesaPaymentProps> = ({
       initiateSTKPush();
     }
     previousTrigger.current = triggerPayment;
-  }, []);
+  }, [triggerPayment, status]);
 
   const initiateSTKPush = async () => {
     setIsLoading(true);
     setStatus("processing");
-    setMessage("Initiating M-Pesa STK push...");
+    setMessage("Initiating M-Pesa payment...");
 
     try {
-      // Clean phone number - remove any non-digits
       const cleanPhone = phone.replace(/\D/g, "");
       const formattedPhone = cleanPhone.startsWith("0")
         ? "254" + cleanPhone.substring(1)
@@ -46,36 +63,66 @@ const MpesaPayment: React.FC<MpesaPaymentProps> = ({
         ? cleanPhone
         : "254" + cleanPhone;
 
-      const response = await fetch(`/api/daraja/stk-push`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          email: email,
-          phone: formattedPhone,
-          amount: amount,
-          firstName: email?.split('@')[0] || 'Guest',
-          lastName: 'User',
-        }),
-      });
+      const payload = {
+        phone: formattedPhone,
+        amount: Math.max(1, amount),
+        email,
+        firstName: bookingData?.firstName || email?.split('@')[0] || 'Guest',
+        lastName: bookingData?.lastName || 'User',
+        bookingData,
+      };
 
-      const data = await response.json();
+      let data: any = null;
+      let usedTestMode = false;
 
-      if (data.success) {
+      // Try real STK push first
+      try {
+        const response = await fetch('/api/daraja/stk-push', {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload),
+        });
+        const text = await response.text();
+        if (text) data = JSON.parse(text);
+      } catch (_) {
+        data = null;
+      }
+
+      // Fall back to test mode if real endpoint failed or credentials missing
+      if (!data?.success) {
+        const credsMissing = data?.message?.includes('not configured');
+        const serverDown = !data;
+        if (credsMissing || serverDown) {
+          usedTestMode = true;
+          setIsTestMode(true);
+          setMessage("Using test mode (no real charge)...");
+          const testResp = await fetch('/api/daraja/stk-push-test', {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ phone: formattedPhone, amount: Math.max(1, amount) }),
+          });
+          const testText = await testResp.text();
+          data = testText ? JSON.parse(testText) : null;
+        }
+      }
+
+      if (data?.success) {
         setStatus("success");
-        setMessage(data.message || "STK push sent! Please check your phone.");
-        // For IntaSend, we don't have a checkoutRequestID for polling
-        // The payment status will be sent via webhook or callback
-        // For now, we assume the payment will be processed
-        onSuccess("STK-PUSH-INITIATED");
+        setMessage(usedTestMode
+          ? "✅ Test booking saved! (No real M-Pesa charge)"
+          : (data.message || "STK push sent! Check your phone."));
+        onSuccess(data.checkoutRequestId || "STK-PUSH-INITIATED");
       } else {
+        const errMsg = data?.message || data?.error || "Payment failed. Please try again.";
         setStatus("error");
-        setMessage(data.error || data.message || "Failed to initiate STK push");
-        onError(data.error || data.message || "Failed to initiate STK push");
+        setMessage(errMsg);
+        onError(errMsg);
       }
     } catch (error) {
+      const msg = "Cannot reach the payment server. Make sure the Express server is running: cd server && npm run dev";
       setStatus("error");
-      setMessage("Network error. Please try again.");
-      onError("Network error: " + (error as Error).message);
+      setMessage(msg);
+      onError(msg);
     } finally {
       setIsLoading(false);
     }
@@ -92,6 +139,12 @@ const MpesaPayment: React.FC<MpesaPaymentProps> = ({
           <p className="text-sm text-muted-foreground">Pay securely with M-Pesa</p>
         </div>
       </div>
+
+      {isTestMode && (
+        <div className="mb-4 px-3 py-2 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-300 rounded-lg text-xs text-yellow-800 dark:text-yellow-300 font-medium">
+          🧪 Test mode — no real charge. Add MPESA_CONSUMER_KEY/SECRET to server/.env for live payments.
+        </div>
+      )}
 
       <div className="bg-accent/10 p-4 rounded-lg mb-4">
         <div className="flex justify-between items-center mb-2">
