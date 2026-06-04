@@ -29,6 +29,10 @@ import RoomFeatures from "./pages/RoomFeatures";
 import LoyaltySignup from "./pages/loyalty/Signup";
 import LoyaltyLogin from "./pages/loyalty/Login";
 import LoyaltyDashboard from "./pages/loyalty/Dashboard";
+import LipaSignup from "./pages/lipa/Signup";
+import LipaLogin from "./pages/lipa/Login";
+import LipaDashboard from "./pages/lipa/Dashboard";
+import { LipaAuthProvider } from "./lib/lipaAuth";
 
 const queryClient = new QueryClient();
 
@@ -39,6 +43,7 @@ const App = () => {
     <BrowserRouter>
       <QueryClientProvider client={queryClient}>
         <LoyaltyAuthProvider>
+          <LipaAuthProvider>
           <TooltipProvider>
             <Toaster />
             <Sonner />
@@ -70,11 +75,15 @@ const App = () => {
                   <Route path="/loyalty/signup" element={<LoyaltySignup />} />
                   <Route path="/loyalty/login" element={<LoyaltyLogin />} />
                   <Route path="/loyalty/dashboard" element={<LoyaltyDashboard />} />
+                  <Route path="/lipa/signup" element={<LipaSignup />} />
+                  <Route path="/lipa/login" element={<LipaLogin />} />
+                  <Route path="/lipa/dashboard" element={<LipaDashboard />} />
                   <Route path="*" element={<NotFound />} />
                 </Routes>
               </>
             )}
           </TooltipProvider>
+          </LipaAuthProvider>
         </LoyaltyAuthProvider>
       </QueryClientProvider>
     </BrowserRouter>

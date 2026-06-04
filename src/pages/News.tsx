@@ -6,6 +6,12 @@ import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
 import { Calendar, User, ArrowRight, Star, Send } from "lucide-react";
 import heroBackground from "@/assets/facilities/frontage.jpg";
+import awardImage from "@/assets/facilities/frontage.jpg";
+import wellnessImage from "@/assets/spa.jpg";
+import sustainabilityImage from "@/assets/views/Ngare Ndare.jpg";
+import adventureImage from "@/assets/news/mountk.JPG";
+import diningImage from "@/assets/restaurant/Ami5.jpg";
+import communityImage from "@/assets/outdoor/eventsgrounds.jpg";
 
 const newsItems = [
   {
@@ -15,7 +21,7 @@ const newsItems = [
     date: "2024-01-15",
     author: "Peaks Hotel Team",
     category: "Awards",
-    image: "/placeholder.svg",
+    image: awardImage,
   },
   {
     id: 2,
@@ -24,7 +30,7 @@ const newsItems = [
     date: "2024-01-10",
     author: "Wellness Director",
     category: "Wellness",
-    image: "/placeholder.svg",
+    image: wellnessImage,
   },
   {
     id: 3,
@@ -33,7 +39,7 @@ const newsItems = [
     date: "2024-01-05",
     author: "Operations Manager",
     category: "Sustainability",
-    image: "/placeholder.svg",
+    image: sustainabilityImage,
   },
   {
     id: 4,
@@ -42,7 +48,7 @@ const newsItems = [
     date: "2023-12-20",
     author: "Adventure Coordinator",
     category: "Adventure",
-    image: "/placeholder.svg",
+    image: adventureImage,
   },
   {
     id: 5,
@@ -51,7 +57,7 @@ const newsItems = [
     date: "2023-12-15",
     author: "Food & Beverage Manager",
     category: "Dining",
-    image: "/placeholder.svg",
+    image: diningImage,
   },
   {
     id: 6,
@@ -60,7 +66,7 @@ const newsItems = [
     date: "2023-12-01",
     author: "Community Relations",
     category: "Community",
-    image: "/placeholder.svg",
+    image: communityImage,
   },
 ];
 
@@ -72,11 +78,35 @@ const News = () => {
     message: "",
   });
 
-  const handleFeedbackSubmit = (e: React.FormEvent) => {
+  const [submitting, setSubmitting] = useState(false);
+  const [submitStatus, setSubmitStatus] = useState<"idle" | "success" | "error">("idle");
+
+  const handleFeedbackSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    console.log("Feedback submitted:", feedbackData);
-    alert("Thank you for your feedback! We appreciate your input.");
-    setFeedbackData({ name: "", email: "", rating: 0, message: "" });
+    if (feedbackData.rating === 0) {
+      alert("Please select a star rating.");
+      return;
+    }
+    setSubmitting(true);
+    setSubmitStatus("idle");
+    try {
+      const res = await fetch("/api/send-review", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(feedbackData),
+      });
+      const data = await res.json();
+      if (data.success) {
+        setSubmitStatus("success");
+        setFeedbackData({ name: "", email: "", rating: 0, message: "" });
+      } else {
+        setSubmitStatus("error");
+      }
+    } catch {
+      setSubmitStatus("error");
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   return (
@@ -266,10 +296,21 @@ const News = () => {
                   />
                 </div>
 
-                <Button variant="gold" size="lg" type="submit" className="w-full">
+                <Button variant="gold" size="lg" type="submit" className="w-full" disabled={submitting}>
                   <Send className="h-5 w-5 mr-2" />
-                  Submit Feedback
+                  {submitting ? "Sending..." : "Submit Feedback"}
                 </Button>
+
+                {submitStatus === "success" && (
+                  <p className="text-center text-sm text-green-600 font-medium">
+                    ✓ Thank you! Your review has been sent to our team.
+                  </p>
+                )}
+                {submitStatus === "error" && (
+                  <p className="text-center text-sm text-red-600 font-medium">
+                    Something went wrong. Please try again or email us directly at peakshotels@gmail.com
+                  </p>
+                )}
               </form>
             </div>
           </motion.div>

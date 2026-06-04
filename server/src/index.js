@@ -331,6 +331,93 @@ app.post('/api/daraja/callback', async (req, res) => {
   res.json({ ResultCode: 0, ResultDesc: 'Accepted' });
 });
 
+// Paystack payment verification
+app.get('/api/paystack/verify', async (req, res) => {
+  try {
+    const { reference } = req.query;
+    if (!reference) return res.status(400).json({ success: false, message: 'reference is required' });
+
+    const secretKey = process.env.PAYSTACK_SECRET_KEY;
+    if (!secretKey || secretKey === 'sk_test_your-secret-key') {
+      // No secret key — accept the payment optimistically in test/dev
+      console.warn('[Paystack] PAYSTACK_SECRET_KEY not set, skipping verification');
+      return res.json({ success: true, message: 'Payment accepted (verification skipped — no secret key configured)' });
+    }
+
+    const { data } = await axios.get(
+      `https://api.paystack.co/transaction/verify/${encodeURIComponent(reference)}`,
+      { headers: { Authorization: `Bearer ${secretKey}` } }
+    );
+
+    if (data.data?.status === 'success') {
+      res.json({ success: true, reference, amount: data.data.amount / 100 });
+    } else {
+      res.json({ success: false, message: data.data?.gateway_response || 'Payment not successful' });
+    }
+  } catch (error) {
+    console.error('Paystack verify error:', error.response?.data || error.message);
+    res.status(500).json({ success: false, message: error.response?.data?.message || error.message });
+  }
+});
+
+// Guest review/feedback email
+app.post('/api/send-review', async (req, res) => {
+  try {
+    const { name, email, rating, message } = req.body;
+    if (!name || !email || !message) {
+      return res.status(400).json({ success: false, error: 'Missing required fields' });
+    }
+
+    const stars = '★'.repeat(rating) + '☆'.repeat(5 - rating);
+
+    if (!process.env.SMTP_USER || !process.env.SMTP_PASS ||
+        process.env.SMTP_USER.includes('REPLACE') || process.env.SMTP_PASS.includes('REPLACE')) {
+      console.warn('[Review] SMTP not configured, skipping email');
+      return res.json({ success: true, message: 'Review received (email skipped — SMTP not configured)' });
+    }
+
+    await transporter.sendMail({
+      from: `"Peaks Hotel Website" <${process.env.SMTP_USER}>`,
+      to: 'peakshotels@gmail.com',
+      replyTo: email,
+      subject: `New Guest Review — ${rating}/5 stars — ${name}`,
+      html: `<!DOCTYPE html><html><head><meta charset="UTF-8"></head><body style="font-family:'Segoe UI',sans-serif;background:#f0f0f0;padding:20px;margin:0">
+<div style="max-width:600px;margin:0 auto;background:#fff;border-radius:12px;overflow:hidden;box-shadow:0 4px 20px rgba(0,0,0,.15)">
+  <div style="background:#1a1a1a;padding:24px;text-align:center;border-bottom:4px solid #d4af37">
+    <div style="font-size:24px;font-weight:900;color:#fff;letter-spacing:2px">PEAKS <span style="color:#d4af37">HOTEL</span></div>
+    <div style="color:#d4af37;font-size:12px;letter-spacing:3px;margin-top:4px">NEW GUEST REVIEW</div>
+  </div>
+  <div style="padding:28px">
+    <div style="text-align:center;margin-bottom:20px">
+      <span style="font-size:32px;letter-spacing:4px;color:#d4af37">${stars}</span>
+      <div style="font-size:14px;color:#888;margin-top:4px">${rating} out of 5 stars</div>
+    </div>
+    <div style="background:#f8f9fa;border-left:4px solid #d4af37;border-radius:8px;padding:16px;margin-bottom:16px">
+      <div style="font-size:11px;color:#888;text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px">Guest Name</div>
+      <div style="font-size:16px;font-weight:600;color:#1a1a1a">${name}</div>
+    </div>
+    <div style="background:#f8f9fa;border-left:4px solid #d4af37;border-radius:8px;padding:16px;margin-bottom:16px">
+      <div style="font-size:11px;color:#888;text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px">Email</div>
+      <div style="font-size:16px;font-weight:600;color:#1a1a1a"><a href="mailto:${email}" style="color:#d4af37">${email}</a></div>
+    </div>
+    <div style="background:#f8f9fa;border-left:4px solid #d4af37;border-radius:8px;padding:16px">
+      <div style="font-size:11px;color:#888;text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px">Review</div>
+      <div style="font-size:15px;color:#333;line-height:1.6">${message.replace(/\n/g, '<br>')}</div>
+    </div>
+  </div>
+  <div style="background:#1a1a1a;color:#b0b0b0;padding:16px;text-align:center;font-size:12px">
+    Submitted via peakshotel.co.ke — ${new Date().toLocaleString('en-KE', { timeZone: 'Africa/Nairobi' })}
+  </div>
+</div></body></html>`,
+    });
+
+    res.json({ success: true, message: 'Review submitted successfully' });
+  } catch (error) {
+    console.error('send-review error:', error.message);
+    res.status(500).json({ success: false, error: 'Failed to send review' });
+  }
+});
+
 // Admin endpoints
 app.get('/api/admin/bookings', async (_req, res) => {
   try { res.json({ success: true, data: await getAllBookings() }); }

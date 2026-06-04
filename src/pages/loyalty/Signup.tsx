@@ -27,23 +27,36 @@ export default function LoyaltySignup() {
       const { data: authData, error: authErr } = await supabase.auth.signUp({
         email: form.email,
         password: form.password,
-        options: { data: { full_name: form.fullName } },
+        options: { 
+          data: { full_name: form.fullName },
+          emailRedirectTo: window.location.origin + "/loyalty/dashboard",
+        },
       });
       if (authErr) throw authErr;
       if (!authData.user) throw new Error("Signup failed");
 
-      // Create loyalty member record
-      const { error: memberErr } = await supabase.from("loyalty_members").insert({
-        user_id: authData.user.id,
-        full_name: form.fullName,
-        email: form.email,
-        phone: form.phone || null,
-        points: 0,
-        tier: "Bronze",
-      });
-      if (memberErr) throw memberErr;
+      console.log("✅ User created:", authData.user.id);
 
-      navigate("/loyalty/dashboard");
+      // Update phone if provided — the trigger already created the base record
+      if (form.phone) {
+        // Wait briefly for the trigger to fire, then patch phone
+        await new Promise(r => setTimeout(r, 1500));
+        const { error: updateErr } = await supabase
+          .from("loyalty_members")
+          .update({ phone: form.phone, full_name: form.fullName })
+          .eq("user_id", authData.user.id);
+        
+        if (updateErr) console.warn("Phone update failed:", updateErr.message);
+      }
+
+      // Check if email confirmation is required
+      if (authData.session) {
+        // Auto-logged-in, email confirmation disabled
+        navigate("/loyalty/dashboard");
+      } else {
+        // Email confirmation required
+        setError("✅ Account created! Please check your email to confirm before signing in.");
+      }
     } catch (err: any) {
       setError(err.message || "Signup failed");
     } finally {

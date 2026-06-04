@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import {
   Dialog,
   DialogContent,
@@ -10,13 +11,10 @@ import { Button } from "@/components/ui/button";
 
 const LipaMdogoMdogoPopup = () => {
   const [isOpen, setIsOpen] = useState(false);
+  const navigate = useNavigate();
 
   useEffect(() => {
-    // Show popup after a short delay
-    const timer = setTimeout(() => {
-      setIsOpen(true);
-    }, 1000);
-
+    const timer = setTimeout(() => setIsOpen(true), 1000);
     return () => clearTimeout(timer);
   }, []);
 
@@ -38,7 +36,7 @@ const LipaMdogoMdogoPopup = () => {
                   ✨ Flexible payment plans available
                 </p>
                 <p className="text-sm text-amber-700 mt-2">
-                  Book your stay now and pay in easy installments
+                  Book your stay now and pay in easy instalments
                 </p>
               </div>
             </div>
@@ -46,17 +44,13 @@ const LipaMdogoMdogoPopup = () => {
         </DialogHeader>
         <div className="flex flex-col gap-3 mt-4">
           <Button
-            onClick={() => setIsOpen(false)}
+            onClick={() => { setIsOpen(false); navigate("/lipa/signup"); }}
             className="w-full bg-amber-600 hover:bg-amber-700 text-white"
           >
-            Learn More
+            Apply Now — It's Free
           </Button>
-          <Button
-            onClick={() => setIsOpen(false)}
-            variant="outline"
-            className="w-full"
-          >
-            Close
+          <Button onClick={() => setIsOpen(false)} variant="outline" className="w-full">
+            Maybe Later
           </Button>
         </div>
       </DialogContent>

@@ -4,8 +4,9 @@ import { supabase } from "@/lib/supabase";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { Button } from "@/components/ui/button";
+import { CreditCard } from "lucide-react";
 
-export default function LoyaltyLogin() {
+export default function LipaLogin() {
   const navigate = useNavigate();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -19,19 +20,15 @@ export default function LoyaltyLogin() {
     try {
       const { data, error: authErr } = await supabase.auth.signInWithPassword({ email, password });
       if (authErr) {
-        // Provide clearer error messages
         if (authErr.message.includes("Invalid login credentials")) {
-          throw new Error("Invalid email or password. Please check your credentials and try again.");
+          throw new Error("Invalid email or password. Please check your credentials.");
         } else if (authErr.message.includes("Email not confirmed")) {
-          throw new Error("Please check your email and confirm your account before signing in.");
-        } else {
-          throw authErr;
+          throw new Error("Please confirm your email before signing in.");
         }
+        throw authErr;
       }
-      if (!data.session) {
-        throw new Error("Login failed. Please try again.");
-      }
-      navigate("/loyalty/dashboard");
+      if (!data.session) throw new Error("Login failed. Please try again.");
+      navigate("/lipa/dashboard");
     } catch (err: any) {
       setError(err.message || "Login failed");
     } finally {
@@ -45,14 +42,22 @@ export default function LoyaltyLogin() {
       <div className="pt-24 md:pt-32 pb-16 bg-gradient-to-b from-secondary to-background flex items-center">
         <div className="container mx-auto px-4">
           <div className="max-w-md mx-auto bg-card rounded-2xl border border-border p-6 md:p-8 shadow-elegant">
+
             <div className="text-center mb-6">
-              <p className="text-accent font-medium tracking-[0.2em] uppercase text-xs mb-1">Peaks Loyalty</p>
+              <div className="w-12 h-12 bg-accent/10 rounded-full flex items-center justify-center mx-auto mb-3">
+                <CreditCard className="h-6 w-6 text-accent" />
+              </div>
+              <p className="text-accent font-medium tracking-[0.2em] uppercase text-xs mb-1">Lipa Mdogo Mdogo</p>
               <h1 className="font-heading text-2xl font-bold text-foreground">Welcome back</h1>
-              <p className="text-muted-foreground text-sm mt-1">Sign in to view your points and rewards</p>
+              <p className="text-muted-foreground text-sm mt-1">Sign in to manage your instalments</p>
             </div>
 
             {error && (
-              <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg text-sm text-red-700">{error}</div>
+              <div className={`mb-4 p-3 rounded-lg text-sm border ${
+                error.startsWith("✅")
+                  ? "bg-green-50 border-green-200 text-green-700"
+                  : "bg-red-50 border-red-200 text-red-700"
+              }`}>{error}</div>
             )}
 
             <form onSubmit={handleSubmit} className="space-y-4">
@@ -68,18 +73,11 @@ export default function LoyaltyLogin() {
                   <button
                     type="button"
                     onClick={async () => {
-                      if (!email) {
-                        setError("Please enter your email first");
-                        return;
-                      }
-                      try {
-                        await supabase.auth.resetPasswordForEmail(email, {
-                          redirectTo: window.location.origin + "/loyalty/login",
-                        });
-                        setError("✅ Password reset email sent! Check your inbox.");
-                      } catch (err: any) {
-                        setError(err.message || "Failed to send reset email");
-                      }
+                      if (!email) { setError("Enter your email first"); return; }
+                      await supabase.auth.resetPasswordForEmail(email, {
+                        redirectTo: window.location.origin + "/lipa/login",
+                      });
+                      setError("✅ Password reset link sent! Check your inbox.");
                     }}
                     className="text-xs text-accent hover:underline"
                   >
@@ -96,8 +94,8 @@ export default function LoyaltyLogin() {
             </form>
 
             <p className="text-center text-sm text-muted-foreground mt-4">
-              Not a member yet?{" "}
-              <Link to="/loyalty/signup" className="text-accent hover:underline font-medium">Join free</Link>
+              Not enrolled yet?{" "}
+              <Link to="/lipa/signup" className="text-accent hover:underline font-medium">Apply now</Link>
             </p>
           </div>
         </div>
