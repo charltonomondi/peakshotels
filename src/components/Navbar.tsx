@@ -100,7 +100,7 @@ const Navbar = () => {
       return (
         <DropdownMenu key={index}>
           <DropdownMenuTrigger asChild>
-            <button className={`flex items-center gap-1 text-sm font-medium transition-colors hover:text-accent ${isActive(item) ? "text-accent" : "text-foreground"}`}>
+            <button className={`flex items-center gap-1 text-sm font-bold tracking-wide transition-colors hover:text-accent ${isActive(item) ? "text-accent" : "text-foreground"}`}>
               {item.name} <ChevronDown className="h-3.5 w-3.5 opacity-60" />
             </button>
           </DropdownMenuTrigger>
@@ -131,7 +131,7 @@ const Navbar = () => {
       <Link
         key={index}
         to={item.path}
-        className={`text-sm font-medium transition-colors hover:text-accent ${location.pathname === item.path ? "text-accent" : "text-foreground"}`}
+        className={`text-sm font-bold tracking-wide transition-colors hover:text-accent ${location.pathname === item.path ? "text-accent" : "text-foreground"}`}
       >
         {item.name}
       </Link>
@@ -238,7 +238,7 @@ const Navbar = () => {
               {/* More dropdown */}
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <button className={`flex items-center gap-1 text-sm font-medium transition-colors hover:text-accent ${moreNavItems.some(i => location.pathname === i.path) ? "text-accent" : "text-foreground"}`}>
+                  <button className={`flex items-center gap-1 text-sm font-bold tracking-wide transition-colors hover:text-accent ${moreNavItems.some(i => location.pathname === i.path) ? "text-accent" : "text-foreground"}`}>
                     More <ChevronDown className="h-3.5 w-3.5 opacity-60" />
                   </button>
                 </DropdownMenuTrigger>
