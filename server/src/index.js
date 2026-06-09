@@ -331,6 +331,83 @@ app.post('/api/daraja/callback', async (req, res) => {
   res.json({ ResultCode: 0, ResultDesc: 'Accepted' });
 });
 
+// Mount Kenya climbing reservation email
+app.post('/api/send-mountain-booking', async (req, res) => {
+  try {
+    const { fullName, email, phone, climbDate, groupSize, package: pkg, experience, specialRequests } = req.body;
+    if (!fullName || !email || !phone || !climbDate) {
+      return res.status(400).json({ success: false, error: 'Missing required fields' });
+    }
+
+    const expLabels = { beginner: 'Beginner (first time)', intermediate: 'Intermediate (some hiking)', experienced: 'Experienced (high altitude)' };
+
+    if (process.env.SMTP_USER && process.env.SMTP_PASS && !process.env.SMTP_USER.includes('REPLACE')) {
+      await transporter.sendMail({
+        from: `"Peaks Hotel Adventures" <${process.env.SMTP_USER}>`,
+        to: 'peakshotels@gmail.com',
+        replyTo: email,
+        subject: `Mount Kenya Climbing Reservation — ${fullName} — ${new Date(climbDate).toLocaleDateString('en-KE')}`,
+        html: `<!DOCTYPE html><html><body style="font-family:'Segoe UI',sans-serif;background:#0d1a0f;padding:20px;margin:0">
+<div style="max-width:600px;margin:0 auto;background:#162018;border-radius:16px;overflow:hidden;border:1px solid #1e3320">
+  <div style="background:linear-gradient(135deg,#1a2e1c,#0d1a0f);padding:28px;border-bottom:3px solid #16a34a;text-align:center">
+    <p style="color:#4ade80;font-size:11px;letter-spacing:3px;text-transform:uppercase;margin:0 0 6px">Peaks Hotel · Adventures</p>
+    <h2 style="color:#fff;font-size:22px;margin:0">🏔️ Mount Kenya Climbing Reservation</h2>
+  </div>
+  <div style="padding:28px">
+    <table style="width:100%;border-collapse:collapse">
+      ${[
+        ['Full Name', fullName], ['Email', email], ['Phone', phone],
+        ['Climb Date', new Date(climbDate).toLocaleDateString('en-KE', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })],
+        ['Group Size', `${groupSize} ${groupSize === '1' ? 'person' : 'people'}`],
+        ['Package', pkg], ['Experience', expLabels[experience] || experience],
+      ].map(([label, val]) => `
+        <tr>
+          <td style="padding:10px 0;border-bottom:1px solid #1e3320;color:#6b7280;font-size:12px;text-transform:uppercase;letter-spacing:.5px;width:40%">${label}</td>
+          <td style="padding:10px 0;border-bottom:1px solid #1e3320;color:#fff;font-size:14px;font-weight:600">${val}</td>
+        </tr>`).join('')}
+    </table>
+    ${specialRequests ? `<div style="margin-top:20px;background:#0d1a0f;border-left:3px solid #16a34a;border-radius:8px;padding:14px"><p style="color:#6b7280;font-size:11px;text-transform:uppercase;letter-spacing:.5px;margin:0 0 6px">Special Requests</p><p style="color:#d1fae5;font-size:14px;margin:0">${specialRequests}</p></div>` : ''}
+  </div>
+  <div style="background:#0d1a0f;padding:16px;text-align:center;font-size:11px;color:#4b5563">
+    Submitted via peakshotel.co.ke · ${new Date().toLocaleString('en-KE', { timeZone: 'Africa/Nairobi' })}
+  </div>
+</div></body></html>`,
+      });
+
+      // Confirmation to guest
+      await transporter.sendMail({
+        from: `"Peaks Hotel Adventures" <${process.env.SMTP_USER}>`,
+        to: email,
+        subject: `Your Mount Kenya Climbing Enquiry — Peaks Hotel`,
+        html: `<!DOCTYPE html><html><body style="font-family:'Segoe UI',sans-serif;background:#f0f0f0;padding:20px">
+<div style="max-width:560px;margin:0 auto;background:#fff;border-radius:12px;overflow:hidden">
+  <div style="background:#0d1a0f;padding:24px;text-align:center;border-bottom:3px solid #16a34a">
+    <p style="color:#4ade80;font-size:11px;letter-spacing:3px;text-transform:uppercase;margin:0 0 4px">Peaks Hotel</p>
+    <h2 style="color:#fff;font-size:20px;margin:0">🏔️ Climbing Enquiry Received</h2>
+  </div>
+  <div style="padding:28px">
+    <p style="color:#374151;font-size:16px">Dear <strong>${fullName}</strong>,</p>
+    <p style="color:#6b7280;line-height:1.7">Thank you for your Mount Kenya climbing reservation request. Our adventure team will review your enquiry and contact you within <strong>24 hours</strong> to confirm availability and arrange the details.</p>
+    <div style="background:#f0fdf4;border:1px solid #bbf7d0;border-radius:10px;padding:16px;margin:20px 0">
+      <p style="color:#166534;font-weight:600;margin:0 0 8px">Your booking summary:</p>
+      <p style="color:#374151;font-size:14px;margin:4px 0"><strong>Package:</strong> ${pkg}</p>
+      <p style="color:#374151;font-size:14px;margin:4px 0"><strong>Date:</strong> ${new Date(climbDate).toLocaleDateString('en-KE', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</p>
+      <p style="color:#374151;font-size:14px;margin:4px 0"><strong>Group:</strong> ${groupSize} ${groupSize === '1' ? 'person' : 'people'}</p>
+    </div>
+    <p style="color:#6b7280;font-size:13px">Questions? Call us: <a href="tel:+254711969690" style="color:#16a34a">+254 711 969 690</a></p>
+  </div>
+  <div style="background:#0d1a0f;color:#6b7280;padding:16px;text-align:center;font-size:11px">Peaks Hotel Nanyuki · peakshotel.co.ke</div>
+</div></body></html>`,
+      });
+    }
+
+    res.json({ success: true });
+  } catch (err) {
+    console.error('mountain booking error:', err.message);
+    res.status(500).json({ success: false, error: 'Failed to send reservation' });
+  }
+});
+
 // Paystack payment verification
 app.get('/api/paystack/verify', async (req, res) => {
   try {
@@ -360,7 +437,155 @@ app.get('/api/paystack/verify', async (req, res) => {
   }
 });
 
-// Guest review/feedback email
+// Mount Kenya climbing reservation — saves to DB + sends email + optionally triggers STK push
+app.post('/api/send-mountain-booking', async (req, res) => {
+  try {
+    const { fullName, email, phone, climbDate, groupSize, package: pkg, experience, specialRequests } = req.body;
+    if (!fullName || !email || !phone || !climbDate) {
+      return res.status(400).json({ success: false, error: 'Missing required fields' });
+    }
+
+    // Save to Supabase
+    const { data: booking, error: dbErr } = await supabase
+      .from('mountain_bookings')
+      .insert({
+        full_name: fullName,
+        email,
+        phone,
+        climb_date: climbDate,
+        group_size: String(groupSize || '1'),
+        package: pkg || 'Weekend Summit',
+        experience: experience || 'beginner',
+        special_requests: specialRequests || null,
+        status: 'pending',
+        payment_status: 'unpaid',
+      })
+      .select()
+      .single();
+
+    if (dbErr) console.error('Mountain booking DB error:', dbErr.message);
+    const bookingId = booking?.id || null;
+
+    const expLabels = { beginner: 'Beginner (first time)', intermediate: 'Intermediate (some hiking)', experienced: 'Experienced (high altitude)' };
+
+    if (process.env.SMTP_USER && process.env.SMTP_PASS && !process.env.SMTP_USER.includes('REPLACE')) {
+      await transporter.sendMail({
+        from: `"Peaks Hotel Adventures" <${process.env.SMTP_USER}>`,
+        to: 'peakshotels@gmail.com',
+        replyTo: email,
+        subject: `Mount Kenya Climbing Reservation — ${fullName} — ${new Date(climbDate).toLocaleDateString('en-KE')}`,
+        html: `<!DOCTYPE html><html><body style="font-family:'Segoe UI',sans-serif;background:#0d1a0f;padding:20px;margin:0">
+<div style="max-width:600px;margin:0 auto;background:#162018;border-radius:16px;overflow:hidden;border:1px solid #1e3320">
+  <div style="background:linear-gradient(135deg,#1a2e1c,#0d1a0f);padding:28px;border-bottom:3px solid #16a34a;text-align:center">
+    <p style="color:#4ade80;font-size:11px;letter-spacing:3px;text-transform:uppercase;margin:0 0 6px">Peaks Hotel · Adventures</p>
+    <h2 style="color:#fff;font-size:22px;margin:0">🏔️ Mount Kenya Climbing Reservation</h2>
+    ${bookingId ? `<p style="color:#6b7280;font-size:11px;margin:8px 0 0">ID: ${bookingId}</p>` : ''}
+  </div>
+  <div style="padding:28px">
+    <table style="width:100%;border-collapse:collapse">
+      ${[
+        ['Full Name', fullName], ['Email', email], ['Phone', phone],
+        ['Climb Date', new Date(climbDate).toLocaleDateString('en-KE', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })],
+        ['Group Size', `${groupSize} ${groupSize === '1' ? 'person' : 'people'}`],
+        ['Package', pkg], ['Experience', expLabels[experience] || experience],
+      ].map(([label, val]) => `<tr><td style="padding:10px 0;border-bottom:1px solid #1e3320;color:#6b7280;font-size:12px;text-transform:uppercase;letter-spacing:.5px;width:40%">${label}</td><td style="padding:10px 0;border-bottom:1px solid #1e3320;color:#fff;font-size:14px;font-weight:600">${val}</td></tr>`).join('')}
+    </table>
+    ${specialRequests ? `<div style="margin-top:20px;background:#0d1a0f;border-left:3px solid #16a34a;border-radius:8px;padding:14px"><p style="color:#6b7280;font-size:11px;text-transform:uppercase;margin:0 0 6px">Special Requests</p><p style="color:#d1fae5;font-size:14px;margin:0">${specialRequests}</p></div>` : ''}
+  </div>
+  <div style="background:#0d1a0f;padding:16px;text-align:center;font-size:11px;color:#4b5563">Submitted via peakshotel.co.ke · ${new Date().toLocaleString('en-KE', { timeZone: 'Africa/Nairobi' })}</div>
+</div></body></html>`,
+      });
+      await transporter.sendMail({
+        from: `"Peaks Hotel Adventures" <${process.env.SMTP_USER}>`,
+        to: email,
+        subject: `Your Mount Kenya Climbing Enquiry — Peaks Hotel`,
+        html: `<!DOCTYPE html><html><body style="font-family:'Segoe UI',sans-serif;background:#f0f0f0;padding:20px">
+<div style="max-width:560px;margin:0 auto;background:#fff;border-radius:12px;overflow:hidden">
+  <div style="background:#0d1a0f;padding:24px;text-align:center;border-bottom:3px solid #16a34a">
+    <h2 style="color:#fff;font-size:20px;margin:0">🏔️ Climbing Enquiry Received</h2>
+  </div>
+  <div style="padding:28px">
+    <p style="color:#374151">Dear <strong>${fullName}</strong>,</p>
+    <p style="color:#6b7280;line-height:1.7">Thank you for your Mount Kenya climbing reservation. Our team will contact you within <strong>24 hours</strong> to confirm and arrange payment.</p>
+    <div style="background:#f0fdf4;border:1px solid #bbf7d0;border-radius:10px;padding:16px;margin:20px 0">
+      <p style="color:#166534;font-weight:600;margin:0 0 8px">Summary:</p>
+      <p style="color:#374151;font-size:14px;margin:4px 0"><strong>Package:</strong> ${pkg}</p>
+      <p style="color:#374151;font-size:14px;margin:4px 0"><strong>Date:</strong> ${new Date(climbDate).toLocaleDateString('en-KE', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</p>
+      <p style="color:#374151;font-size:14px;margin:4px 0"><strong>Group:</strong> ${groupSize} ${groupSize === '1' ? 'person' : 'people'}</p>
+    </div>
+    <p style="color:#6b7280;font-size:13px">Questions? Call: <a href="tel:+254711969690" style="color:#16a34a">+254 711 969 690</a></p>
+  </div>
+  <div style="background:#0d1a0f;color:#6b7280;padding:16px;text-align:center;font-size:11px">Peaks Hotel Nanyuki</div>
+</div></body></html>`,
+      });
+    }
+
+    res.json({ success: true, bookingId, message: 'Reservation received' });
+  } catch (err) {
+    console.error('mountain booking error:', err.message);
+    res.status(500).json({ success: false, error: 'Failed to send reservation' });
+  }
+});
+
+// STK push for mountain climbing payment
+app.post('/api/daraja/mountain-stk', async (req, res) => {
+  try {
+    const { phone, amount, bookingId } = req.body;
+    if (!phone || !amount) return res.status(400).json({ success: false, message: 'phone and amount required' });
+
+    const clean = phone.replace(/\D/g, '');
+    const formatted = clean.startsWith('254') ? clean : clean.startsWith('0') ? '254' + clean.slice(1) : '254' + clean;
+
+    const shortcode = process.env.MPESA_SHORTCODE;
+    const passkey   = process.env.MPESA_PASSKEY;
+    const callbackUrl = process.env.MPESA_CALLBACK_URL;
+
+    if (!shortcode || !passkey || !callbackUrl || process.env.MPESA_CONSUMER_KEY === 'REPLACE_WITH_MPESA_CONSUMER_KEY') {
+      // Test mode fallback
+      if (bookingId) {
+        await supabase.from('mountain_bookings').update({
+          payment_status: 'partial',
+          amount_paid: Math.round(amount),
+          transaction_ref: 'TEST-' + Date.now(),
+          mpesa_checkout_id: 'TEST-' + Date.now(),
+        }).eq('id', bookingId);
+      }
+      return res.json({ success: true, message: '[TEST] Simulated STK push — no real charge', checkoutRequestId: 'TEST-' + Date.now(), isTest: true });
+    }
+
+    const { token, base } = await getDarajaToken();
+    const ts = new Date().toISOString().replace(/[-:T]/g, '').split('.')[0];
+    const password = Buffer.from(`${shortcode}${passkey}${ts}`).toString('base64');
+
+    const { data } = await axios.post(
+      `${base}/mpesa/stkpush/v1/processrequest`,
+      {
+        BusinessShortCode: shortcode, Password: password, Timestamp: ts,
+        TransactionType: 'CustomerPayBillOnline',
+        Amount: Math.max(1, Math.round(amount)),
+        PartyA: formatted, PartyB: shortcode, PhoneNumber: formatted,
+        CallBackURL: callbackUrl,
+        AccountReference: 'MTNKNYA' + Date.now().toString(36).toUpperCase().slice(-6),
+        TransactionDesc: 'Mount Kenya Climb — Peaks Hotel',
+      },
+      { headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' } }
+    );
+
+    if (bookingId) {
+      await supabase.from('mountain_bookings').update({
+        mpesa_checkout_id: data.CheckoutRequestID,
+        payment_status: 'partial',
+      }).eq('id', bookingId);
+    }
+
+    res.json({ success: true, checkoutRequestId: data.CheckoutRequestID, message: 'STK push sent to your phone' });
+  } catch (error) {
+    console.error('Mountain STK error:', error.response?.data || error.message);
+    res.status(500).json({ success: false, message: error.response?.data?.errorMessage || error.message });
+  }
+});
+
+// Guest review — save to DB + send email
 app.post('/api/send-review', async (req, res) => {
   try {
     const { name, email, rating, message } = req.body;

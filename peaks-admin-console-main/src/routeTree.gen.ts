@@ -16,10 +16,14 @@ import { Route as ApiNotifyRouteImport } from './routes/api.notify'
 import { Route as AdminStaffRouteImport } from './routes/admin.staff'
 import { Route as AdminSignupRouteImport } from './routes/admin/signup'
 import { Route as AdminRoomsRouteImport } from './routes/admin.rooms'
+import { Route as AdminReviewsRouteImport } from './routes/admin.reviews'
 import { Route as AdminResetPasswordRouteImport } from './routes/admin/reset-password'
 import { Route as AdminReportsRouteImport } from './routes/admin.reports'
 import { Route as AdminPaymentsRouteImport } from './routes/admin.payments'
+import { Route as AdminMountainRouteImport } from './routes/admin.mountain'
+import { Route as AdminLoyaltyRouteImport } from './routes/admin.loyalty'
 import { Route as AdminLoginRouteImport } from './routes/admin/login'
+import { Route as AdminLipaRouteImport } from './routes/admin.lipa'
 import { Route as AdminForgotPasswordRouteImport } from './routes/admin/forgot-password'
 import { Route as AdminCustomersRouteImport } from './routes/admin.customers'
 import { Route as AdminCmsRouteImport } from './routes/admin.cms'
@@ -66,6 +70,11 @@ const AdminRoomsRoute = AdminRoomsRouteImport.update({
   path: '/rooms',
   getParentRoute: () => AdminRoute,
 } as any)
+const AdminReviewsRoute = AdminReviewsRouteImport.update({
+  id: '/reviews',
+  path: '/reviews',
+  getParentRoute: () => AdminRoute,
+} as any)
 const AdminResetPasswordRoute = AdminResetPasswordRouteImport.update({
   id: '/reset-password',
   path: '/reset-password',
@@ -81,9 +90,24 @@ const AdminPaymentsRoute = AdminPaymentsRouteImport.update({
   path: '/payments',
   getParentRoute: () => AdminRoute,
 } as any)
+const AdminMountainRoute = AdminMountainRouteImport.update({
+  id: '/mountain',
+  path: '/mountain',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminLoyaltyRoute = AdminLoyaltyRouteImport.update({
+  id: '/loyalty',
+  path: '/loyalty',
+  getParentRoute: () => AdminRoute,
+} as any)
 const AdminLoginRoute = AdminLoginRouteImport.update({
   id: '/login',
   path: '/login',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminLipaRoute = AdminLipaRouteImport.update({
+  id: '/lipa',
+  path: '/lipa',
   getParentRoute: () => AdminRoute,
 } as any)
 const AdminForgotPasswordRoute = AdminForgotPasswordRouteImport.update({
@@ -145,10 +169,14 @@ export interface FileRoutesByFullPath {
   '/admin/cms': typeof AdminCmsRoute
   '/admin/customers': typeof AdminCustomersRoute
   '/admin/forgot-password': typeof AdminForgotPasswordRoute
+  '/admin/lipa': typeof AdminLipaRoute
   '/admin/login': typeof AdminLoginRoute
+  '/admin/loyalty': typeof AdminLoyaltyRoute
+  '/admin/mountain': typeof AdminMountainRoute
   '/admin/payments': typeof AdminPaymentsRoute
   '/admin/reports': typeof AdminReportsRoute
   '/admin/reset-password': typeof AdminResetPasswordRoute
+  '/admin/reviews': typeof AdminReviewsRoute
   '/admin/rooms': typeof AdminRoomsRoute
   '/admin/signup': typeof AdminSignupRoute
   '/admin/staff': typeof AdminStaffRoute
@@ -167,10 +195,14 @@ export interface FileRoutesByTo {
   '/admin/cms': typeof AdminCmsRoute
   '/admin/customers': typeof AdminCustomersRoute
   '/admin/forgot-password': typeof AdminForgotPasswordRoute
+  '/admin/lipa': typeof AdminLipaRoute
   '/admin/login': typeof AdminLoginRoute
+  '/admin/loyalty': typeof AdminLoyaltyRoute
+  '/admin/mountain': typeof AdminMountainRoute
   '/admin/payments': typeof AdminPaymentsRoute
   '/admin/reports': typeof AdminReportsRoute
   '/admin/reset-password': typeof AdminResetPasswordRoute
+  '/admin/reviews': typeof AdminReviewsRoute
   '/admin/rooms': typeof AdminRoomsRoute
   '/admin/signup': typeof AdminSignupRoute
   '/admin/staff': typeof AdminStaffRoute
@@ -191,10 +223,14 @@ export interface FileRoutesById {
   '/admin/cms': typeof AdminCmsRoute
   '/admin/customers': typeof AdminCustomersRoute
   '/admin/forgot-password': typeof AdminForgotPasswordRoute
+  '/admin/lipa': typeof AdminLipaRoute
   '/admin/login': typeof AdminLoginRoute
+  '/admin/loyalty': typeof AdminLoyaltyRoute
+  '/admin/mountain': typeof AdminMountainRoute
   '/admin/payments': typeof AdminPaymentsRoute
   '/admin/reports': typeof AdminReportsRoute
   '/admin/reset-password': typeof AdminResetPasswordRoute
+  '/admin/reviews': typeof AdminReviewsRoute
   '/admin/rooms': typeof AdminRoomsRoute
   '/admin/signup': typeof AdminSignupRoute
   '/admin/staff': typeof AdminStaffRoute
@@ -216,10 +252,14 @@ export interface FileRouteTypes {
     | '/admin/cms'
     | '/admin/customers'
     | '/admin/forgot-password'
+    | '/admin/lipa'
     | '/admin/login'
+    | '/admin/loyalty'
+    | '/admin/mountain'
     | '/admin/payments'
     | '/admin/reports'
     | '/admin/reset-password'
+    | '/admin/reviews'
     | '/admin/rooms'
     | '/admin/signup'
     | '/admin/staff'
@@ -238,10 +278,14 @@ export interface FileRouteTypes {
     | '/admin/cms'
     | '/admin/customers'
     | '/admin/forgot-password'
+    | '/admin/lipa'
     | '/admin/login'
+    | '/admin/loyalty'
+    | '/admin/mountain'
     | '/admin/payments'
     | '/admin/reports'
     | '/admin/reset-password'
+    | '/admin/reviews'
     | '/admin/rooms'
     | '/admin/signup'
     | '/admin/staff'
@@ -261,10 +305,14 @@ export interface FileRouteTypes {
     | '/admin/cms'
     | '/admin/customers'
     | '/admin/forgot-password'
+    | '/admin/lipa'
     | '/admin/login'
+    | '/admin/loyalty'
+    | '/admin/mountain'
     | '/admin/payments'
     | '/admin/reports'
     | '/admin/reset-password'
+    | '/admin/reviews'
     | '/admin/rooms'
     | '/admin/signup'
     | '/admin/staff'
@@ -339,6 +387,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminRoomsRouteImport
       parentRoute: typeof AdminRoute
     }
+    '/admin/reviews': {
+      id: '/admin/reviews'
+      path: '/reviews'
+      fullPath: '/admin/reviews'
+      preLoaderRoute: typeof AdminReviewsRouteImport
+      parentRoute: typeof AdminRoute
+    }
     '/admin/reset-password': {
       id: '/admin/reset-password'
       path: '/reset-password'
@@ -360,11 +415,32 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminPaymentsRouteImport
       parentRoute: typeof AdminRoute
     }
+    '/admin/mountain': {
+      id: '/admin/mountain'
+      path: '/mountain'
+      fullPath: '/admin/mountain'
+      preLoaderRoute: typeof AdminMountainRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/loyalty': {
+      id: '/admin/loyalty'
+      path: '/loyalty'
+      fullPath: '/admin/loyalty'
+      preLoaderRoute: typeof AdminLoyaltyRouteImport
+      parentRoute: typeof AdminRoute
+    }
     '/admin/login': {
       id: '/admin/login'
       path: '/login'
       fullPath: '/admin/login'
       preLoaderRoute: typeof AdminLoginRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/lipa': {
+      id: '/admin/lipa'
+      path: '/lipa'
+      fullPath: '/admin/lipa'
+      preLoaderRoute: typeof AdminLipaRouteImport
       parentRoute: typeof AdminRoute
     }
     '/admin/forgot-password': {
@@ -446,10 +522,14 @@ interface AdminRouteChildren {
   AdminCmsRoute: typeof AdminCmsRoute
   AdminCustomersRoute: typeof AdminCustomersRoute
   AdminForgotPasswordRoute: typeof AdminForgotPasswordRoute
+  AdminLipaRoute: typeof AdminLipaRoute
   AdminLoginRoute: typeof AdminLoginRoute
+  AdminLoyaltyRoute: typeof AdminLoyaltyRoute
+  AdminMountainRoute: typeof AdminMountainRoute
   AdminPaymentsRoute: typeof AdminPaymentsRoute
   AdminReportsRoute: typeof AdminReportsRoute
   AdminResetPasswordRoute: typeof AdminResetPasswordRoute
+  AdminReviewsRoute: typeof AdminReviewsRoute
   AdminRoomsRoute: typeof AdminRoomsRoute
   AdminSignupRoute: typeof AdminSignupRoute
   AdminStaffRoute: typeof AdminStaffRoute
@@ -462,10 +542,14 @@ const AdminRouteChildren: AdminRouteChildren = {
   AdminCmsRoute: AdminCmsRoute,
   AdminCustomersRoute: AdminCustomersRoute,
   AdminForgotPasswordRoute: AdminForgotPasswordRoute,
+  AdminLipaRoute: AdminLipaRoute,
   AdminLoginRoute: AdminLoginRoute,
+  AdminLoyaltyRoute: AdminLoyaltyRoute,
+  AdminMountainRoute: AdminMountainRoute,
   AdminPaymentsRoute: AdminPaymentsRoute,
   AdminReportsRoute: AdminReportsRoute,
   AdminResetPasswordRoute: AdminResetPasswordRoute,
+  AdminReviewsRoute: AdminReviewsRoute,
   AdminRoomsRoute: AdminRoomsRoute,
   AdminSignupRoute: AdminSignupRoute,
   AdminStaffRoute: AdminStaffRoute,

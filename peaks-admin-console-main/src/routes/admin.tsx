@@ -2,7 +2,7 @@ import { createFileRoute, Outlet, Link, useNavigate, useLocation } from "@tansta
 import { useEffect } from "react";
 import { useAuth } from "@/lib/auth";
 import { Button } from "@/components/ui/button";
-import { LayoutDashboard, BedDouble, CalendarDays, CreditCard, Users, FileText, LogOut, Settings, Calendar, BarChart3 } from "lucide-react";
+import { LayoutDashboard, BedDouble, CalendarDays, CreditCard, Users, FileText, LogOut, Settings, Calendar, BarChart3, Mountain, MessageSquare, Star } from "lucide-react";
 import { Toaster } from "@/components/ui/sonner";
 import logo from "@/assets/logo.png";
 
@@ -21,6 +21,10 @@ const nav: NavItem[] = [
   { to: "/admin/reports", label: "Reports", icon: BarChart3 },
   { to: "/admin/cms", label: "Website Content", icon: FileText },
   { to: "/admin/staff", label: "Staff & Roles", icon: Settings },
+  { to: "/admin/mountain", label: "Mountain Bookings", icon: Mountain },
+  { to: "/admin/loyalty", label: "Loyalty Program", icon: Star },
+  { to: "/admin/lipa", label: "Lipa Mdogo Mdogo", icon: CreditCard },
+  { to: "/admin/reviews", label: "Guest Reviews", icon: MessageSquare },
 ];
 
 function AdminLayout() {

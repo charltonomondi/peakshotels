@@ -1,6 +1,6 @@
 import { Link, useLocation } from "react-router-dom";
 import { useState } from "react";
-import { Menu, X, Phone, MapPin, Mail, ChevronDown, Star } from "lucide-react";
+import { Menu, X, Phone, MapPin, Mail, ChevronDown, Star, CreditCard } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -13,6 +13,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { motion, AnimatePresence } from "framer-motion";
 import { useLoyaltyAuth } from "@/lib/loyaltyAuth";
+import { openLipaModal } from "@/components/LipaMdogoMdogoPopup";
 import logo from "/logo.jpeg";
 
 const navItems = [
@@ -55,13 +56,37 @@ const languages = [
   { code: "ko", name: "Korean", flag: "🇰🇷" },
 ];
 
+// Map our language codes to Google Translate codes
+const gtCodes: Record<string, string> = {
+  en: "en", fr: "fr", es: "es", hi: "hi",
+  zh: "zh-CN", de: "de", it: "it", pt: "pt", ja: "ja", ko: "ko",
+};
+
+// Detect active language from cookie on load
+function getActiveLangCode(): string {
+  const match = document.cookie.match(/googtrans=\/en\/([^;]+)/);
+  return match ? match[1] : "en";
+}
+
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
-  const [selectedLanguage, setSelectedLanguage] = useState(languages[0]);
   const [logoError, setLogoError] = useState(false);
   const [logoLoading, setLogoLoading] = useState(true);
   const location = useLocation();
   const { member } = useLoyaltyAuth();
+
+  // Initialise selected language from cookie
+  const activeLangCode = getActiveLangCode();
+  const initialLang = languages.find(l => gtCodes[l.code] === activeLangCode) || languages[0];
+  const [selectedLanguage, setSelectedLanguage] = useState(initialLang);
+
+  const handleLanguageChange = (lang: typeof languages[0]) => {
+    setSelectedLanguage(lang);
+    const gtCode = gtCodes[lang.code] || lang.code;
+    if ((window as any).__translateTo) {
+      (window as any).__translateTo(gtCode);
+    }
+  };
 
   const renderNavItem = (item, index) => {
     const isActive = (item) => {
@@ -187,8 +212,8 @@ const Navbar = () => {
                   {languages.map((lang) => (
                     <DropdownMenuItem
                       key={lang.code}
-                      onClick={() => setSelectedLanguage(lang)}
-                      className="flex items-center gap-2"
+                      onClick={() => handleLanguageChange(lang)}
+                      className={`flex items-center gap-2 ${selectedLanguage.code === lang.code ? "font-semibold text-accent" : ""}`}
                     >
                       <span>{lang.flag}</span>
                       <span>{lang.name}</span>
@@ -237,6 +262,14 @@ const Navbar = () => {
 
           {/* CTA + Mobile toggle */}
           <div className="flex items-center gap-2">
+            {/* Lipa Mdogo Mdogo button */}
+            <button
+              onClick={() => openLipaModal?.()}
+              className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 bg-amber-500/10 hover:bg-amber-500/20 rounded-full text-xs font-semibold text-amber-600 transition-colors border border-amber-400/30"
+            >
+              <CreditCard className="h-3.5 w-3.5" />
+              Lipa Mdogo
+            </button>
             {/* Loyalty badge */}
             {member ? (
               <Link to="/loyalty/dashboard"
@@ -278,7 +311,14 @@ const Navbar = () => {
             >
               <div className="py-3 space-y-1 max-h-[70vh] overflow-y-auto">
                 {navItems.map((item) => renderMobileNavItem(item))}
-                <div className="px-4 pt-3 pb-2 border-t border-border mt-2">
+                <div className="px-4 pt-3 pb-2 border-t border-border mt-2 space-y-2">
+                  <button
+                    onClick={() => { setIsOpen(false); openLipaModal?.(); }}
+                    className="w-full flex items-center justify-center gap-2 py-2.5 rounded-full bg-amber-500/10 border border-amber-400/30 text-amber-600 font-semibold text-sm"
+                  >
+                    <CreditCard className="h-4 w-4" />
+                    Lipa Mdogo Mdogo
+                  </button>
                   <Button variant="gold" size="lg" className="w-full" asChild>
                     <Link to="/booking" onClick={() => setIsOpen(false)}>Book Now</Link>
                   </Button>

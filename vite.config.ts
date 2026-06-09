@@ -46,6 +46,16 @@ export default defineConfig(({ mode }) => ({
         changeOrigin: true,
         secure: false,
       },
+      '/api/send-mountain-booking': {
+        target: 'http://localhost:3001',
+        changeOrigin: true,
+        secure: false,
+      },
+      '/api/daraja/mountain-stk': {
+        target: 'http://localhost:3001',
+        changeOrigin: true,
+        secure: false,
+      },
     }
   },
   plugins: [react(), mode === "development" && componentTagger()].filter(Boolean),
@@ -54,5 +64,5 @@ export default defineConfig(({ mode }) => ({
       "@": path.resolve(__dirname, "./src"),
     },
   },
-  assetsInclude: ['**/*.JPG', '**/*.jpg', '**/*.jpeg', '**/*.png', '**/*.svg', '**/*.webp'],
+  assetsInclude: ['**/*.JPG', '**/*.jpg', '**/*.jpeg', '**/*.png', '**/*.svg', '**/*.webp', '**/*.mp4'],
 }));

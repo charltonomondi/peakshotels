@@ -11,8 +11,12 @@ import {
   Zap,
   Target
 } from "lucide-react";
-import poolImage from "@/assets/pool.jpg";
-import heroBackground from "@/assets/facilities/gym.jpg";
+import gymHero from "@/assets/gym/gym.jpg";
+import gym1 from "@/assets/gym/gym1.jpg";
+import gym2 from "@/assets/gym/gym2.jpg";
+import gym3 from "@/assets/gym/gym3.jpg";
+
+const gymGallery = [gym1, gym2, gym3];
 
 const features = [
   {
@@ -51,7 +55,7 @@ const Gym = () => {
           className="absolute inset-0"
         >
           <img
-            src={heroBackground}
+            src={gymHero}
             alt="Our Gym"
             className="w-full h-full object-cover"
           />
@@ -118,7 +122,7 @@ const Gym = () => {
               className="relative overflow-hidden rounded-2xl"
             >
               <img
-                src={poolImage}
+                src={gym1}
                 alt="Gym Facilities"
                 className="w-full h-[400px] object-cover"
               />
@@ -166,6 +170,43 @@ const Gym = () => {
                     </p>
                   </div>
                 </div>
+              </motion.div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Gallery */}
+      <section className="py-20 bg-background">
+        <div className="container mx-auto px-4">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.6 }}
+            className="text-center mb-12"
+          >
+            <h2 className="font-heading text-3xl md:text-4xl font-bold text-foreground mb-4">
+              Take a Look Inside
+            </h2>
+            <div className="w-20 h-0.5 bg-accent mx-auto" />
+          </motion.div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            {gymGallery.map((img, i) => (
+              <motion.div
+                key={i}
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.5, delay: i * 0.1 }}
+                className="overflow-hidden rounded-xl aspect-square"
+              >
+                <img
+                  src={img}
+                  alt={`Gym photo ${i + 1}`}
+                  className="w-full h-full object-cover hover:scale-105 transition-transform duration-500"
+                />
               </motion.div>
             ))}
           </div>
