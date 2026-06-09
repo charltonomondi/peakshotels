@@ -56,6 +56,17 @@ const Footer = () => {
                 <Youtube className="h-5 w-5" />
               </a>
             </div>
+            {/* Booking.com Review Badge */}
+            <div>
+              <script
+                async
+                src="https://badge.hotelstatic.com/embed.js"
+                data-url="https://www.booking.com/hotel/ke/peaks-limited.html"
+                data-size="120"
+                data-position="inline"
+                data-clickable="true"
+              />
+            </div>
           </div>
 
           {/* Quick Links */}
