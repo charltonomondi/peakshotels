@@ -20,14 +20,14 @@ import logo from "/logo.jpeg";
 // Primary links shown directly in the navbar
 const primaryNavItems = [
   { name: "Home", path: "/" },
-  { name: "Rooms", path: "/rooms" },
-  { name: "Dining", path: "/restaurant" },
+  { name: "Accommodation", path: "/rooms" },
+  { name: "Restaurant & Bar", path: "/restaurant" },
   { name: "Conferences", path: "/facilities" },
   {
-    name: "Wellness",
+    name: "Wellness Center",
     children: [
       { name: "Gym", path: "/gym" },
-      { name: "Swimming Pool", path: "/swimming" },
+      { name: "Swimming", path: "/swimming" },
       { name: "Steam Bath", path: "/steam-bath" },
       { name: "Sauna", path: "/sauna" },
       {
@@ -44,8 +44,8 @@ const primaryNavItems = [
 // Secondary links tucked into a "More" dropdown
 const moreNavItems = [
   { name: "Outdoor Fitness", path: "/activities" },
-  { name: "Gallery", path: "/gallery" },
   { name: "News & Updates", path: "/news" },
+  { name: "Gallery", path: "/gallery" },
   { name: "Contact", path: "/contact" },
 ];
 
