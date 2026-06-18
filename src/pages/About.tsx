@@ -6,23 +6,23 @@ import { Award, Heart, Shield, Users } from "lucide-react";
 const values = [
   {
     icon: Heart,
-    title: "Passion for Excellence",
-    description: "We are dedicated to exceeding expectations in every aspect of hospitality.",
+    title: "Beauty and Taste, with Nature",
+    description: "Beauty is reflected in our surroundings, gardens, flowers and attention to detail. Taste is reflected in our choices — our standards, service and commitment to excellence.",
   },
   {
     icon: Users,
-    title: "Guest-Centered Service",
-    description: "Every guest is treated as family, with personalized attention and care.",
+    title: "Something for Everybody",
+    description: "From business travellers and holidaymakers to conference delegates, families and international visitors, Peaks welcomes all guests seeking comfort, value and memorable experiences.",
   },
   {
     icon: Shield,
-    title: "Integrity & Trust",
-    description: "We uphold the highest standards of honesty and transparency.",
+    title: "Sustainability in Action",
+    description: "Solar energy, biogas production, wastewater treatment and reuse, indigenous tree planting and resource recovery — sustainability is not a programme, it is a way of life.",
   },
   {
     icon: Award,
-    title: "Quality Assurance",
-    description: "From housekeeping to dining, we maintain impeccable standards.",
+    title: "Kenyan-Owned, Kenyan-Proud",
+    description: "Peaks Hotel is a Kenyan-owned hospitality destination rooted in local culture, guided by genuine hospitality and committed to the communities we serve.",
   },
 ];
 
@@ -63,24 +63,92 @@ const About = () => {
               className="prose prose-lg mx-auto text-center"
             >
               <p className="text-xl text-muted-foreground leading-relaxed mb-8">
-                Nestled at the foot of the majestic Mount Kenya, Peaks Hotel has been a beacon of 
-                African luxury and hospitality since its founding. Our journey began with a simple 
-                vision: to create an oasis where travelers could experience the authentic beauty 
-                of Kenya while enjoying world-class comfort.
+                Peaks Hotel is a Kenyan-owned hospitality destination located in Nanyuki at the foot of Mount Kenya. Inspired by the beauty of Mount Kenya, the Aberdare Ranges and the Lolldaiga Hills, Peaks has grown into a destination where hospitality, nature, wellness, adventure and sustainability come together.
               </p>
               <p className="text-xl text-muted-foreground leading-relaxed mb-8">
-                Located in the charming town of Nanyuki, we offer our guests breathtaking views 
-                of Africa's second-highest peak, combined with the warmth and elegance that defines 
-                true Kenyan hospitality. Every corner of our hotel tells a story of our commitment 
-                to excellence.
+                The name Peaks is inspired by three iconic landmarks that define our horizon and identity: Mount Kenya, the Aberdare Ranges and the Lolldaiga Hills. Together they represent the beauty, adventure and natural heritage that make Nanyuki one of Kenya's most remarkable destinations.
               </p>
               <p className="text-xl text-muted-foreground leading-relaxed">
-                Today, Peaks Hotel stands as a premier destination for discerning travelers seeking 
-                an unforgettable experience. Whether you're here for business, adventure, or relaxation, 
-                we promise a stay that will leave lasting memories.
+                From business travellers and holidaymakers to conference delegates, families and international visitors, Peaks welcomes guests seeking comfort, value and memorable experiences.
               </p>
             </motion.div>
           </div>
+        </div>
+      </section>
+
+      {/* Three Peaks Section */}
+      <section className="py-20 bg-secondary">
+        <div className="container mx-auto px-4">
+          <div className="max-w-4xl mx-auto text-center">
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.6 }}
+            >
+              <p className="text-accent font-medium tracking-[0.2em] uppercase mb-4">Our Name</p>
+              <h2 className="font-heading text-4xl md:text-5xl font-bold text-foreground mb-6">The Three Peaks</h2>
+              <div className="w-20 h-0.5 bg-accent mx-auto mb-8" />
+              <p className="text-muted-foreground text-lg leading-relaxed mb-10">
+                The name Peaks is inspired by three iconic landmarks that define our horizon and identity.
+              </p>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+                {[
+                  { name: "Mount Kenya", desc: "Africa's second-highest peak, our closest neighbour and the inspiration behind everything we do." },
+                  { name: "The Aberdare Ranges", desc: "The sweeping highland range visible from our grounds, forming part of the dramatic landscape that surrounds us." },
+                  { name: "The Lolldaiga Hills", desc: "The rolling hills that complete our horizon, home to wildlife and wild beauty on our doorstep." },
+                ].map((peak, i) => (
+                  <motion.div
+                    key={peak.name}
+                    initial={{ opacity: 0, y: 20 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    viewport={{ once: true }}
+                    transition={{ delay: i * 0.15 }}
+                    className="bg-card rounded-2xl p-8 shadow-elegant"
+                  >
+                    <div className="w-12 h-12 bg-accent rounded-full flex items-center justify-center mx-auto mb-4 text-accent-foreground font-bold text-lg">{i + 1}</div>
+                    <h3 className="font-heading text-xl font-bold text-foreground mb-3">{peak.name}</h3>
+                    <p className="text-muted-foreground text-sm leading-relaxed">{peak.desc}</p>
+                  </motion.div>
+                ))}
+              </div>
+            </motion.div>
+          </div>
+        </div>
+      </section>
+
+      {/* Philosophy Section */}
+      <section className="py-20 bg-background">
+        <div className="container mx-auto px-4 max-w-4xl mx-auto text-center">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+          >
+            <p className="text-accent font-medium tracking-[0.2em] uppercase mb-4">Our Guiding Principle</p>
+            <h2 className="font-heading text-4xl md:text-5xl font-bold text-foreground mb-6">Our Philosophy</h2>
+            <div className="w-20 h-0.5 bg-accent mx-auto mb-8" />
+            <p className="text-2xl font-heading font-bold text-foreground mb-6">Beauty and Taste, with Nature</p>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-8 text-left">
+              {[
+                { word: "Beauty", desc: "Reflected in our surroundings, gardens, flowers, hospitality and attention to detail." },
+                { word: "Taste", desc: "Reflected in our choices — our standards, service, quality, professionalism and commitment to excellence." },
+                { word: "Nature", desc: "The setting in which all this takes place — wild, generous and ever-present around us." },
+              ].map((item, i) => (
+                <motion.div
+                  key={item.word}
+                  initial={{ opacity: 0, y: 20 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ delay: i * 0.1 }}
+                  className="bg-secondary rounded-2xl p-8"
+                >
+                  <h3 className="font-heading text-2xl font-bold text-accent mb-3">{item.word}</h3>
+                  <p className="text-muted-foreground leading-relaxed">{item.desc}</p>
+                </motion.div>
+              ))}
+            </div>
+          </motion.div>
         </div>
       </section>
 
@@ -146,10 +214,7 @@ const About = () => {
                 General Manager's Welcome
               </h2>
               <blockquote className="text-lg text-muted-foreground italic leading-relaxed text-center mb-8">
-                "At Peaks Hotel, we believe that true hospitality comes from the heart. Our dedicated 
-                team works tirelessly to ensure that every moment of your stay exceeds expectations. 
-                From the breathtaking views to the exquisite cuisine, we've crafted an experience 
-                that celebrates the very best of Kenya. We look forward to welcoming you home."
+                "Peaks Hotel is a place where beauty and nature meet taste and genuine hospitality. Our dedicated team welcomes guests from Nanyuki, from across Kenya and from around the world. Whether you are here for rest, adventure, business or celebration — this is your home in the highlands."
               </blockquote>
               <p className="text-center font-semibold text-foreground">
                 The Peaks Hotel Management Team

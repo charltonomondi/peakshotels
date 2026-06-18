@@ -42,17 +42,16 @@ const Hero = () => {
         <div className="max-w-4xl mx-auto text-center">
           <motion.p initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6 }}
             className="text-accent font-medium tracking-[0.2em] md:tracking-[0.3em] uppercase mb-4 text-xs md:text-sm">
-            Welcome to Peaks Hotel
+            Welcome to Peaks Hotel Nanyuki
           </motion.p>
           <motion.h1 initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6, delay: 0.1 }}
             className="font-heading text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-bold text-primary-foreground mb-4 md:mb-6 leading-tight">
-            Where Luxury Meets<br />
-            <span className="text-gradient-gold">African Majesty</span>
+            Beauty and Taste,<br />
+            <span className="text-gradient-gold">with Nature</span>
           </motion.h1>
           <motion.p initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6, delay: 0.2 }}
-            className="text-primary-foreground/90 text-sm sm:text-base md:text-lg lg:text-xl max-w-2xl mx-auto mb-6 md:mb-10 px-2">
-            Experience unparalleled hospitality at the foot of Mount Kenya.
-            Immerse yourself in elegance, nature, and world-class service.
+            className="text-primary-foreground/80 text-sm sm:text-base md:text-lg max-w-2xl mx-auto mb-6 md:mb-10 px-2">
+            Beauty and nature in our setting, and taste in our choices.
           </motion.p>
           <motion.div initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6, delay: 0.3 }}
             className="flex flex-col sm:flex-row gap-3 justify-center mb-8 md:mb-16 px-4 sm:px-0">

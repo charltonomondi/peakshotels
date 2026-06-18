@@ -22,17 +22,17 @@ import bed5       from "@/assets/bed5.jpg";
 import viewOlp    from "@/assets/views/Olpajeta conservancy.jpg";
 
 const stats = [
-  { value: "36+", label: "Luxury Rooms" },
-  { value: "4", label: "Dining Venues" },
-  { value: "10+", label: "Wellness Facilities" },
-  { value: "∞", label: "Mountain Views" },
+  { value: "42+", label: "Rooms" },
+  { value: "6", label: "Dining Spaces" },
+  { value: "5+", label: "Wellness Facilities" },
+  { value: "3", label: "Iconic Peaks" },
 ];
 
 const values = [
-  { icon: Heart,   title: "Heartfelt Hospitality", description: "Every guest is treated as family — personalised attention from arrival to farewell." },
-  { icon: Users,   title: "Guest-First Culture",   description: "Our team anticipates your needs before you voice them. That is the Peaks difference." },
-  { icon: Shield,  title: "Integrity in All We Do",description: "Honest pricing, transparent service, and the highest standards of safety and trust." },
-  { icon: Award,   title: "Pursuit of Excellence",  description: "We never settle — from the thread count in your linen to the plating in our kitchen." },
+  { icon: Mountain, title: "The Three Peaks", description: "Inspired by Mount Kenya, the Aberdare Ranges and the Lolldaiga Hills — the landmarks that define our horizon and identity." },
+  { icon: Users,    title: "Something for Everybody", description: "Accommodation, dining, wellness, adventure, conferences, events and celebrations — all in one uniquely Kenyan destination." },
+  { icon: Heart,    title: "Wellness and Recreation", description: "Heated pool, gym, sauna, steam bath, massage and beauty services for your health and relaxation." },
+  { icon: Award,    title: "Sustainability in Action", description: "Solar energy, biogas, wastewater recycling and environmental stewardship — sustainability is a way of life here." },
 ];
 
 const Index = () => {
@@ -83,22 +83,22 @@ const Index = () => {
                 <span className="text-accent text-xs font-medium tracking-[0.25em] uppercase">Nanyuki, Kenya</span>
               </div>
               <h2 className="font-heading text-5xl md:text-6xl font-bold text-foreground leading-tight mb-6">
-                Africa's Gateway<br />
-                <span className="text-accent italic font-light">to the Peaks</span>
+                Welcome to<br />
+                <span className="text-accent italic font-light">Peaks Hotel Nanyuki</span>
               </h2>
               <p className="text-muted-foreground text-lg leading-relaxed mb-5">
-                Nestled at the equatorial foot of Mount Kenya — Africa's second-highest peak — Peaks Hotel has stood as a landmark of refined hospitality since its founding. We sit precisely on the equator, where two worlds meet: the untamed wild and modern luxury.
+                Nestled at the foot of Mount Kenya and inspired by the magnificent landscapes of Mount Kenya, the Aberdare Ranges and the Lolldaiga Hills, Peaks Hotel is one of Nanyuki's most distinctive hospitality destinations.
               </p>
               <p className="text-muted-foreground leading-relaxed mb-8">
-                Every detail has been crafted with intention — from the architecture that frames the mountain to the cuisine that celebrates Kenya's finest produce. Whether you arrive for adventure, business, or pure rest, this is your home in the highlands.
+                Here, accommodation, dining, wellness, adventure, conferences and celebrations come together in a uniquely Kenyan setting shaped by nature and guided by genuine hospitality. Whether you are a local resident, a traveller, a business guest, a family, or a visitor from anywhere in the world — Peaks Hotel offers an experience designed for you.
               </p>
 
               {/* location pills */}
               <div className="flex flex-wrap gap-3 mb-10">
                 {[
-                  { icon: Mountain, text: "Mount Kenya views" },
-                  { icon: Star,     text: "On the Equator" },
-                  { icon: MapPin,   text: "Nanyuki Town Centre" },
+                  { icon: Mountain, text: "Mount Kenya" },
+                  { icon: Mountain, text: "Aberdare Ranges" },
+                  { icon: MapPin,   text: "Lolldaiga Hills" },
                 ].map(({ icon: Icon, text }) => (
                   <span key={text} className="flex items-center gap-2 bg-secondary text-foreground text-sm px-4 py-2 rounded-full border border-border">
                     <Icon className="h-3.5 w-3.5 text-accent" />{text}
@@ -209,9 +209,9 @@ const Index = () => {
               viewport={{ once: true }}
               transition={{ duration: 0.8 }}
             >
-              <p className="text-accent text-xs font-medium tracking-[0.25em] uppercase mb-3">What we stand for</p>
+              <p className="text-accent text-xs font-medium tracking-[0.25em] uppercase mb-3">Our philosophy</p>
               <h2 className="font-heading text-4xl md:text-5xl font-bold text-foreground mb-10 leading-tight">
-                Our Values
+                Why Guests Choose Peaks
               </h2>
               <div className="space-y-6">
                 {values.map(({ icon: Icon, title, description }, i) => (
@@ -258,7 +258,7 @@ const Index = () => {
           >
             <p className="text-accent text-xs font-medium tracking-[0.3em] uppercase mb-6">A message from our team</p>
             <blockquote className="font-heading text-2xl md:text-3xl font-light text-white leading-relaxed mb-8 italic">
-              "At Peaks Hotel, we believe that true hospitality comes from the heart. Every moment of your stay is crafted to exceed expectations — from the breathtaking views to the exquisite cuisine. We look forward to welcoming you home."
+              "Peaks Hotel is a place where beauty and nature meet taste and genuine hospitality. We are proud to welcome guests from Nanyuki, from Kenya and from around the world. This is your home in the highlands."
             </blockquote>
             <div className="flex items-center gap-4">
               <div className="w-12 h-12 bg-accent rounded-full flex items-center justify-center text-accent-foreground font-bold text-lg">
