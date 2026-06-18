@@ -77,7 +77,7 @@ const Sauna = () => {
             className="flex items-center gap-2 mb-6"
           >
             <div className="w-px h-8 bg-orange-500/50" />
-            <span className="text-orange-300 text-2xl font-bold">80 – 90°C</span>
+            <span className="text-orange-300 text-2xl font-bold">25 – 40°C</span>
             <div className="w-px h-8 bg-orange-500/50" />
           </motion.div>
 
@@ -149,7 +149,7 @@ const Sauna = () => {
               </p>
               <div className="flex gap-6">
                 <div>
-                  <p className="text-orange-400 font-bold text-2xl">80–90°C</p>
+                  <p className="text-orange-400 font-bold text-2xl">25–40°C</p>
                   <p className="text-white/40 text-xs mt-0.5">Interior heat</p>
                 </div>
                 <div className="w-px bg-orange-900/40" />

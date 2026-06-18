@@ -10,7 +10,7 @@ import swim2 from "@/assets/swimming/swim2.jpg";
 import swim3 from "@/assets/swimming/swim3.jpg";
 
 const stats = [
-  { value: "25m", label: "Pool Length" },
+  { value: "17m", label: "Pool Length" },
   { value: "6:00", label: "Opens Daily" },
   { value: "28°C", label: "Water Temp" },
   { value: "24/7", label: "Lifeguard" },
@@ -156,7 +156,7 @@ const Swimming = () => {
             >
               <Waves className="h-10 w-10 mb-3 opacity-80" />
               <p className="font-heading text-2xl font-bold mb-1">Open Daily</p>
-              <p className="text-sky-100 text-sm">6:00 AM – 10:00 PM</p>
+              <p className="text-sky-100 text-sm">6:00 AM – 6:00 PM</p>
               <p className="text-sky-200 text-xs mt-2">Heated · Lifeguard on duty</p>
             </motion.div>
           </div>
