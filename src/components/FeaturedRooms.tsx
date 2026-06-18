@@ -14,7 +14,7 @@ const rooms = [
     size: "35 sqm",
     guests: "2 Adults",
     bed: "King Bed",
-    description: "Elegant comfort with mountain views and premium amenities for a memorable stay.",
+    description: "Comfortable and practical accommodation ideal for business travellers, couples and short stays.",
     amenities: [Wifi, Wind, Coffee],
   },
   {
@@ -24,7 +24,7 @@ const rooms = [
     size: "55 sqm",
     guests: "3 Adults",
     bed: "King Bed + Sofa",
-    description: "Spacious suite featuring a separate living area and panoramic savanna views.",
+    description: "Additional space and comfort for families, extended stays and guests seeking extra room to relax.",
     amenities: [Wifi, Wind, Coffee],
   },
   {
@@ -34,7 +34,7 @@ const rooms = [
     size: "90 sqm",
     guests: "4 Adults",
     bed: "2 King Beds",
-    description: "Ultimate luxury with private balcony, dining area, and unmatched Mount Kenya vistas.",
+    description: "Our most spacious accommodation option, offering enhanced comfort, additional living space and beautiful views.",
     amenities: [Wifi, Wind, Coffee],
   },
 ];
@@ -55,12 +55,13 @@ const FeaturedRooms = () => {
             Accommodation
           </p>
           <h2 className="font-heading text-4xl md:text-5xl font-bold text-foreground mb-4">
-            Rooms & Suites
+            Rest, Relax and Recharge
           </h2>
           <div className="w-20 h-0.5 bg-accent mx-auto mb-6" />
           <p className="text-muted-foreground max-w-2xl mx-auto">
-            Each room is thoughtfully designed to provide the perfect balance of 
-            African elegance and modern luxury.
+            Our rooms are designed to provide comfort, convenience and value for both business and leisure travellers.
+            Whether staying for a night, a week or longer, guests enjoy professional service, quality amenities and the peaceful environment that distinguishes Peaks Hotel.
+
           </p>
         </motion.div>
 

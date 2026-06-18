@@ -29,10 +29,10 @@ const stats = [
 ];
 
 const values = [
-  { icon: Mountain, title: "The Three Peaks", description: "Inspired by Mount Kenya, the Aberdare Ranges and the Lolldaiga Hills — the landmarks that define our horizon and identity." },
-  { icon: Users,    title: "Something for Everybody", description: "Accommodation, dining, wellness, adventure, conferences, events and celebrations — all in one uniquely Kenyan destination." },
-  { icon: Heart,    title: "Wellness and Recreation", description: "Heated pool, gym, sauna, steam bath, massage and beauty services for your health and relaxation." },
-  { icon: Award,    title: "Sustainability in Action", description: "Solar energy, biogas, wastewater recycling and environmental stewardship — sustainability is a way of life here." },
+  { icon: Mountain, title: "The Three Peaks", description: "Inspired by Mount Kenya, the Aberdare Ranges and the Lolldaiga Hills." },
+  { icon: Users,    title: "Something for Everybody", description: "Accommodation, dining, wellness, adventure, conferences, events and celebrations." },
+  { icon: Heart,    title: "Wellness and Recreation", description: "Heated pool, gym, sauna, steam bath, massage and beauty services." },
+  { icon: Award,    title: "Adventure and Discovery", description: "Outdoor challenges, nature walks, hiking, mountain climbing and Mount Kenya expeditions." },
 ];
 
 const Index = () => {

@@ -234,7 +234,7 @@ export default function LoyaltyDashboard() {
               {[
                 { tier: "Bronze", color: "border-amber-200 bg-amber-50", badge: "text-amber-800 bg-amber-100", perks: ["10% points on every stay", "Member-only rates", "Birthday bonus points"] },
                 { tier: "Silver", color: "border-slate-200 bg-slate-50", badge: "text-slate-700 bg-slate-100", perks: ["All Bronze perks", "Free room upgrade (subject to availability)", "Late checkout (1 PM)", "Priority reservations"] },
-                { tier: "Gold",   color: "border-yellow-200 bg-yellow-50", badge: "text-yellow-700 bg-yellow-100", perks: ["All Silver perks", "Complimentary breakfast", "Airport transfer discount", "Dedicated concierge"] },
+                { tier: "Gold",   color: "border-yellow-200 bg-yellow-50", badge: "text-yellow-700 bg-yellow-100", perks: ["All Silver perks",  "Airport transfer discount", "Dedicated concierge"] },
               ].map(({ tier, color, badge, perks }) => (
                 <div key={tier} className={`border rounded-xl p-4 ${color} ${member.tier === tier ? "ring-2 ring-accent" : ""}`}>
                   <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${badge}`}>★ {tier}</span>
