@@ -38,34 +38,11 @@ const roomTypes = [
       twin: { bed_breakfast: 6200, half_board: 8200, full_board: 10200 }
     },
     features: [
-      {
-        icon: Bed,
-        text: "Comfortable double bed with premium linens"
-      },
-      {
-        icon: Wifi,
-        text: "High-speed Wi-Fi (50 Mbps)"
-      },
-      {
-        icon: Tv,
-        text: "42\" flat-screen TV with premium channels",
-      },
-      {
-        icon: Coffee,
-        text: "Coffee and tea maker"
-      },
-      {
-        icon: Utensils,
-        text: "Mini-fridge with complimentary drinks"
-      },
-      {
-        icon: Bath,
-        text: "Modern bathroom with shower"
-      },
-      {
-        icon: Shield,
-        text: "24/7 security"
-      }
+      { icon: Bed,    text: "Comfortable double bed with premium linens" },
+      { icon: Wifi,   text: "High-speed Wi-Fi (50 Mbps)" },
+      { icon: Tv,     text: "42\" flat-screen TV with premium channels" },
+      { icon: Bath,   text: "Modern bathroom with shower" },
+      { icon: Shield, text: "24/7 security" }
     ],
     instructions: [
       {
@@ -101,38 +78,12 @@ const roomTypes = [
       twin: { bed_breakfast: 6800, half_board: 8800, full_board: 10800 }
     },
     features: [
-      {
-        icon: Bed,
-        text: "King size bed with premium linens"
-      },
-      {
-        icon: Wifi,
-        text: "High-speed Wi-Fi (100 Mbps)"
-      },
-      {
-        icon: Tv,
-        text: "55\" flat-screen TV with premium channels"
-      },
-      {
-        icon: Coffee,
-        text: "Coffee and tea maker with premium selection"
-      },
-      {
-        icon: Utensils,
-        text: "Mini-fridge with complimentary drinks"
-      },
-      {
-        icon: Bath,
-        text: "Luxury bathroom with shower and bathtub"
-      },
-      {
-        icon: Shield,
-        text: "24/7 security with keycard access"
-      },
-      {
-        icon: Wind,
-        text: "Air conditioning"
-      }
+      { icon: Bed,    text: "King size bed with premium linens" },
+      { icon: Wifi,   text: "High-speed Wi-Fi (100 Mbps)" },
+      { icon: Tv,     text: "55\" flat-screen TV with premium channels" },
+      { icon: Bath,   text: "Luxury bathroom with shower and bathtub" },
+      { icon: Shield, text: "24/7 security with keycard access" },
+      { icon: Wind,   text: "Air conditioning" }
     ],
     instructions: [
       {
@@ -168,42 +119,13 @@ const roomTypes = [
       twin: { bed_breakfast: 0, half_board: 0, full_board: 0 } // No twin option for executive
     },
     features: [
-      {
-        icon: Bed,
-        text: "King size bed with premium linens and down comforter"
-      },
-      {
-        icon: Wifi,
-        text: "High-speed Wi-Fi (200 Mbps)"
-      },
-      {
-        icon: Tv,
-        text: "65\" flat-screen TV with premium channels"
-      },
-      {
-        icon: Coffee,
-        text: "Coffee and tea maker with premium selection"
-      },
-      {
-        icon: Utensils,
-        text: "Full-size fridge with complimentary drinks"
-      },
-      {
-        icon: Bath,
-        text: "Luxury bathroom with shower, bathtub, and premium amenities"
-      },
-      {
-        icon: Shield,
-        text: "24/7 security with keycard access and safe"
-      },
-      {
-        icon: Wind,
-        text: "Air conditioning with temperature control"
-      },
-      {
-        icon: Music,
-        text: "In-room entertainment system"
-      }
+      { icon: Bed,    text: "King size bed with premium linens and down comforter" },
+      { icon: Wifi,   text: "High-speed Wi-Fi (200 Mbps)" },
+      { icon: Tv,     text: "65\" flat-screen TV with premium channels" },
+      { icon: Bath,   text: "Luxury bathroom with shower, bathtub, and premium amenities" },
+      { icon: Shield, text: "24/7 security with keycard access and safe" },
+      { icon: Wind,   text: "Air conditioning with temperature control" },
+      { icon: Music,  text: "In-room entertainment system" }
     ],
     instructions: [
       {

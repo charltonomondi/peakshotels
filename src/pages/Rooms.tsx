@@ -26,7 +26,7 @@ const rooms = [
     guests: "2 Adults",
     bed: "King Bed",
     description: "Our Standard Rooms offer elegant comfort with stunning mountain views and premium amenities. Perfect for couples or business travelers seeking a refined retreat.",
-    amenities: ["Free WiFi", "Air Conditioning", "Coffee Maker", "Flat Screen TV", "Mini Bar", "En-suite Bathroom", "Room Service", "Balcony"],
+    amenities: ["Free WiFi", "Air Conditioning", "Flat Screen TV", "En-suite Bathroom", "Room Service"],
   },
   {
     id: "superior",
@@ -42,7 +42,7 @@ const rooms = [
     guests: "3 Adults",
     bed: "King Bed + Sofa Bed",
     description: "Spacious and sophisticated, our Superior Rooms feature a separate living area and panoramic savanna views. Ideal for extended stays or families.",
-    amenities: ["Free WiFi", "Air Conditioning", "Coffee Maker", "Flat Screen TV", "Mini Bar", "En-suite Bathroom", "Living Area", "Work Desk", "Bathtub", "Room Service"],
+    amenities: ["Free WiFi", "Air Conditioning", "Flat Screen TV", "En-suite Bathroom", "Work Desk", "Bathtub", "Room Service"],
   },
   {
     id: "executive",
@@ -58,7 +58,7 @@ const rooms = [
     guests: "4 Adults",
     bed: "2 King Beds",
     description: "The ultimate in luxury, our Executive Rooms offer unmatched Mount Kenya vistas, a private dining area, and personalized butler service.",
-    amenities: ["Free WiFi", "Air Conditioning", "Coffee Maker", "Flat Screen TV", "Full Bar", "Luxury Bathroom", "Living & Dining Area", "Private Balcony", "Jacuzzi", "Butler Service", "Complimentary Breakfast"],
+    amenities: ["Free WiFi", "Air Conditioning", "Flat Screen TV", "Luxury Bathroom", "Work Desk"],
   },
 ];
 
