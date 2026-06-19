@@ -12,8 +12,8 @@ const rooms = [
     image: standard,
     price: "From KES 8,400",
     size: "35 sqm",
-    guests: "2 Adults",
-    bed: "King Bed",
+    // guests: "2 Adults",
+    bed: "King Size Bed",
     description: "Comfortable and practical accommodation ideal for business travellers, couples and short stays.",
     amenities: [Wifi, Wind, Coffee],
   },
@@ -22,7 +22,7 @@ const rooms = [
     image: superior,
     price: "From KES 9,600",
     size: "55 sqm",
-    guests: "3 Adults",
+    // guests: "3 Adults",
     bed: "King Bed + Sofa",
     description: "Additional space and comfort for families, extended stays and guests seeking extra room to relax.",
     amenities: [Wifi, Wind, Coffee],
@@ -32,8 +32,8 @@ const rooms = [
     image: executive,
     price: "From KES 13,400",
     size: "90 sqm",
-    guests: "4 Adults",
-    bed: "2 King Beds",
+    // guests: "4 Adults",
+    bed: "King size Bed",
     description: "Our most spacious accommodation option, offering enhanced comfort, additional living space and beautiful views.",
     amenities: [Wifi, Wind, Coffee],
   },
@@ -60,7 +60,6 @@ const FeaturedRooms = () => {
           <div className="w-20 h-0.5 bg-accent mx-auto mb-6" />
           <p className="text-muted-foreground max-w-2xl mx-auto">
             Our rooms are designed to provide comfort, convenience and value for both business and leisure travellers.
-            Whether staying for a night, a week or longer, guests enjoy professional service, quality amenities and the peaceful environment that distinguishes Peaks Hotel.
 
           </p>
         </motion.div>
@@ -104,7 +103,7 @@ const FeaturedRooms = () => {
                   </div>
                   <div className="flex items-center gap-2">
                     <Users className="h-4 w-4 text-accent" />
-                    {room.guests}
+                    {/* {room.guests} */}
                   </div>
                   <div className="flex items-center gap-2">
                     <Bed className="h-4 w-4 text-accent" />

@@ -29,7 +29,7 @@ const stats = [
 ];
 
 const values = [
-  { icon: Mountain, title: "The Three Peaks", description: "Inspired by Mount Kenya, the Aberdare Ranges and the Lolldaiga Hills." },
+  // { icon: Mountain, title: "The Three Peaks", description: "Inspired by Mount Kenya, the Aberdare Ranges and the Lolldaiga Hills." },
   { icon: Users,    title: "Something for Everybody", description: "Accommodation, dining, wellness, adventure, conferences, events and celebrations." },
   { icon: Heart,    title: "Wellness and Recreation", description: "Heated pool, gym, sauna, steam bath, massage and beauty services." },
   { icon: Award,    title: "Adventure and Discovery", description: "Outdoor challenges, nature walks, hiking, mountain climbing and Mount Kenya expeditions." },
@@ -258,7 +258,7 @@ const Index = () => {
           >
             <p className="text-accent text-xs font-medium tracking-[0.3em] uppercase mb-6">A message from our team</p>
             <blockquote className="font-heading text-2xl md:text-3xl font-light text-white leading-relaxed mb-8 italic">
-              "Peaks Hotel is a place where beauty and nature meet taste and genuine hospitality. We are proud to welcome guests from Nanyuki, from Kenya and from around the world. This is your home in the highlands."
+              "Peaks Hotel is a place where beauty and nature meet taste and genuine hospitality. We are proud to welcome guests from Nanyuki, from Kenya and around the world. This is your home away from home."
             </blockquote>
             <div className="flex items-center gap-4">
               <div className="w-12 h-12 bg-accent rounded-full flex items-center justify-center text-accent-foreground font-bold text-lg">

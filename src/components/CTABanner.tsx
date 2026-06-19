@@ -15,7 +15,7 @@ const CTABanner = () => {
           className="max-w-3xl mx-auto text-center">
           <p className="text-accent font-medium tracking-[0.2em] uppercase mb-3 text-xs md:text-sm">Book Your Escape</p>
           <h2 className="font-heading text-2xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-6xl font-bold text-primary-foreground mb-4 md:mb-6">
-            Ready to Experience African Luxury?
+            Ready for the Peaks Experience?
           </h2>
           <p className="text-primary-foreground/90 text-sm md:text-lg mb-6 md:mb-10 max-w-xl mx-auto px-2">
             Let us create unforgettable memories for you. Book your stay today and discover the magic of Peaks Hotel.

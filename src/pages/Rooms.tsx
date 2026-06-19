@@ -23,10 +23,10 @@ const rooms = [
       twin: { bb: 6200, hb: 8200, fb: 10200 }
     },
     size: "35 sqm",
-    guests: "2 Adults",
+    // guests: "2 Adults",
     bed: "King Bed",
-    description: "Our Standard Rooms offer elegant comfort with stunning mountain views and premium amenities. Perfect for couples or business travelers seeking a refined retreat.",
-    amenities: ["Free WiFi", "Air Conditioning",  "Flat Screen TV",  "En-suite Bathroom", "Room Service", ],
+    description: "Comfortable and practical accommodation ideal for business travellers, couples and short stays.",
+    amenities: ["Free WiFi", "Flat Screen TV",  "En-suite Bathroom",],
   },
   {
     id: "superior",
@@ -39,10 +39,10 @@ const rooms = [
       twin: { bb: 6800, hb: 8800, fb: 10800 }
     },
     size: "55 sqm",
-    guests: "3 Adults",
+    // guests: "3 Adults",
     bed: "King Bed + Sofa Bed",
-    description: "Spacious and sophisticated, our Superior Rooms feature a separate living area and panoramic savanna views. Ideal for extended stays or families.",
-    amenities: ["Free WiFi", "Air Conditioning",  "Flat Screen TV",  "En-suite Bathroom",   "Bathtub", "Room Service"],
+    description: "Additional space and comfort for families, extended stays and guests seeking extra room to relax.",
+    amenities: ["Free WiFi",  "Flat Screen TV",  "En-suite Bathroom",   "Bathtub",],
   },
   {
     id: "executive",
@@ -55,10 +55,10 @@ const rooms = [
       twin: null
     },
     size: "90 sqm",
-    guests: "4 Adults",
-    bed: "2 King Beds",
-    description: "The ultimate in luxury, our Executive Rooms offer unmatched Mount Kenya vistas, a private dining area, and personalized butler service.",
-    amenities: ["Free WiFi", "Air Conditioning",  "Flat Screen TV",  "Luxury Bathroom",     ],
+    // guests: "4 Adults",
+    bed: "King Size Beds",
+    description: "Our most spacious accommodation option, offering enhanced comfort, additional living space and beautiful views.",
+    amenities: ["Free WiFi",   "Flat Screen TV",  "Luxury Bathroom",     ],
   },
 ];
 
@@ -154,11 +154,11 @@ const Rooms = () => {
                 Accommodation
               </p>
               <h1 className="font-heading text-4xl md:text-5xl lg:text-6xl font-bold text-white mb-6">
-                Rooms & Suites
+                Rooms
               </h1>
               <div className="w-24 h-1 bg-accent mx-auto mb-6" />
               <p className="text-white/90 text-lg md:text-xl max-w-3xl mx-auto mb-8 leading-relaxed">
-                Each of our rooms is designed to provide the perfect balance of African elegance and modern comfort.
+                Our rooms are designed to provide comfort, convenience and value for both business and leisure travellers.
               </p>
             </motion.div>
           </div>
@@ -210,7 +210,7 @@ const Rooms = () => {
                     </div>
                     <div className="flex items-center gap-2 text-foreground">
                       <Users className="h-5 w-5 text-accent" />
-                      {room.guests}
+                      {/* {room.guests} */}
                     </div>
                     <div className="flex items-center gap-2 text-foreground">
                       <Bed className="h-5 w-5 text-accent" />
@@ -300,7 +300,9 @@ const Rooms = () => {
                   <li>• Late check-out available on request</li>
                 </ul>
               </div>
-              <div className="bg-card p-6 rounded-xl">
+
+              // To be placed on it's own in another page
+              {/* <div className="bg-card p-6 rounded-xl">
                 <h3 className="font-semibold text-foreground mb-4">Cancellation Policy</h3>
                 <ul className="space-y-2 text-muted-foreground text-sm">
                   <li>• Free cancellation up to 48 hours before arrival</li>
@@ -308,7 +310,7 @@ const Rooms = () => {
                   <li>• Full charge for no-shows</li>
                   <li>• Special rates may have different terms</li>
                 </ul>
-              </div>
+              </div> */}
             </div>
           </motion.div>
         </div>

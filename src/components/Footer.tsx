@@ -39,9 +39,9 @@ const Footer = () => {
             {logoLoading && !logoError && (
               <div className="h-20 w-20 bg-background rounded-lg p-2 animate-pulse" />
             )}
-            <p className="text-primary-foreground/80 text-sm leading-relaxed">
+            {/* <p className="text-primary-foreground/80 text-sm leading-relaxed">
               Experience unparalleled luxury at the foot of Mount Kenya. Peaks Hotel offers a perfect blend of African elegance and modern comfort.
-            </p>
+            </p> */}
             <div className="flex gap-4">
               <a href="#" className="p-2 bg-primary-foreground/10 rounded-full hover:bg-accent transition-colors">
                 <Facebook className="h-5 w-5" />
