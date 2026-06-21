@@ -222,7 +222,7 @@ const SplashScreen = ({ onComplete }: SplashScreenProps) => {
           transition={{ duration: 0.8, delay: 1.5 }}
           className="text-lg md:text-xl text-gray-400 mb-12 italic"
         >
-          Beauty and Taste with Nature
+          Beauty and Taste, with Nature
         </motion.p>
 
         {/* Loading/Progress Bar */}
