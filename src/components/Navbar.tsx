@@ -22,7 +22,7 @@ const primaryNavItems = [
   { name: "Home", path: "/" },
   { name: "Accommodation", path: "/rooms" },
   { name: "Restaurant & Bar", path: "/restaurant" },
-  { name: "Conferences", path: "/facilities" },
+  { name: "Conference", path: "/facilities" },
   {
     name: "Wellness Center",
     children: [
@@ -263,7 +263,7 @@ const Navbar = () => {
                 className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 bg-amber-500/10 hover:bg-amber-500/20 rounded-full text-xs font-semibold text-amber-600 transition-colors border border-amber-400/30"
               >
                 <CreditCard className="h-3.5 w-3.5" />
-                Lipa Mdogo
+                Payment Plan
               </button>
 
               {member ? (
