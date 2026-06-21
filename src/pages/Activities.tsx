@@ -114,7 +114,7 @@ const Activities = () => {
 
           <motion.h1 initial={{ opacity: 0, y: 40 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.5, duration: 1 }}
             className="font-heading text-6xl md:text-8xl lg:text-9xl font-bold text-white leading-none mb-4">
-            Get<br /><span className="text-green-400 italic font-light">Outside</span>
+            Step<br /><span className="text-green-400 italic font-light">Outside</span>
           </motion.h1>
 
           <motion.div initial={{ scaleX: 0 }} animate={{ scaleX: 1 }} transition={{ delay: 0.9, duration: 0.5 }}
@@ -223,7 +223,7 @@ const Activities = () => {
       </section>
 
       {/* ── PACKAGES ── */}
-      <section className="py-24" style={{ background: "#111a12" }}>
+      {/* <section className="py-24" style={{ background: "#111a12" }}>
         <div className="container mx-auto px-4">
           <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} className="mb-14 text-center">
             <p className="text-green-500 text-xs font-medium tracking-[0.25em] uppercase mb-2">Pricing</p>
@@ -272,7 +272,7 @@ const Activities = () => {
             ))}
           </div>
         </div>
-      </section>
+      </section> */}
 
       {/* ── CTA ── full-bleed forest image */}
       <section className="relative py-36 overflow-hidden">
