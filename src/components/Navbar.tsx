@@ -39,11 +39,11 @@ const primaryNavItems = [
       },
     ],
   },
+  { name: "Outdoor Fitness", path: "/activities" },
 ];
 
 // Secondary links tucked into a "More" dropdown
 const moreNavItems = [
-  { name: "Outdoor Fitness", path: "/activities" },
   { name: "News & Updates", path: "/news" },
   { name: "Gallery", path: "/gallery" },
   { name: "Contact", path: "/contact" },
