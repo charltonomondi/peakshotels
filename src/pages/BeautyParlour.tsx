@@ -104,14 +104,14 @@ const BeautyParlour = () => {
               className="w-16 h-px bg-rose-300 mx-auto mb-5"
             />
 
-            <motion.p
+            {/* <motion.p
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ delay: 1.1 }}
               className="text-white/75 text-base md:text-lg mb-8 leading-relaxed"
             >
               Where expertise meets elegance — beauty treatments crafted exclusively for you.
-            </motion.p>
+            </motion.p> */}
 
             <motion.div
               initial={{ opacity: 0, y: 10 }}
@@ -263,7 +263,7 @@ const BeautyParlour = () => {
                 {/* hover content */}
                 <div className="absolute inset-0 flex flex-col justify-center p-8 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
                   <h3 className="font-heading text-2xl font-bold text-white mb-3">{name}</h3>
-                  <p className="text-rose-100/80 text-sm leading-relaxed mb-4">{description}</p>
+                  <p className="text-rose-100/80 text-sm leading-relaxed mb-2">{description}</p>
                   <div className="flex items-center gap-2 text-rose-200 text-sm">
                     <Clock className="h-4 w-4" />
                     {duration}
@@ -295,7 +295,7 @@ const BeautyParlour = () => {
       </section> */}
 
       {/* ── CTA ── */}
-      <section className="py-24" style={{ background: "#faf7f4" }}>
+      <section className="pt-0 pb-6" style={{ background: "#faf7f4" }}>
         <div className="container mx-auto px-4">
           <motion.div
             initial={{ opacity: 0, y: 30 }}
@@ -314,7 +314,7 @@ const BeautyParlour = () => {
             </p> */}
             <div className="flex flex-wrap justify-center gap-4">
               <Button size="lg" className="bg-rose-600 hover:bg-rose-500 text-white border-0 rounded-full px-10 shadow-lg shadow-rose-200" asChild>
-                <Link to="/booking">Book a Treatment</Link>
+                <Link to="/booking">Book</Link>
               </Button>
               <Button size="lg" variant="outline" className="border-stone-300 text-stone-700 hover:bg-stone-100 rounded-full px-10" asChild>
                 <Link to="/facilities">All Facilities</Link>
