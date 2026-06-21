@@ -648,7 +648,7 @@ const Restaurant = () => {
                 View Menu
               </Button>
               <Button variant="heroOutline" size="lg" asChild>
-                <a href="tel:+254700000000">
+                <a href="tel:+254711969690">
                   <Phone className="h-5 w-5 mr-2" />
                   Call +254 711 969 690
                 </a>
