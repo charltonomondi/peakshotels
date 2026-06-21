@@ -87,8 +87,8 @@ const Contact = () => {
                   <div>
                     <h3 className="font-semibold text-foreground mb-1">Location</h3>
                     <p className="text-muted-foreground">
-                      3km from Nanyuki Town Along Meru/Isiolo Highway<br />
-                      Nanyuki, Kenya
+                      Nanyuki Town Along Meru/Isiolo Highway<br />
+                      3Km away from the Town Centre
                     </p>
                   </div>
                 </div>

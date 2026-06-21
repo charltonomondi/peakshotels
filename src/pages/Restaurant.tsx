@@ -112,7 +112,7 @@ const Restaurant = () => {
               <Clock className="h-5 w-5 text-accent" />
               <div className="text-left">
                 <p className="text-sm text-white/70">Opening Hours</p>
-                <p className="font-semibold">6:00 AM - 11:00 PM Daily</p>
+                <p className="font-semibold">6:00 AM - 10:00 PM Daily</p>
               </div>
             </motion.div>
             <motion.div
@@ -125,7 +125,7 @@ const Restaurant = () => {
               <Phone className="h-5 w-5 text-accent" />
               <div className="text-left">
                 <p className="text-sm text-white/70">Reservations</p>
-                <p className="font-semibold">+254 700 000 000</p>
+                <p className="font-semibold">+254 711 969 690</p>
               </div>
             </motion.div>
             <motion.div
@@ -138,7 +138,7 @@ const Restaurant = () => {
               <MapPin className="h-5 w-5 text-accent" />
               <div className="text-left">
                 <p className="text-sm text-white/70">Location</p>
-                <p className="font-semibold">Peaks Hotel, Nanyuki</p>
+                <p className="font-semibold">Peaks Hotel Nanyuki</p>
               </div>
             </motion.div>
           </div>
@@ -159,7 +159,7 @@ const Restaurant = () => {
                 Our Story
               </p>
               <h2 className="font-heading text-4xl md:text-5xl font-bold text-foreground mb-6">
-                Where Flavor Meets Tradition
+                Where Flavour Meets Tradition
               </h2>
               <div className="w-20 h-1 bg-accent mb-6" />
               <p className="text-muted-foreground text-lg leading-relaxed mb-6">
@@ -175,12 +175,12 @@ const Restaurant = () => {
               <div className="grid grid-cols-2 gap-6">
                 <div className="text-center p-6 bg-card rounded-xl shadow-elegant">
                   <Award className="h-8 w-8 text-accent mx-auto mb-3" />
-                  <p className="font-bold text-2xl text-foreground mb-1">10+</p>
+                  <p className="font-bold text-2xl text-foreground mb-1">8+</p>
                   <p className="text-sm text-muted-foreground">Years Experience</p>
                 </div>
                 <div className="text-center p-6 bg-card rounded-xl shadow-elegant">
                   <Utensils className="h-8 w-8 text-accent mx-auto mb-3" />
-                  <p className="font-bold text-2xl text-foreground mb-1">200+</p>
+                  <p className="font-bold text-2xl text-foreground mb-1">50+</p>
                   <p className="text-sm text-muted-foreground">Menu Items</p>
                 </div>
               </div>
@@ -261,20 +261,20 @@ const Restaurant = () => {
                 <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
                 <div className="absolute bottom-0 left-0 right-0 p-8">
                   <h3 className="font-heading text-3xl font-bold text-white mb-3">
-                    Main Dining Hall
+                   Mbaruk Restaurant
                   </h3>
-                  <p className="text-white/90 text-lg mb-4">
+                  {/* <p className="text-white/90 text-lg mb-4">
                     Elegant and spacious, perfect for family gatherings and special celebrations
-                  </p>
+                  </p> */}
                   <div className="flex gap-4 text-sm text-white/80">
-                    <span className="flex items-center gap-2">
+                    {/* <span className="flex items-center gap-2">
                       <Utensils className="h-4 w-4" />
-                      Capacity: 120 guests
-                    </span>
-                    <span className="flex items-center gap-2">
+                      Capacity:  guests
+                    </span> */}
+                    {/* <span className="flex items-center gap-2">
                       <Clock className="h-4 w-4" />
                       All day dining
-                    </span>
+                    </span> */}
                   </div>
                 </div>
               </div>
@@ -288,9 +288,9 @@ const Restaurant = () => {
                   <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent" />
                   <div className="absolute bottom-0 left-0 right-0 p-6">
                     <h4 className="font-heading text-xl font-bold text-white mb-2">
-                      Private Dining
+                      Smmit Restaurant
                     </h4>
-                    <p className="text-white/80 text-sm">Intimate setting for special occasions</p>
+                    <p className="text-white/80 text-sm"></p>
                   </div>
                 </div>
                 <div className="relative overflow-hidden rounded-3xl group h-[240px]">
@@ -304,7 +304,7 @@ const Restaurant = () => {
                     <h4 className="font-heading text-xl font-bold text-white mb-2">
                       Spillover Terrace
                     </h4>
-                    <p className="text-white/80 text-sm">Al fresco dining with garden views</p>
+                    {/* <p className="text-white/80 text-sm">Al fresco dining with garden views</p> */}
                   </div>
                 </div>
               </div>
@@ -536,10 +536,9 @@ const Restaurant = () => {
             <h2 className="font-heading text-4xl md:text-5xl font-bold text-white mb-6">
               Reserve Your Experience
             </h2>
-            <p className="text-white/90 text-lg mb-8 leading-relaxed">
-              Book your table today and let us create an unforgettable dining experience for you. 
-              Whether it's a romantic dinner, family celebration, or business lunch, we're here to serve you.
-            </p>
+            {/* <p className="text-white/90 text-lg mb-8 leading-relaxed">
+              Book your table today for a romantic dinner, family celebration, or business lunch, we're here to serve you.
+            </p> */}
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Button variant="hero" size="lg" asChild>
                 <Link to="/booking">
@@ -550,7 +549,7 @@ const Restaurant = () => {
               <Button variant="heroOutline" size="lg" asChild>
                 <a href="tel:+254700000000">
                   <Phone className="h-5 w-5 mr-2" />
-                  Call +254 700 000 000
+                  Call +254 711 969 690
                 </a>
               </Button>
             </div>

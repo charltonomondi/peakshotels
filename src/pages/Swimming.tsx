@@ -12,7 +12,7 @@ import swim3 from "@/assets/swimming/swim3.jpg";
 const stats = [
   { value: "17m", label: "Pool Length" },
   { value: "6:00", label: "Opens Daily" },
-  { value: "28°C", label: "Water Temp" },
+  { value: "27°C", label: "Water Temp" },
   { value: "24/7", label: "Lifeguard" },
 ];
 
@@ -60,7 +60,7 @@ const Swimming = () => {
             transition={{ delay: 0.3 }}
             className="text-sky-300 font-medium tracking-[0.3em] uppercase text-sm mb-4"
           >
-            Peaks Hotel · Wellness
+            Heated Swimming Pool
           </motion.p>
           <motion.h1
             initial={{ opacity: 0, y: 30 }}
@@ -82,7 +82,7 @@ const Swimming = () => {
             transition={{ delay: 1 }}
             className="text-white/80 text-lg md:text-xl max-w-2xl leading-relaxed mb-12"
           >
-            Crystal-clear waters framed by Mount Kenya's peaks — swim, float, and unwind in a pool designed for pure luxury.
+            {/* Crystal-clear waters framed by Mount Kenya's peaks — swim, float, and unwind in a pool designed for pure luxury. */}
           </motion.p>
 
           <motion.div

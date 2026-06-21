@@ -95,18 +95,18 @@ const Gym = () => {
               transition={{ duration: 0.6 }}
             >
               <h2 className="font-heading text-3xl md:text-4xl font-bold text-foreground mb-6">
-                Modern Equipment & Scenic Views
+                Gym
               </h2>
-              <p className="text-muted-foreground leading-relaxed mb-6">
+              {/* <p className="text-muted-foreground leading-relaxed mb-6">
                 Our gym offers a complete fitness experience with the latest equipment and breathtaking views of Mount Kenya. Whether you're maintaining your routine or starting a new one, our facilities provide everything you need for an effective workout.
               </p>
               <p className="text-muted-foreground leading-relaxed mb-6">
                 With certified trainers available and a variety of equipment, you'll find the perfect environment to achieve your fitness goals while enjoying the luxury of Peaks Hotel.
-              </p>
+              </p> */}
               <div className="flex items-center gap-4 text-sm text-accent">
                 <div className="flex items-center gap-2">
                   <Clock className="h-4 w-4" />
-                  Open 24/7
+                  Open from 6:00AM
                 </div>
                 <div className="flex items-center gap-2">
                   <Users className="h-4 w-4" />
@@ -226,11 +226,11 @@ const Gym = () => {
             <h2 className="font-heading text-3xl md:text-4xl font-bold text-primary-foreground mb-6">
               Ready to Work Out?
             </h2>
-            <p className="text-primary-foreground/80 max-w-xl mx-auto mb-8">
+            {/* <p className="text-primary-foreground/80 max-w-xl mx-auto mb-8">
               Visit our gym anytime during your stay. Personal training sessions can be booked in advance.
-            </p>
+            </p> */}
             <Button variant="hero" size="lg" asChild>
-              <Link to="/booking">Book Personal Training</Link>
+              <Link to="/booking">Book your session</Link>
             </Button>
           </motion.div>
         </div>

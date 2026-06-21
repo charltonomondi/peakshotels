@@ -316,7 +316,7 @@ const Navbar = () => {
                       onClick={() => { setIsOpen(false); openLipaModal?.(); }}
                       className="w-full flex items-center justify-center gap-2 py-2.5 rounded-full bg-amber-500/10 border border-amber-400/30 text-amber-600 font-semibold text-sm"
                     >
-                      <CreditCard className="h-4 w-4" /> Lipa Mdogo Mdogo
+                      <CreditCard className="h-4 w-4" /> Payment Plan
                     </button>
                     <Button variant="gold" size="lg" className="w-full" asChild>
                       <Link to="/booking" onClick={() => setIsOpen(false)}>Book Now</Link>
