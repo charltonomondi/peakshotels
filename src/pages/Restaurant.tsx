@@ -221,6 +221,108 @@ const Restaurant = () => {
         </div>
       </section>
 
+      {/* Other Dining Venues */}
+      <section className="py-20 bg-background">
+        <div className="container mx-auto px-4">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            className="text-center mb-14"
+          >
+            <p className="text-accent font-medium tracking-[0.2em] uppercase mb-4">More Dining at Peaks</p>
+            <h2 className="font-heading text-4xl md:text-5xl font-bold text-foreground mb-4">
+              Every Occasion, Every Setting
+            </h2>
+            <div className="w-20 h-1 bg-accent mx-auto" />
+          </motion.div>
+
+          <div className="space-y-16">
+            {[
+              {
+                tag: "Outdoor Dining",
+                title: "The Spillover",
+                subtitle: "Outdoor Dining at Its Best.",
+                desc: "A popular open-air dining space where guests enjoy food, refreshments and conversation surrounded by gardens and fresh air.",
+                img: images.outdoor1,
+                alt: "The Spillover outdoor dining",
+                reverse: false,
+              },
+              {
+                tag: "Rooftop Restaurant",
+                title: "Summit Rooftop Restaurant",
+                subtitle: "Dining with a View.",
+                desc: "Enjoy meals and refreshments while taking in panoramic views of Mount Kenya, the Aberdares and the Lolldaiga Hills.",
+                img: images.modern1,
+                alt: "Summit Rooftop Restaurant",
+                reverse: true,
+              },
+              {
+                tag: "Wellness Centre",
+                title: "The Eatery",
+                subtitle: "Fresh and Refreshing.",
+                desc: "Located at the Wellness Centre, The Eatery offers lighter meals, healthy options and refreshing beverages in a relaxed setting.",
+                img: images.dining2,
+                alt: "The Eatery at Wellness Centre",
+                reverse: false,
+              },
+              {
+                tag: "Garden Dining",
+                title: "Front Garden Dining",
+                subtitle: "Food in a Natural Setting.",
+                desc: "Enjoy meals and refreshments outdoors amidst greenery, flowers and the peaceful surroundings that define Peaks.",
+                img: images.outdoor2,
+                alt: "Front Garden Dining",
+                reverse: true,
+              },
+              {
+                tag: "Outdoor Gatherings",
+                title: "Events Grounds Dining",
+                subtitle: "Great Food. Great Company. Great Outdoors.",
+                desc: "Perfect for group meals, celebrations, team-building programmes and outdoor gatherings.",
+                img: images.event1,
+                alt: "Events Grounds Dining",
+                reverse: false,
+              },
+              {
+                tag: "Signature Experience",
+                title: "Peaks Signature BBQ",
+                subtitle: "A Favourite Among Our Guests.",
+                desc: "Our themed barbecue experiences combine delicious food, outdoor dining and the beauty of the Peaks environment.",
+                img: images.modern2,
+                alt: "Peaks Signature BBQ",
+                reverse: true,
+              },
+            ].map((venue, i) => (
+              <motion.div
+                key={venue.title}
+                initial={{ opacity: 0, y: 30 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.6, delay: 0.05 * i }}
+                className={`grid grid-cols-1 lg:grid-cols-2 gap-10 items-center ${venue.reverse ? "lg:flex-row-reverse" : ""}`}
+              >
+                <div className={`overflow-hidden rounded-3xl shadow-xl h-72 md:h-96 ${venue.reverse ? "lg:order-2" : ""}`}>
+                  <img
+                    src={venue.img}
+                    alt={venue.alt}
+                    className="w-full h-full object-cover hover:scale-105 transition-transform duration-700"
+                  />
+                </div>
+                <div className={venue.reverse ? "lg:order-1" : ""}>
+                  <span className="inline-block bg-accent/10 text-accent text-xs font-semibold uppercase tracking-widest px-3 py-1 rounded-full mb-4">
+                    {venue.tag}
+                  </span>
+                  <h3 className="font-heading text-3xl font-bold text-foreground mb-2">{venue.title}</h3>
+                  <p className="text-accent font-medium mb-3 italic">{venue.subtitle}</p>
+                  <p className="text-muted-foreground text-lg leading-relaxed">{venue.desc}</p>
+                </div>
+              </motion.div>
+            ))}
+          </div>
+        </div>
+      </section>
+
       {/* Dining Spaces - Unique Masonry Layout */}
       <section className="py-20 bg-secondary">
         <div className="container mx-auto px-4">
