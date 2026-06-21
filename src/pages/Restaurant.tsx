@@ -75,16 +75,15 @@ const Restaurant = () => {
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.8, delay: 0.3 }}
             >
-              <p className="text-accent font-medium tracking-[0.3em] uppercase mb-4 text-sm md:text-base">
+              {/* <p className="text-accent font-medium tracking-[0.3em] uppercase mb-4 text-sm md:text-base">
                 Mbaruk Restaurant & Spillover
-              </p>
+              </p> */}
               <h1 className="font-heading text-5xl md:text-6xl lg:text-7xl font-bold text-white mb-6">
-                A Culinary Journey
+                Taste in Every Choice
               </h1>
               <div className="w-24 h-1 bg-accent mx-auto mb-6" />
               <p className="text-white/90 text-lg md:text-xl max-w-3xl mx-auto mb-8 leading-relaxed">
-                Experience the perfect blend of traditional Kenyan flavors and international cuisine 
-                in an atmosphere of elegance and warmth
+                From family meals and roofto dining to wellness refreshments and outdoor barbecues, Peaks offers a variety of dining experience to suit every occasion.
               </p>
               <div className="flex flex-col sm:flex-row gap-4 justify-center">
                 <Button variant="hero" size="lg" asChild>
@@ -156,21 +155,17 @@ const Restaurant = () => {
               transition={{ duration: 0.6 }}
             >
               <p className="text-accent font-medium tracking-[0.2em] uppercase mb-4">
-                Our Story
+                MBARUK RESTAURANT
               </p>
               <h2 className="font-heading text-4xl md:text-5xl font-bold text-foreground mb-6">
-                Where Flavour Meets Tradition
+                Fresh. Comfortable. Welcoming.
               </h2>
               <div className="w-20 h-1 bg-accent mb-6" />
               <p className="text-muted-foreground text-lg leading-relaxed mb-6">
-                Mbaruk Restaurant & Spillover is more than just a dining destination—it's an experience. 
-                Our chefs masterfully combine locally sourced ingredients with international culinary techniques 
-                to create dishes that tell a story.
+                Our all-day dining restaurant serving Kenyan, African and international favourites.
               </p>
               <p className="text-muted-foreground text-lg leading-relaxed mb-8">
-                From intimate dinners to grand celebrations, our versatile spaces and exceptional service 
-                ensure every moment is memorable. Whether you're enjoying a quiet breakfast, a business lunch, 
-                or an elegant dinner, we promise an unforgettable culinary journey.
+                From family meals and quiet breakfasts to business lunches and celebrations, our versatile spaces and warm service ensure every moment is memorable.
               </p>
               <div className="grid grid-cols-2 gap-6">
                 <div className="text-center p-6 bg-card rounded-xl shadow-elegant">
