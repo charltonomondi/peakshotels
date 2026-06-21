@@ -255,7 +255,7 @@ const Contact = () => {
       {/* Map Section */}
       <section className="h-[500px] bg-secondary">
         <iframe
-          src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d127598.34696749685!2d36.96!3d0.0167!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x1787f1d8f9c5e2f7%3A0x9c0c6f9c9c9c9c9c!2sNanyuki%2C%20Kenya!5e0!3m2!1sen!2sus!4v1234567890"
+          src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d4031.378372009448!2d37.10288977501215!3d0.03008739996963482!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f16.0!3m3!1m2!1s0x1787f7755b052485%3A0x78bf7207052da9cf!2sPeaks%20Hotel%20Nanyuki!5e1!3m2!1sen!2ske!4v1782037324890!5m2!1sen!2ske"
           width="100%"
           height="100%"
           style={{ border: 0 }}
