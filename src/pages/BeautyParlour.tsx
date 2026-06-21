@@ -78,14 +78,14 @@ const BeautyParlour = () => {
         >
           {/* frosted glass card */}
           <div className="backdrop-blur-md bg-black/25 border border-white/20 rounded-3xl px-10 py-12 max-w-2xl w-full mx-4">
-            <motion.p
+            {/* <motion.p
               initial={{ opacity: 0, y: 15 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.3 }}
               className="text-rose-200 font-medium tracking-[0.35em] uppercase text-xs mb-5"
             >
               Peaks Hotel · Beauty & Wellness
-            </motion.p>
+            </motion.p> */}
 
             <motion.h1
               initial={{ opacity: 0, y: 40 }}
@@ -119,7 +119,7 @@ const BeautyParlour = () => {
               transition={{ delay: 1.3 }}
               className="flex flex-wrap justify-center gap-2"
             >
-              {["9:00 AM – 7:00 PM", "By Appointment", "Premium Products"].map(tag => (
+              {["9:00 AM – 7:00 PM", "By Appointment"].map(tag => (
                 <span key={tag} className="bg-white/15 border border-white/25 text-white/80 text-xs px-4 py-1.5 rounded-full">
                   {tag}
                 </span>
@@ -155,7 +155,7 @@ const BeautyParlour = () => {
       </div>
 
       {/* ── INTRO SPLIT ── */}
-      <section className="py-24" style={{ background: "#faf7f4" }}>
+      {/* <section className="py-24" style={{ background: "#faf7f4" }}>
         <div className="container mx-auto px-4">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
             <motion.div
@@ -194,7 +194,7 @@ const BeautyParlour = () => {
               <div className="overflow-hidden rounded-3xl h-[480px]">
                 <img src={beauty1} alt="Beauty Parlour" className="w-full h-full object-cover hover:scale-105 transition-transform duration-700" />
               </div>
-              {/* floating badge */}
+              
               <motion.div
                 initial={{ opacity: 0, scale: 0.8 }}
                 whileInView={{ opacity: 1, scale: 1 }}
@@ -213,7 +213,7 @@ const BeautyParlour = () => {
             </motion.div>
           </div>
         </div>
-      </section>
+      </section> */}
 
       {/* ── SERVICES HOVER GRID ── */}
       <section className="py-8 pb-24" style={{ background: "#faf7f4" }}>
@@ -276,7 +276,7 @@ const BeautyParlour = () => {
       </section>
 
       {/* ── FULL-BLEED IMAGE QUOTE ── */}
-      <section className="relative h-72 md:h-96 overflow-hidden">
+      {/* <section className="relative h-72 md:h-96 overflow-hidden">
         <img src={beauty2} alt="Beauty" className="w-full h-full object-cover object-top" />
         <div className="absolute inset-0 bg-gradient-to-r from-rose-950/85 via-rose-900/60 to-transparent" />
         <motion.div
@@ -292,7 +292,7 @@ const BeautyParlour = () => {
             </blockquote>
           </div>
         </motion.div>
-      </section>
+      </section> */}
 
       {/* ── CTA ── */}
       <section className="py-24" style={{ background: "#faf7f4" }}>
@@ -306,12 +306,12 @@ const BeautyParlour = () => {
             <div className="w-12 h-12 bg-rose-100 rounded-full flex items-center justify-center mx-auto mb-6">
               <Sparkles className="h-6 w-6 text-rose-500" />
             </div>
-            <h2 className="font-heading text-4xl md:text-5xl font-bold text-stone-900 mb-5">
+            {/* <h2 className="font-heading text-4xl md:text-5xl font-bold text-stone-900 mb-5">
               Ready to Glow?
             </h2>
             <p className="text-stone-500 text-lg mb-10 leading-relaxed">
               Book your stay at Peaks Hotel and reserve your beauty treatment in advance. Our specialists will be expecting you.
-            </p>
+            </p> */}
             <div className="flex flex-wrap justify-center gap-4">
               <Button size="lg" className="bg-rose-600 hover:bg-rose-500 text-white border-0 rounded-full px-10 shadow-lg shadow-rose-200" asChild>
                 <Link to="/booking">Book a Treatment</Link>

@@ -91,14 +91,14 @@ const Massage = () => {
           style={{ opacity: heroOpacity }}
           className="relative h-full flex flex-col items-center justify-center text-center px-4"
         >
-          <motion.p
+          {/* <motion.p
             initial={{ opacity: 0, y: 15 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.3 }}
             className="text-rose-200 font-medium tracking-[0.35em] uppercase text-xs mb-5"
           >
             Peaks Hotel · Spa Services
-          </motion.p>
+          </motion.p> */}
 
           <motion.h1
             initial={{ opacity: 0, y: 40 }}
@@ -106,20 +106,20 @@ const Massage = () => {
             transition={{ delay: 0.5, duration: 1 }}
             className="font-heading text-6xl md:text-8xl font-bold text-white mb-5 leading-none"
           >
-            Healing<br />
-            <span className="italic font-light text-rose-100">Through Touch</span>
+            {/* Healing<br /> */}
+            <span className="italic font-light text-rose-100">Massage</span>
           </motion.h1>
 
-          <motion.p
+          {/* <motion.p
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 1 }}
             className="text-white/70 text-lg max-w-xl leading-relaxed mb-10"
           >
             Certified therapists, premium oils, and complete tranquility — tailored entirely to you.
-          </motion.p>
+          </motion.p> */}
 
-          <motion.div
+          {/* <motion.div
             initial={{ opacity: 0, y: 15 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 1.2 }}
@@ -130,7 +130,7 @@ const Massage = () => {
                 {tag}
               </span>
             ))}
-          </motion.div>
+          </motion.div> */}
         </motion.div>
 
         <motion.div

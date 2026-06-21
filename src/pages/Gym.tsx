@@ -69,9 +69,9 @@ const Gym = () => {
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.8, delay: 0.3 }}
             >
-              <p className="text-accent font-medium tracking-[0.2em] uppercase mb-4">
+              {/* <p className="text-accent font-medium tracking-[0.2em] uppercase mb-4">
                 Wellness Center
-              </p>
+              </p> */}
               <h1 className="font-heading text-4xl md:text-5xl lg:text-6xl font-bold text-white mb-6">
                 Our Gym
               </h1>
@@ -84,10 +84,10 @@ const Gym = () => {
         </div>
       </section>
 
-      {/* Description Section */}
+      {/* Description + Features Section */}
       <section className="py-20 bg-background">
         <div className="container mx-auto px-4">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-start">
             <motion.div
               initial={{ opacity: 0, x: -30 }}
               whileInView={{ opacity: 1, x: 0 }}
@@ -95,7 +95,7 @@ const Gym = () => {
               transition={{ duration: 0.6 }}
             >
               <h2 className="font-heading text-3xl md:text-4xl font-bold text-foreground mb-6">
-                Gym
+                Gym Features
               </h2>
               {/* <p className="text-muted-foreground leading-relaxed mb-6">
                 Our gym offers a complete fitness experience with the latest equipment and breathtaking views of Mount Kenya. Whether you're maintaining your routine or starting a new one, our facilities provide everything you need for an effective workout.
@@ -103,7 +103,7 @@ const Gym = () => {
               <p className="text-muted-foreground leading-relaxed mb-6">
                 With certified trainers available and a variety of equipment, you'll find the perfect environment to achieve your fitness goals while enjoying the luxury of Peaks Hotel.
               </p> */}
-              <div className="flex items-center gap-4 text-sm text-accent">
+              {/* <div className="flex items-center gap-4 text-sm text-accent mb-10">
                 <div className="flex items-center gap-2">
                   <Clock className="h-4 w-4" />
                   Open from 6:00AM
@@ -111,6 +111,34 @@ const Gym = () => {
                 <div className="flex items-center gap-2">
                   <Users className="h-4 w-4" />
                   Personal Training Available
+                </div>
+              </div> */}
+
+              <div>
+                {/* <h3 className="font-heading text-2xl font-bold text-foreground mb-6">
+                  Gym Features
+                </h3> */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  {features.map((feature, index) => (
+                    <div
+                      key={feature.title}
+                      className="bg-card p-6 rounded-xl shadow-elegant"
+                    >
+                      <div className="flex items-start gap-4">
+                        <div className="w-14 h-14 bg-accent/10 rounded-2xl flex items-center justify-center shrink-0">
+                          <feature.icon className="h-6 w-6 text-accent" />
+                        </div>
+                        <div>
+                          <h4 className="font-heading text-lg font-bold text-foreground mb-1">
+                            {feature.title}
+                          </h4>
+                          <p className="text-muted-foreground text-sm">
+                            {feature.description}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
                 </div>
               </div>
             </motion.div>
@@ -131,8 +159,9 @@ const Gym = () => {
         </div>
       </section>
 
+      {/*MOVED THIS SECTION TO THE TOP*/}            
       {/* Features Section */}
-      <section className="py-20 bg-secondary">
+      {/* <section className="py-20 bg-secondary">
         <div className="container mx-auto px-4">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -174,10 +203,10 @@ const Gym = () => {
             ))}
           </div>
         </div>
-      </section>
+      </section> */}
 
       {/* Gallery */}
-      <section className="py-20 bg-background">
+      {/* <section className="py-20 bg-background">
         <div className="container mx-auto px-4">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -211,7 +240,7 @@ const Gym = () => {
             ))}
           </div>
         </div>
-      </section>
+      </section> */}
 
       {/* CTA Section */}
       <section className="py-20 bg-primary">

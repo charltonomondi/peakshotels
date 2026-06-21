@@ -223,9 +223,9 @@ const Swimming = () => {
               <Button size="lg" className="bg-sky-500 hover:bg-sky-400 text-white border-0 rounded-full px-8" asChild>
                 <Link to="/booking">Book Your Stay</Link>
               </Button>
-              <Button size="lg" variant="outline" className="border-white/40 text-white hover:bg-white/10 rounded-full px-8" asChild>
+              {/* <Button size="lg" variant="outline" className="border-black/40 text-black hover:bg-white/10 rounded-full px-8" asChild>
                 <Link to="/facilities">All Facilities</Link>
-              </Button>
+              </Button> */}
             </div>
           </motion.div>
         </div>

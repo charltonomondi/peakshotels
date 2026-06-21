@@ -51,14 +51,14 @@ const Sauna = () => {
           style={{ opacity: heroOpacity }}
           className="relative h-full flex flex-col items-center justify-center text-center px-4"
         >
-          <motion.p
+          {/* <motion.p
             initial={{ opacity: 0, y: 15 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.3 }}
             className="text-orange-400 font-medium tracking-[0.3em] uppercase text-sm mb-5"
           >
             Peaks Hotel · Wellness
-          </motion.p>
+          </motion.p> */}
 
           <motion.h1
             initial={{ opacity: 0, y: 40 }}
@@ -70,7 +70,7 @@ const Sauna = () => {
           </motion.h1>
 
           {/* temperature badge */}
-          <motion.div
+          {/* <motion.div
             initial={{ opacity: 0, scale: 0.8 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ delay: 0.9 }}
@@ -79,7 +79,7 @@ const Sauna = () => {
             <div className="w-px h-8 bg-orange-500/50" />
             <span className="text-orange-300 text-2xl font-bold">25 – 40°C</span>
             <div className="w-px h-8 bg-orange-500/50" />
-          </motion.div>
+          </motion.div> */}
 
           <motion.p
             initial={{ opacity: 0 }}
@@ -96,7 +96,7 @@ const Sauna = () => {
             transition={{ delay: 1.3 }}
             className="flex flex-wrap justify-center gap-3"
           >
-            {["Traditional Finnish", "8:00 AM – 8:00 PM", "Aromatherapy", "Private Sessions"].map(tag => (
+            {["Traditional Finnish", "8:00 AM – 8:00 PM", "Private Sessions"].map(tag => (
               <span key={tag} className="backdrop-blur-md bg-white/5 border border-orange-500/30 text-orange-200 text-sm px-4 py-1.5 rounded-full">
                 {tag}
               </span>
@@ -117,8 +117,7 @@ const Sauna = () => {
       {/* ── STAGGERED SPLIT ── */}
       <section className="bg-[#0e0a07] py-24">
         <div className="container mx-auto px-4 space-y-6">
-
-          {/* Row 1 — image left, text right */}
+          {/*Commented out textual sections below for reference. */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-stretch">
             <motion.div
               initial={{ opacity: 0, x: -40 }}
@@ -130,6 +129,18 @@ const Sauna = () => {
               <img src={sauna1} alt="Sauna interior" className="w-full h-full object-cover hover:scale-105 transition-transform duration-700" />
             </motion.div>
 
+            <motion.div
+              initial={{ opacity: 0, x: 40 }}
+              whileInView={{ opacity: 1, x: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.7 }}
+              className="overflow-hidden rounded-3xl h-[420px]"
+            >
+              <img src={sauna2} alt="Sauna session" className="w-full h-full object-cover hover:scale-105 transition-transform duration-700" />
+            </motion.div>
+          </div>
+
+          {/*
             <motion.div
               initial={{ opacity: 0, x: 40 }}
               whileInView={{ opacity: 1, x: 0 }}
@@ -148,26 +159,17 @@ const Sauna = () => {
                 We add löyly — a ladle of water over the stones — infused with eucalyptus and birch essential oils, filling the room with therapeutic steam that opens airways and clears the mind.
               </p>
               <div className="flex gap-6">
-                <div>
-                  <p className="text-orange-400 font-bold text-2xl">25–40°C</p>
-                  <p className="text-white/40 text-xs mt-0.5">Interior heat</p>
-                </div>
                 <div className="w-px bg-orange-900/40" />
                 <div>
-                  <p className="text-orange-400 font-bold text-2xl">15–20 min</p>
-                  <p className="text-white/40 text-xs mt-0.5">Ideal session</p>
+                  <p className="text-orange-400 font-bold text-2xl">30 min</p>
+                  <p className="text-white/40 text-xs mt-0.5">Per session</p>
                 </div>
                 <div className="w-px bg-orange-900/40" />
-                <div>
-                  <p className="text-orange-400 font-bold text-2xl">2–3×</p>
-                  <p className="text-white/40 text-xs mt-0.5">Rounds recommended</p>
-                </div>
               </div>
             </motion.div>
-          </div>
 
-          {/* Row 2 — dark card left, image right */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-stretch">
+
+
             <motion.div
               initial={{ opacity: 0, x: -40 }}
               whileInView={{ opacity: 1, x: 0 }}
@@ -194,16 +196,7 @@ const Sauna = () => {
               ))}
             </motion.div>
 
-            <motion.div
-              initial={{ opacity: 0, x: 40 }}
-              whileInView={{ opacity: 1, x: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.7 }}
-              className="overflow-hidden rounded-3xl h-[420px] order-1 lg:order-2"
-            >
-              <img src={sauna2} alt="Sauna session" className="w-full h-full object-cover hover:scale-105 transition-transform duration-700" />
-            </motion.div>
-          </div>
+          */}
         </div>
       </section>
 
@@ -268,9 +261,9 @@ const Sauna = () => {
               <Button size="lg" className="bg-orange-600 hover:bg-orange-500 text-white border-0 rounded-full px-10" asChild>
                 <Link to="/booking">Book a Session</Link>
               </Button>
-              <Button size="lg" variant="outline" className="border-orange-800 text-orange-300 hover:bg-orange-950 rounded-full px-10" asChild>
+              {/* <Button size="lg" variant="outline" className="border-orange-800 text-blue hover:bg-orange-950 rounded-full px-10" asChild>
                 <Link to="/facilities">All Facilities</Link>
-              </Button>
+              </Button> */}
             </div>
           </motion.div>
         </div>

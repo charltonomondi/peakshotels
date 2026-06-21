@@ -57,14 +57,14 @@ const SteamBath = () => {
           style={{ opacity: heroOpacity }}
           className="relative h-full flex flex-col items-center justify-center text-center px-4"
         >
-          <motion.p
+          {/* <motion.p
             initial={{ opacity: 0, y: 15 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.3 }}
             className="text-teal-200 font-medium tracking-[0.35em] uppercase text-xs mb-5"
           >
             Peaks Hotel · Wellness
-          </motion.p>
+          </motion.p> */}
 
           <motion.h1
             initial={{ opacity: 0, y: 40 }}
@@ -72,8 +72,7 @@ const SteamBath = () => {
             transition={{ delay: 0.5, duration: 0.9 }}
             className="font-heading text-6xl md:text-8xl font-bold text-white leading-none mb-4"
           >
-            Steam<br />
-            <span className="italic font-light text-teal-100">Bath</span>
+            Steam <span className="italic font-light text-teal-100">Bath</span>
           </motion.h1>
 
           <motion.div
@@ -83,14 +82,14 @@ const SteamBath = () => {
             className="w-20 h-px bg-teal-300 mx-auto mb-6"
           />
 
-          <motion.p
+          {/* <motion.p
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 1.1 }}
             className="text-white/70 text-lg max-w-xl leading-relaxed mb-10"
           >
             Step into a cloud of therapeutic steam and let warmth do what rest alone cannot.
-          </motion.p>
+          </motion.p> */}
 
           <motion.div
             initial={{ opacity: 0, y: 15 }}
@@ -98,7 +97,7 @@ const SteamBath = () => {
             transition={{ delay: 1.3 }}
             className="flex flex-wrap justify-center gap-3"
           >
-            {["40–45°C", "100% Humidity", "8:00 AM – 8:00 PM", "Aromatherapy"].map(tag => (
+            {["40–45°C", "8:00 AM – 8:00 PM"].map(tag => (
               <span key={tag} className="backdrop-blur-md bg-white/10 border border-white/20 text-white/80 text-sm px-5 py-1.5 rounded-full">
                 {tag}
               </span>
@@ -136,7 +135,7 @@ const SteamBath = () => {
                 We infuse our steam with eucalyptus and peppermint essential oils, turning each session into an aromatherapy experience that clears the mind as it cleanses the body.
               </p>
               <div className="grid grid-cols-3 gap-4">
-                {[["40–45°C", "Temperature"], ["15–20 min", "Per session"], ["100%", "Humidity"]].map(([val, lbl]) => (
+                {[["40 - 45°C", "Temperature"], ["30 min", "Per session"]].map(([val, lbl]) => (
                   <div key={lbl} className="bg-white rounded-2xl p-4 text-center shadow-sm">
                     <p className="font-heading text-2xl font-bold text-teal-600">{val}</p>
                     <p className="text-slate-400 text-xs mt-1">{lbl}</p>
@@ -256,9 +255,9 @@ const SteamBath = () => {
               <Button size="lg" className="bg-teal-500 hover:bg-teal-400 text-white border-0 rounded-full px-10" asChild>
                 <Link to="/booking">Book Your Stay</Link>
               </Button>
-              <Button size="lg" variant="outline" className="border-white/40 text-white hover:bg-white/10 rounded-full px-10" asChild>
+              {/* <Button size="lg" variant="outline" className="border-black/40 text-black hover:bg-white/10 rounded-full px-10" asChild>
                 <Link to="/facilities">All Facilities</Link>
-              </Button>
+              </Button> */}
             </div>
           </motion.div>
         </div>
