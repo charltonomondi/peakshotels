@@ -7,23 +7,23 @@ const values = [
   {
     icon: Heart,
     title: "Beauty and Taste, with Nature",
-    description: "Beauty is reflected in our surroundings, gardens, flowers and attention to detail. Taste is reflected in our choices — our standards, service and commitment to excellence.",
+    description: "Beauty and nature are reflected in our surroundings, gardens, flowers and attention to detail. Taste is about our choices — our standards, services and commitment to excellence.",
   },
-  {
-    icon: Users,
-    title: "Something for Everybody",
-    description: "From business travellers and holidaymakers to conference delegates, families and international visitors, Peaks welcomes all guests seeking comfort, value and memorable experiences.",
-  },
+  // {
+  //   icon: Users,
+  //   title: "Something for Everybody",
+  //   description: "From business travellers and holidaymakers to conference delegates, families and international visitors, Peaks welcomes all guests seeking comfort, value and memorable experiences.",
+  // },
   {
     icon: Shield,
     title: "Sustainability in Action",
-    description: "Solar energy, biogas production, wastewater treatment and reuse, indigenous tree planting and resource recovery — sustainability is not a programme, it is a way of life.",
+    description: "Solar energy, wastewater treatment and reuse, indigenous trees and resource recovery — sustainability is not a programme, it is a way of life.",
   },
-  {
-    icon: Award,
-    title: "Kenyan-Owned, Kenyan-Proud",
-    description: "Peaks Hotel is a Kenyan-owned hospitality destination rooted in local culture, guided by genuine hospitality and committed to the communities we serve.",
-  },
+  // {
+  //   icon: Award,
+  //   title: "Kenyan-Owned, Kenyan-Proud",
+  //   description: "Peaks Hotel is a Kenyan-owned hospitality destination rooted in local culture, guided by genuine hospitality and committed to the communities we serve.",
+  // },
 ];
 
 const About = () => {
@@ -63,10 +63,10 @@ const About = () => {
               className="prose prose-lg mx-auto text-center"
             >
               <p className="text-xl text-muted-foreground leading-relaxed mb-8">
-                Peaks Hotel is a Kenyan-owned hospitality destination located in Nanyuki at the foot of Mount Kenya. Inspired by the beauty of Mount Kenya, the Aberdare Ranges and the Lolldaiga Hills, Peaks has grown into a destination where hospitality, nature, wellness, adventure and sustainability come together.
+                Peaks Hotel is a hospitality destination located in Nanyuki town on the foothills of Mount Kenya.  The name Peaks was inspired by the three iconic landmarks that define our horizon and identity: Mount Kenya, the Aberdare Ranges and the Lolldaiga Hills. Together they represent the beauty, adventure and natural heritage that make Nanyuki one of Kenya's most remarkable destinations.
               </p>
               <p className="text-xl text-muted-foreground leading-relaxed mb-8">
-                The name Peaks is inspired by three iconic landmarks that define our horizon and identity: Mount Kenya, the Aberdare Ranges and the Lolldaiga Hills. Together they represent the beauty, adventure and natural heritage that make Nanyuki one of Kenya's most remarkable destinations.
+               
               </p>
               <p className="text-xl text-muted-foreground leading-relaxed">
                 From business travellers and holidaymakers to conference delegates, families and international visitors, Peaks welcomes guests seeking comfort, value and memorable experiences.
@@ -125,8 +125,8 @@ const About = () => {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
           >
-            <p className="text-accent font-medium tracking-[0.2em] uppercase mb-4">Our Guiding Principle</p>
-            <h2 className="font-heading text-4xl md:text-5xl font-bold text-foreground mb-6">Our Philosophy</h2>
+            <p className="text-accent font-medium tracking-[0.2em] uppercase mb-4"></p>
+            <h2 className="font-heading text-4xl md:text-5xl font-bold text-foreground mb-6">Our Guiding Principle</h2>
             <div className="w-20 h-0.5 bg-accent mx-auto mb-8" />
             <p className="text-2xl font-heading font-bold text-foreground mb-6">Beauty and Taste, with Nature</p>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8 text-left">
@@ -163,10 +163,10 @@ const About = () => {
             className="text-center mb-16"
           >
             <p className="text-accent font-medium tracking-[0.2em] uppercase mb-4">
-              What We Stand For
+              
             </p>
             <h2 className="font-heading text-4xl md:text-5xl font-bold text-foreground mb-4">
-              Our Values
+              What We Stand For
             </h2>
             <div className="w-20 h-0.5 bg-accent mx-auto" />
           </motion.div>
@@ -208,17 +208,17 @@ const About = () => {
               className="bg-card rounded-2xl p-8 md:p-12 shadow-elegant"
             >
               <p className="text-accent font-medium tracking-[0.2em] uppercase mb-4 text-center">
-                A Message From Our Team
+                
               </p>
               <h2 className="font-heading text-3xl font-bold text-foreground mb-8 text-center">
-                General Manager's Welcome
+                A Message From Our CEO
               </h2>
               <blockquote className="text-lg text-muted-foreground italic leading-relaxed text-center mb-8">
-                "Peaks Hotel is a place where beauty and nature meet taste and genuine hospitality. Our dedicated team welcomes guests from Nanyuki, from across Kenya and from around the world. Whether you are here for rest, adventure, business or celebration — this is your home in the highlands."
+                "Peaks Hotel is a place where beauty and nature meet taste and genuine hospitality. Our dedicated team welcomes guests from Nanyuki, across Kenya and beyond. Whether you are here for rest, adventure, business or celebration — this is your home away from home."
               </blockquote>
-              <p className="text-center font-semibold text-foreground">
+              {/* <p className="text-center font-semibold text-foreground">
                 The Peaks Hotel Management Team
-              </p>
+              </p> */}
             </motion.div>
           </div>
         </div>
