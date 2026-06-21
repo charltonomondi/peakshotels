@@ -1,21 +1,19 @@
 import { Link, useLocation } from "react-router-dom";
-import { useState } from "react";
-import { Menu, X, Phone, Mail, ChevronDown, Star, CreditCard } from "lucide-react";
+import { useState, useRef } from "react";
+import { Menu, X, Phone, Mail, ChevronDown, Star, CreditCard, Waves, Dumbbell, Flame, Wind, Sparkles, Scissors } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-  DropdownMenuSub,
-  DropdownMenuSubContent,
-  DropdownMenuSubTrigger,
   DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu";
 import { motion, AnimatePresence } from "framer-motion";
 import { useLoyaltyAuth } from "@/lib/loyaltyAuth";
 import { openLipaModal } from "@/components/LipaMdogoMdogoPopup";
 import logo from "/logo.jpeg";
+import wellnessBanner from "@/assets/swimming/swim1.jpg";
 
 // Primary links shown directly in the navbar
 const primaryNavItems = [
@@ -23,23 +21,16 @@ const primaryNavItems = [
   { name: "Accommodation", path: "/rooms" },
   { name: "Restaurant & Bar", path: "/restaurant" },
   { name: "Conference", path: "/facilities" },
-  {
-    name: "Wellness Center",
-    children: [
-      { name: "Gym", path: "/gym" },
-      { name: "Swimming", path: "/swimming" },
-      { name: "Steam Bath", path: "/steam-bath" },
-      { name: "Sauna", path: "/sauna" },
-      {
-        name: "Spa",
-        children: [
-          { name: "Massage", path: "/massage" },
-          { name: "Beauty Parlour", path: "/beauty-parlour" },
-        ],
-      },
-    ],
-  },
   { name: "Outdoor Fitness", path: "/activities" },
+];
+
+const wellnessLinks = [
+  { name: "Gym", path: "/gym", icon: Dumbbell, desc: "State-of-the-art fitness centre" },
+  { name: "Swimming Pool", path: "/swimming", icon: Waves, desc: "Heated outdoor pool" },
+  { name: "Steam Bath", path: "/steam-bath", icon: Wind, desc: "Therapeutic moist heat" },
+  { name: "Sauna", path: "/sauna", icon: Flame, desc: "Traditional Finnish sauna" },
+  { name: "Massage", path: "/massage", icon: Sparkles, desc: "Certified therapists" },
+  { name: "Beauty Parlour", path: "/beauty-parlour", icon: Scissors, desc: "Hair, skin & nail care" },
 ];
 
 // Secondary links tucked into a "More" dropdown
@@ -74,10 +65,13 @@ function getActiveLangCode(): string {
 
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
+  const [wellnessOpen, setWellnessOpen] = useState(false);
+  const [mobileWellnessOpen, setMobileWellnessOpen] = useState(false);
   const [logoError, setLogoError] = useState(false);
   const [logoLoading, setLogoLoading] = useState(true);
   const location = useLocation();
   const { member } = useLoyaltyAuth();
+  const wellnessTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const activeLangCode = getActiveLangCode();
   const initialLang = languages.find(l => gtCodes[l.code] === activeLangCode) || languages[0];
@@ -89,69 +83,30 @@ const Navbar = () => {
     if ((window as any).__translateTo) (window as any).__translateTo(gtCode);
   };
 
-  const isActive = (item: any): boolean => {
-    if (item.path) return location.pathname === item.path;
-    if (item.children) return item.children.some((c: any) => isActive(c));
-    return false;
+  const isWellnessActive = wellnessLinks.some(l => location.pathname === l.path);
+
+  const openWellness = () => {
+    if (wellnessTimeout.current) clearTimeout(wellnessTimeout.current);
+    setWellnessOpen(true);
+  };
+  const closeWellness = () => {
+    wellnessTimeout.current = setTimeout(() => setWellnessOpen(false), 120);
   };
 
-  const renderDesktopItem = (item: any, index: number) => {
-    if (item.children) {
-      return (
-        <DropdownMenu key={index}>
-          <DropdownMenuTrigger asChild>
-            <button className={`flex items-center gap-1 text-sm font-bold tracking-wide transition-colors hover:text-accent ${isActive(item) ? "text-accent" : "text-foreground"}`}>
-              {item.name} <ChevronDown className="h-3.5 w-3.5 opacity-60" />
-            </button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent>
-            {item.children.map((child: any, ci: number) =>
-              child.children ? (
-                <DropdownMenuSub key={ci}>
-                  <DropdownMenuSubTrigger>{child.name}</DropdownMenuSubTrigger>
-                  <DropdownMenuSubContent>
-                    {child.children.map((sub: any, si: number) => (
-                      <DropdownMenuItem key={si} asChild>
-                        <Link to={sub.path}>{sub.name}</Link>
-                      </DropdownMenuItem>
-                    ))}
-                  </DropdownMenuSubContent>
-                </DropdownMenuSub>
-              ) : (
-                <DropdownMenuItem key={ci} asChild>
-                  <Link to={child.path}>{child.name}</Link>
-                </DropdownMenuItem>
-              )
-            )}
-          </DropdownMenuContent>
-        </DropdownMenu>
-      );
-    }
-    return (
-      <Link
-        key={index}
-        to={item.path}
-        className={`text-sm font-bold tracking-wide transition-colors hover:text-accent ${location.pathname === item.path ? "text-accent" : "text-foreground"}`}
-      >
-        {item.name}
-      </Link>
-    );
-  };
+  const renderDesktopItem = (item: any, index: number) => (
+    <Link
+      key={index}
+      to={item.path}
+      className={`text-sm font-bold tracking-wide transition-colors hover:text-accent ${location.pathname === item.path ? "text-accent" : "text-foreground"}`}
+    >
+      {item.name}
+    </Link>
+  );
 
   const allMobileItems = [...primaryNavItems, ...moreNavItems];
 
   const renderMobileItem = (item: any, level = 0) => {
     const pl = 16 + level * 16;
-    if (item.children) {
-      return (
-        <div key={item.name}>
-          <div className="py-2 text-sm font-semibold text-muted-foreground" style={{ paddingLeft: pl }}>
-            {item.name}
-          </div>
-          {item.children.map((child: any) => renderMobileItem(child, level + 1))}
-        </div>
-      );
-    }
     return (
       <Link
         key={item.name}
@@ -180,7 +135,6 @@ const Navbar = () => {
               </a>
             </div>
             <div className="flex items-center gap-3">
-              {/* Language selector */}
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <button className="flex items-center gap-1 hover:text-accent transition-colors">
@@ -235,6 +189,63 @@ const Navbar = () => {
             <div className="hidden lg:flex items-center gap-6 xl:gap-8">
               {primaryNavItems.map((item, i) => renderDesktopItem(item, i))}
 
+              {/* Wellness Centre mega-menu trigger */}
+              <div
+                className="relative"
+                onMouseEnter={openWellness}
+                onMouseLeave={closeWellness}
+              >
+                <button className={`flex items-center gap-1 text-sm font-bold tracking-wide transition-colors hover:text-accent ${isWellnessActive ? "text-accent" : "text-foreground"}`}>
+                  Wellness Centre <ChevronDown className={`h-3.5 w-3.5 opacity-60 transition-transform duration-200 ${wellnessOpen ? "rotate-180" : ""}`} />
+                </button>
+
+                <AnimatePresence>
+                  {wellnessOpen && (
+                    <motion.div
+                      initial={{ opacity: 0, y: 8 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: 8 }}
+                      transition={{ duration: 0.18 }}
+                      onMouseEnter={openWellness}
+                      onMouseLeave={closeWellness}
+                      className="absolute top-full left-1/2 -translate-x-1/2 mt-3 w-[680px] bg-background border border-border rounded-2xl shadow-2xl overflow-hidden z-50"
+                    >
+                      <div className="flex">
+                        {/* Banner image */}
+                        <div className="relative w-48 shrink-0">
+                          <img src={wellnessBanner} alt="Wellness Centre" className="w-full h-full object-cover" />
+                          <div className="absolute inset-0 bg-gradient-to-r from-transparent to-background/20" />
+                          <div className="absolute bottom-4 left-4 right-2">
+                            <p className="text-white text-xs font-medium tracking-widest uppercase mb-1">Wellness Centre</p>
+                            <p className="text-white/80 text-xs leading-snug">Relax. Rejuvenate. Restore.</p>
+                          </div>
+                        </div>
+
+                        {/* Links grid */}
+                        <div className="flex-1 p-5 grid grid-cols-2 gap-2">
+                          {wellnessLinks.map(({ name, path, icon: Icon, desc }) => (
+                            <Link
+                              key={name}
+                              to={path}
+                              onClick={() => setWellnessOpen(false)}
+                              className={`flex items-start gap-3 p-3 rounded-xl hover:bg-secondary transition-colors group ${location.pathname === path ? "bg-accent/5" : ""}`}
+                            >
+                              <div className="w-8 h-8 bg-accent/10 rounded-lg flex items-center justify-center shrink-0 group-hover:bg-accent transition-colors">
+                                <Icon className="h-4 w-4 text-accent group-hover:text-accent-foreground transition-colors" />
+                              </div>
+                              <div>
+                                <p className={`text-sm font-bold leading-tight ${location.pathname === path ? "text-accent" : "text-foreground"}`}>{name}</p>
+                                <p className="text-xs text-muted-foreground mt-0.5">{desc}</p>
+                              </div>
+                            </Link>
+                          ))}
+                        </div>
+                      </div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </div>
+
               {/* More dropdown */}
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
@@ -288,7 +299,6 @@ const Navbar = () => {
                 <Link to="/booking">Book Now</Link>
               </Button>
 
-              {/* Mobile hamburger */}
               <button
                 onClick={() => setIsOpen(!isOpen)}
                 className="lg:hidden p-2 rounded-md hover:bg-secondary transition-colors"
@@ -310,6 +320,40 @@ const Navbar = () => {
               >
                 <div className="py-3 max-h-[75vh] overflow-y-auto">
                   {allMobileItems.map((item) => renderMobileItem(item))}
+
+                  {/* Wellness Centre in mobile */}
+                  <div>
+                    <button
+                      onClick={() => setMobileWellnessOpen(v => !v)}
+                      className="w-full flex items-center justify-between py-2.5 text-sm font-semibold text-foreground"
+                      style={{ paddingLeft: 16 }}
+                    >
+                      Wellness Centre
+                      <ChevronDown className={`h-4 w-4 mr-4 transition-transform ${mobileWellnessOpen ? "rotate-180" : ""}`} />
+                    </button>
+                    <AnimatePresence>
+                      {mobileWellnessOpen && (
+                        <motion.div
+                          initial={{ height: 0, opacity: 0 }}
+                          animate={{ height: "auto", opacity: 1 }}
+                          exit={{ height: 0, opacity: 0 }}
+                          className="overflow-hidden"
+                        >
+                          {wellnessLinks.map(({ name, path }) => (
+                            <Link
+                              key={name}
+                              to={path}
+                              onClick={() => { setIsOpen(false); setMobileWellnessOpen(false); }}
+                              className={`block py-2 text-sm font-medium hover:text-accent transition-colors ${location.pathname === path ? "text-accent" : "text-muted-foreground"}`}
+                              style={{ paddingLeft: 32 }}
+                            >
+                              {name}
+                            </Link>
+                          ))}
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
+                  </div>
 
                   <div className="mt-3 pt-3 border-t border-border space-y-2">
                     <button
