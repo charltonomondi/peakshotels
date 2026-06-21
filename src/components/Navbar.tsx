@@ -1,19 +1,19 @@
 import { Link, useLocation } from "react-router-dom";
 import { useState, useRef } from "react";
-import { Menu, X, Phone, Mail, ChevronDown, Star, CreditCard, Waves, Dumbbell, Flame, Wind, Sparkles, Scissors } from "lucide-react";
+import { Menu, X, Phone, Mail, ChevronDown, Star, CreditCard, Waves, Dumbbell, Flame, Wind, Sparkles, Scissors, Newspaper, Images, MessageSquare, Info, ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-  DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu";
 import { motion, AnimatePresence } from "framer-motion";
 import { useLoyaltyAuth } from "@/lib/loyaltyAuth";
 import { openLipaModal } from "@/components/LipaMdogoMdogoPopup";
 import logo from "/logo.jpeg";
 import wellnessBanner from "@/assets/swimming/swim1.jpg";
+import moreBanner from "@/assets/facilities/Grounds1.jpg";
 
 // Primary links shown directly in the navbar
 const primaryNavItems = [
@@ -35,9 +35,10 @@ const wellnessLinks = [
 
 // Secondary links tucked into a "More" dropdown
 const moreNavItems = [
-  { name: "News & Updates", path: "/news" },
-  { name: "Gallery", path: "/gallery" },
-  { name: "Contact", path: "/contact" },
+  { name: "News & Updates", path: "/news",    icon: Newspaper,    desc: "Latest news and events" },
+  { name: "Gallery",        path: "/gallery",  icon: Images,       desc: "Photos from around the hotel" },
+  { name: "Contact",        path: "/contact",  icon: MessageSquare,desc: "Get in touch with us" },
+  { name: "About Us",       path: "/about",    icon: Info,         desc: "Our story and values" },
 ];
 
 const languages = [
@@ -66,12 +67,14 @@ function getActiveLangCode(): string {
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [wellnessOpen, setWellnessOpen] = useState(false);
+  const [moreOpen, setMoreOpen] = useState(false);
   const [mobileWellnessOpen, setMobileWellnessOpen] = useState(false);
   const [logoError, setLogoError] = useState(false);
   const [logoLoading, setLogoLoading] = useState(true);
   const location = useLocation();
   const { member } = useLoyaltyAuth();
   const wellnessTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const moreTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const activeLangCode = getActiveLangCode();
   const initialLang = languages.find(l => gtCodes[l.code] === activeLangCode) || languages[0];
@@ -84,6 +87,7 @@ const Navbar = () => {
   };
 
   const isWellnessActive = wellnessLinks.some(l => location.pathname === l.path);
+  const isMoreActive = moreNavItems.some(i => location.pathname === i.path);
 
   const openWellness = () => {
     if (wellnessTimeout.current) clearTimeout(wellnessTimeout.current);
@@ -91,6 +95,14 @@ const Navbar = () => {
   };
   const closeWellness = () => {
     wellnessTimeout.current = setTimeout(() => setWellnessOpen(false), 120);
+  };
+
+  const openMore = () => {
+    if (moreTimeout.current) clearTimeout(moreTimeout.current);
+    setMoreOpen(true);
+  };
+  const closeMore = () => {
+    moreTimeout.current = setTimeout(() => setMoreOpen(false), 120);
   };
 
   const renderDesktopItem = (item: any, index: number) => (
@@ -208,7 +220,7 @@ const Navbar = () => {
                       transition={{ duration: 0.18 }}
                       onMouseEnter={openWellness}
                       onMouseLeave={closeWellness}
-                      className="absolute top-full left-1/2 -translate-x-1/2 mt-3 w-[680px] bg-background border border-border rounded-2xl shadow-2xl overflow-hidden z-50"
+                      className="absolute top-full left-1/2 -translate-x-1/2 mt-3 w-[780px] bg-background border border-border rounded-2xl shadow-2xl overflow-hidden z-50"
                     >
                       <div className="flex">
                         {/* Banner image */}
@@ -246,25 +258,63 @@ const Navbar = () => {
                 </AnimatePresence>
               </div>
 
-              {/* More dropdown */}
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <button className={`flex items-center gap-1 text-sm font-bold tracking-wide transition-colors hover:text-accent ${moreNavItems.some(i => location.pathname === i.path) ? "text-accent" : "text-foreground"}`}>
-                    More <ChevronDown className="h-3.5 w-3.5 opacity-60" />
-                  </button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end">
-                  {moreNavItems.map((item, i) => (
-                    <DropdownMenuItem key={i} asChild>
-                      <Link to={item.path}>{item.name}</Link>
-                    </DropdownMenuItem>
-                  ))}
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem asChild>
-                    <Link to="/about">About Us</Link>
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
+              {/* More mega-menu */}
+              <div
+                className="relative"
+                onMouseEnter={openMore}
+                onMouseLeave={closeMore}
+              >
+                <button className={`flex items-center gap-1 text-sm font-bold tracking-wide transition-colors hover:text-accent ${isMoreActive ? "text-accent" : "text-foreground"}`}>
+                  More <ChevronDown className={`h-3.5 w-3.5 opacity-60 transition-transform duration-200 ${moreOpen ? "rotate-180" : ""}`} />
+                </button>
+
+                <AnimatePresence>
+                  {moreOpen && (
+                    <motion.div
+                      initial={{ opacity: 0, y: 8 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: 8 }}
+                      transition={{ duration: 0.18 }}
+                      onMouseEnter={openMore}
+                      onMouseLeave={closeMore}
+                      className="absolute top-full right-0 mt-3 w-[520px] bg-background border border-border rounded-2xl shadow-2xl overflow-hidden z-50"
+                    >
+                      <div className="flex">
+                        {/* Banner image */}
+                        <div className="relative w-44 shrink-0">
+                          <img src={moreBanner} alt="Peaks Hotel" className="w-full h-full object-cover" />
+                          <div className="absolute inset-0 bg-gradient-to-r from-transparent to-background/20" />
+                          <div className="absolute bottom-4 left-4 right-2">
+                            <p className="text-white text-xs font-medium tracking-widest uppercase mb-1">Peaks Hotel</p>
+                            <p className="text-white/80 text-xs leading-snug">Nanyuki, Kenya</p>
+                          </div>
+                        </div>
+
+                        {/* Links */}
+                        <div className="flex-1 p-4 flex flex-col gap-1">
+                          {moreNavItems.map(({ name, path, icon: Icon, desc }) => (
+                            <Link
+                              key={name}
+                              to={path}
+                              onClick={() => setMoreOpen(false)}
+                              className={`flex items-center gap-3 p-3 rounded-xl hover:bg-secondary transition-colors group ${location.pathname === path ? "bg-accent/5" : ""}`}
+                            >
+                              <div className="w-8 h-8 bg-accent/10 rounded-lg flex items-center justify-center shrink-0 group-hover:bg-accent transition-colors">
+                                <Icon className="h-4 w-4 text-accent group-hover:text-accent-foreground transition-colors" />
+                              </div>
+                              <div>
+                                <p className={`text-sm font-bold leading-tight ${location.pathname === path ? "text-accent" : "text-foreground"}`}>{name}</p>
+                                <p className="text-xs text-muted-foreground">{desc}</p>
+                              </div>
+                              <ArrowRight className="h-3.5 w-3.5 text-muted-foreground ml-auto opacity-0 group-hover:opacity-100 transition-opacity" />
+                            </Link>
+                          ))}
+                        </div>
+                      </div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </div>
             </div>
 
             {/* Right side actions */}
