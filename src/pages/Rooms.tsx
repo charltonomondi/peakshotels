@@ -4,7 +4,7 @@ import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { Button } from "@/components/ui/button";
 import { Link, useNavigate } from "react-router-dom";
-import { Bed, Users, Maximize, Wifi, Wind, Tv, Bath, ArrowRight, Check, X } from "lucide-react";
+import { Bed, Users, Maximize, Wifi, Wind, Tv, Bath, ArrowRight, Check, X, FileText } from "lucide-react";
 import roomDeluxe from "@/assets/bed.jpg";
 import roomExecutive from "@/assets/bed1.jpg";
 import roomPresidential from "@/assets/bed5.jpg";
@@ -103,6 +103,7 @@ const Rooms = () => {
   const [showWelcome, setShowWelcome] = useState(false);
   const [welcomeRoomNumber, setWelcomeRoomNumber] = useState<number | null>(null);
   const [showConfigModal, setShowConfigModal] = useState(false);
+  const [showPolicies, setShowPolicies] = useState(false);
 
   const handleRoomClick = async (roomNumber: number) => {
     setCheckingRoomNumber(roomNumber);
@@ -158,7 +159,7 @@ const Rooms = () => {
               </h1>
               <div className="w-24 h-1 bg-accent mx-auto mb-6" />
               <p className="text-white/90 text-lg md:text-xl max-w-3xl mx-auto mb-8 leading-relaxed">
-                Our rooms are designed to provide comfort, convenience and value for both business and leisure travellers.
+                Our rooms are designed to balance African elegance & modern comfort.
               </p>
             </motion.div>
           </div>
@@ -278,43 +279,102 @@ const Rooms = () => {
       </section>
 
       {/* Room Policies */}
-      <section className="py-20 bg-secondary">
-        <div className="container mx-auto px-4">
+      <section className="py-16 bg-secondary">
+        <div className="container mx-auto px-4 text-center">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.6 }}
-            className="max-w-4xl mx-auto"
           >
-            <h2 className="font-heading text-3xl font-bold text-foreground mb-8 text-center">
+            <h2 className="font-heading text-3xl font-bold text-foreground mb-4">
               Room Policies
             </h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-              <div className="bg-card p-6 rounded-xl">
-                <h3 className="font-semibold text-foreground mb-4">Check-in & Check-out</h3>
-                <ul className="space-y-2 text-muted-foreground text-sm">
-                  <li>• Check-in: 2:00 PM</li>
-                  <li>• Check-out: 11:00 AM</li>
-                  <li>• Early check-in subject to availability</li>
-                  <li>• Late check-out available on request</li>
-                </ul>
-              </div>
-
-              // To be placed on it's own in another page
-              {/* <div className="bg-card p-6 rounded-xl">
-                <h3 className="font-semibold text-foreground mb-4">Cancellation Policy</h3>
-                <ul className="space-y-2 text-muted-foreground text-sm">
-                  <li>• Free cancellation up to 48 hours before arrival</li>
-                  <li>• 50% charge for late cancellations</li>
-                  <li>• Full charge for no-shows</li>
-                  <li>• Special rates may have different terms</li>
-                </ul>
-              </div> */}
-            </div>
+            <p className="text-muted-foreground mb-8 max-w-xl mx-auto">
+              Read our check-in, check-out and cancellation policies before booking.
+            </p>
+            <Button variant="outline" size="lg" onClick={() => setShowPolicies(true)}>
+              <FileText className="h-5 w-5 mr-2" />
+              View Room Policies
+            </Button>
           </motion.div>
         </div>
       </section>
+
+      {/* Policies Modal */}
+      <AnimatePresence>
+        {showPolicies && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 bg-foreground/80 flex items-center justify-center p-4"
+            onClick={() => setShowPolicies(false)}
+          >
+            <motion.div
+              initial={{ scale: 0.92, opacity: 0, y: 20 }}
+              animate={{ scale: 1, opacity: 1, y: 0 }}
+              exit={{ scale: 0.92, opacity: 0, y: 20 }}
+              transition={{ duration: 0.25 }}
+              className="bg-background rounded-2xl max-w-2xl w-full shadow-2xl overflow-hidden"
+              onClick={e => e.stopPropagation()}
+            >
+              {/* Header */}
+              <div className="flex items-center justify-between px-6 py-5 border-b border-border">
+                <div className="flex items-center gap-3">
+                  <div className="w-9 h-9 bg-accent/10 rounded-xl flex items-center justify-center">
+                    <FileText className="h-5 w-5 text-accent" />
+                  </div>
+                  <h2 className="font-heading text-xl font-bold text-foreground">Room Policies</h2>
+                </div>
+                <button
+                  onClick={() => setShowPolicies(false)}
+                  className="p-2 hover:bg-secondary rounded-full transition-colors"
+                  aria-label="Close"
+                >
+                  <X className="h-5 w-5 text-muted-foreground" />
+                </button>
+              </div>
+
+              {/* Body */}
+              <div className="p-6 grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="bg-secondary rounded-xl p-5">
+                  <h3 className="font-semibold text-foreground mb-4 flex items-center gap-2">
+                    <span className="w-2 h-2 rounded-full bg-accent inline-block" />
+                    Check-in & Check-out
+                  </h3>
+                  <ul className="space-y-2.5 text-muted-foreground text-sm">
+                    <li className="flex items-start gap-2"><Check className="h-4 w-4 text-accent shrink-0 mt-0.5" />Check-in: 2:00 PM</li>
+                    <li className="flex items-start gap-2"><Check className="h-4 w-4 text-accent shrink-0 mt-0.5" />Check-out: 11:00 AM</li>
+                    <li className="flex items-start gap-2"><Check className="h-4 w-4 text-accent shrink-0 mt-0.5" />Early check-in subject to availability</li>
+                    <li className="flex items-start gap-2"><Check className="h-4 w-4 text-accent shrink-0 mt-0.5" />Late check-out available on request</li>
+                  </ul>
+                </div>
+
+                <div className="bg-secondary rounded-xl p-5">
+                  <h3 className="font-semibold text-foreground mb-4 flex items-center gap-2">
+                    <span className="w-2 h-2 rounded-full bg-accent inline-block" />
+                    Cancellation Policy
+                  </h3>
+                  <ul className="space-y-2.5 text-muted-foreground text-sm">
+                    <li className="flex items-start gap-2"><Check className="h-4 w-4 text-accent shrink-0 mt-0.5" />Free cancellation up to 48 hours before arrival</li>
+                    <li className="flex items-start gap-2"><Check className="h-4 w-4 text-accent shrink-0 mt-0.5" />50% charge for late cancellations</li>
+                    <li className="flex items-start gap-2"><Check className="h-4 w-4 text-accent shrink-0 mt-0.5" />Full charge for no-shows</li>
+                    <li className="flex items-start gap-2"><Check className="h-4 w-4 text-accent shrink-0 mt-0.5" />Special rates may have different terms</li>
+                  </ul>
+                </div>
+              </div>
+
+              {/* Footer */}
+              <div className="px-6 pb-6">
+                <Button variant="gold" className="w-full" onClick={() => setShowPolicies(false)}>
+                  Got it
+                </Button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* Room Selection Modal */}
       <AnimatePresence>
