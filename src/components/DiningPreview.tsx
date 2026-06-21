@@ -31,7 +31,7 @@ const DiningPreview = () => {
         </motion.div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-8">
-          {/* Restaurant Card */}
+          {/* Summit Card */}
           <motion.div initial={{ opacity: 0, x: -30 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: true }} transition={{ duration: 0.6 }}
             className="group relative overflow-hidden rounded-2xl">
             <img src={restaurantImage} alt="The Summit Restaurant"
@@ -51,10 +51,11 @@ const DiningPreview = () => {
             </div>
           </motion.div>
 
-          {/* Bar Card */}
+          {/* Mbaruk Card */}
           <motion.div initial={{ opacity: 0, x: 30 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: true }} transition={{ duration: 0.6, delay: 0.1 }}
             className="group relative overflow-hidden rounded-2xl">
-            <img src={barImage} alt="The Peak Lounge"
+            // To update this later... MBARUK!!!
+            <img src={restaurantImage} alt="Mbaruk Restaurant"
               className="w-full h-64 sm:h-80 md:h-[400px] lg:h-[500px] object-cover group-hover:scale-105 transition-transform duration-700" />
             <div className="absolute inset-0 bg-gradient-to-t from-foreground/90 via-foreground/40 to-transparent" />
             <div className="absolute bottom-0 left-0 right-0 p-4 md:p-6 lg:p-8">
