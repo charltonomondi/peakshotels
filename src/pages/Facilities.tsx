@@ -1,151 +1,132 @@
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { useState } from "react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
 import {
-  Waves, Dumbbell, Users, Projector, Wifi, Coffee,
-  Flame, Wind, Sparkles, Scissors, Check, X,
-  ArrowRight, ChevronDown
+  Users, Projector, Wifi, Coffee, Check, X,
+  ArrowRight, ChevronDown, Phone, Mail, Calendar,
+  Monitor, Utensils, Car, Star
 } from "lucide-react";
 
-// Facility images
-import frontage    from "@/assets/facilities/frontage.jpg";
+// Conference images
+import conf1  from "@/assets/conferences/conference1.jpeg";
+import conf2  from "@/assets/conferences/conference2.jpg";
+import conf3  from "@/assets/conferences/conference3.jpeg";
+import conf4  from "@/assets/conferences/conference4.jpg";
+import conf6  from "@/assets/conferences/conference6.jpeg";
+import conf10 from "@/assets/conferences/conference10.jpg";
+
+// Grounds / outdoor
 import grounds1    from "@/assets/facilities/Grounds1.jpg";
 import grounds2    from "@/assets/facilities/Grounds2.jpg";
+import frontage    from "@/assets/facilities/frontage.jpg";
 import rooftop     from "@/assets/facilities/rooftop.jpg";
-import sitting     from "@/assets/facilities/sitting.jpg";
-import sittingArea from "@/assets/facilities/sitting area2.jpg";
-import mainRest    from "@/assets/facilities/Mainrestaurant.png";
-import mbaruk      from "@/assets/facilities/Mbaruk.jpg";
-import gymImg      from "@/assets/facilities/gym.jpg";
-import conf2       from "@/assets/facilities/conference2.jpg";
-import conf3       from "@/assets/facilities/conference3.jpeg";
-import conf4       from "@/assets/facilities/conference4.jpg";
-import conf6       from "@/assets/facilities/conference6.jpeg";
-import conf10      from "@/assets/facilities/conference10.jpg";
 import greatescape from "@/assets/facilities/great escape.jpg";
-import magicboots  from "@/assets/facilities/magicboots.jpg";
-import spidersweb  from "@/assets/facilities/spidersweb.jpg";
-import situps      from "@/assets/facilities/situps.jpg";
 
-// Specific facility images
-import swim1  from "@/assets/swimming/swim1.jpg";
-import sauna  from "@/assets/sauna/sauna.jpg";
-import steam1 from "@/assets/steam bath/steam1.jpeg";
-import mas1   from "@/assets/massage/mas1.jpg";
-import beauty1 from "@/assets/beauty/beauty1.jpg";
-import gym1   from "@/assets/gym/gym1.jpg";
-
-const facilityCategories = [
+const venues = [
   {
-    id: "wellness",
-    label: "Wellness & Spa",
-    facilities: [
-      { title: "Swimming Pool",  desc: "Heated outdoor pool with mountain views. Open 6 AM – 10 PM.",      image: swim1,   link: "/swimming",        icon: Waves },
-      { title: "Sauna",          desc: "Traditional Finnish sauna at 80–90°C with essential oils.",         image: sauna,   link: "/sauna",           icon: Flame },
-      { title: "Steam Bath",     desc: "Therapeutic moist steam at 40–45°C for deep detox.",               image: steam1,  link: "/steam-bath",      icon: Wind },
-      { title: "Massage",        desc: "Swedish, deep tissue, aromatherapy & sports massages.",             image: mas1,    link: "/massage",         icon: Sparkles },
-      { title: "Beauty Parlour", desc: "Hair, skin, nails, and facial treatments by certified specialists.",image: beauty1, link: "/beauty-parlour",  icon: Scissors },
-    ],
+    name: "Main Conference Hall",
+    capacity: "Up to 200",
+    setup: "Theatre, Classroom, Banquet",
+    image: conf10,
+    features: ["Full AV system & stage", "Air conditioning", "Dedicated event coordinator", "Built-in PA system", "Adjustable lighting"],
   },
   {
-    id: "fitness",
-    label: "Fitness",
-    facilities: [
-      { title: "Fitness Centre", desc: "Fully equipped gym with cardio, free weights, and personal training.", image: gym1,   link: "/gym",         icon: Dumbbell },
-      { title: "Outdoor Fitness",desc: "Functional fitness zones in the fresh mountain air.",                  image: situps, link: "/gym",         icon: Dumbbell },
-      { title: "Great Escape",   desc: "Outdoor challenge ropes course and team building activities.",         image: greatescape, link: "/activities", icon: Users },
-      { title: "Magic Boots",    desc: "Trampoline & balance equipment for all ages.",                         image: magicboots,  link: "/activities", icon: Users },
-      { title: "Spider's Web",   desc: "High-rope adventure activity for groups and families.",                 image: spidersweb,  link: "/activities", icon: Users },
-    ],
+    name: "Executive Boardroom",
+    capacity: "10 – 20",
+    setup: "Boardroom",
+    image: conf2,
+    features: ["Video conferencing", "Executive furniture", "HD display screen", "Private entrance", "Refreshments service"],
   },
   {
-    id: "dining",
-    label: "Dining",
-    facilities: [
-      { title: "Main Restaurant", desc: "African-inspired fine dining with panoramic views. 6:30 AM – 10 PM.", image: mainRest, link: "/dining", icon: Coffee },
-      { title: "Mbaruk Restaurant & Spillover", desc: "Relaxed all-day dining and sundowner terrace.",         image: mbaruk,   link: "/dining", icon: Coffee },
-      { title: "Rooftop Terrace", desc: "Signature cocktails and small plates above the canopy.",              image: rooftop,  link: "/dining", icon: Coffee },
-    ],
+    name: "Training Room",
+    capacity: "30 – 50",
+    setup: "Classroom / U-shape",
+    image: conf3,
+    features: ["Projector & whiteboard", "Flip charts", "WiFi", "Natural lighting", "Breakout space adjacent"],
   },
   {
-    id: "events",
-    label: "Conferences & Events",
-    facilities: [
-      { title: "Main Hall",          desc: "Seats up to 200. Full AV, stage, and catering.",    image: conf10, link: "/facilities", icon: Projector },
-      { title: "Executive Boardroom",desc: "Intimate boardroom for 10–20 with VC capability.", image: conf2,  link: "/facilities", icon: Users },
-      { title: "Training Room",      desc: "Flexible classroom or U-shape for 30–50 delegates.",image: conf3,  link: "/facilities", icon: Projector },
-      { title: "Seminar Space",      desc: "Theatre-style seating for up to 80 attendees.",     image: conf4,  link: "/facilities", icon: Users },
-      { title: "Workshop Area",      desc: "Breakout rooms for workshops and syndicate groups.", image: conf6,  link: "/facilities", icon: Wifi },
-    ],
+    name: "Seminar Space",
+    capacity: "Up to 80",
+    setup: "Theatre-style",
+    image: conf4,
+    features: ["Projector & screen", "Stage area", "Sound system", "WiFi", "Catering available"],
   },
   {
-    id: "grounds",
-    label: "Grounds & Lounges",
-    facilities: [
-      { title: "Hotel Grounds",    desc: "Beautifully landscaped gardens with Mount Kenya views.",    image: grounds1,    link: "/about",    icon: Users },
-      { title: "Outdoor Gardens",  desc: "Manicured lawns and flower gardens ideal for events.",      image: grounds2,    link: "/about",    icon: Users },
-      { title: "Sitting Lounge",   desc: "Comfortable indoor lounges for reading or meetings.",       image: sitting,     link: "/about",    icon: Users },
-      { title: "Sitting Area",     desc: "Cosy seating areas around the hotel grounds.",              image: sittingArea, link: "/about",    icon: Users },
-    ],
+    name: "Workshop / Breakout Rooms",
+    capacity: "10 – 30",
+    setup: "Flexible",
+    image: conf6,
+    features: ["Configurable layout", "Whiteboards", "WiFi", "Natural light", "Ideal for syndicate groups"],
+  },
+  {
+    name: "Outdoor Events Grounds",
+    capacity: "100 – 1,000+",
+    setup: "Open air",
+    image: grounds1,
+    features: ["Landscaped gardens", "Tent / marquee friendly", "Outdoor catering", "Team building space", "Mount Kenya backdrop"],
   },
 ];
 
-const conferencePackages = [
+const packages = [
   {
     name: "Half Day",
     price: "KES 2,500",
-    perPerson: true,
+    popular: false,
     features: ["4 hours venue", "Tea/Coffee break", "Mineral water", "Projector & screen", "WiFi", "Stationery"],
     excluded: ["Lunch", "Full day access"],
-    popular: false,
   },
   {
     name: "Full Day",
     price: "KES 4,500",
-    perPerson: true,
+    popular: true,
     features: ["8 hours venue", "Morning & afternoon tea", "Buffet lunch", "Mineral water", "Projector & screen", "WiFi", "Stationery", "Flip charts"],
     excluded: [],
-    popular: true,
   },
   {
     name: "Residential",
     price: "KES 12,000",
-    perPerson: true,
+    popular: false,
     features: ["Accommodation (single)", "All meals", "Conference facilities", "Tea breaks", "AV equipment", "WiFi", "Stationery", "Pool access"],
     excluded: [],
-    popular: false,
   },
 ];
 
-const amenities = [
-  { icon: Wifi,     label: "Free WiFi"         },
-  { icon: Coffee,   label: "24hr Room Service"  },
-  { icon: Users,    label: "Concierge"          },
-  { icon: Wind,     label: "Air Conditioning"   },
-  { icon: Dumbbell, label: "Fitness Centre"     },
-  { icon: Waves,    label: "Swimming Pool"      },
-  { icon: Flame,    label: "Sauna & Steam"      },
-  { icon: Sparkles, label: "Spa & Beauty"       },
+const suitableFor = [
+  { icon: Users,     label: "Conferences" },
+  { icon: Projector, label: "Workshops" },
+  { icon: Monitor,   label: "Training Programmes" },
+  { icon: Star,      label: "Retreats" },
+  { icon: Coffee,    label: "Board Meetings" },
+  { icon: Users,     label: "Team Building" },
+  { icon: Calendar,  label: "Strategic Planning" },
+  { icon: Utensils,  label: "Gala Dinners" },
+];
+
+const inclusions = [
+  { icon: Wifi,      label: "High-Speed WiFi" },
+  { icon: Projector, label: "AV Equipment" },
+  { icon: Coffee,    label: "Tea & Coffee Breaks" },
+  { icon: Utensils,  label: "Catering Options" },
+  { icon: Car,       label: "Complimentary Parking" },
+  { icon: Users,     label: "Event Coordinator" },
 ];
 
 const Facilities = () => {
-  const [activeTab, setActiveTab] = useState("wellness");
   const [lightbox, setLightbox] = useState<string | null>(null);
-
-  const active = facilityCategories.find(c => c.id === activeTab)!;
+  const [activeVenue, setActiveVenue] = useState(0);
 
   return (
     <div className="min-h-screen overflow-x-hidden bg-background">
       <Navbar />
 
       {/* ── HERO ── */}
-      <section className="relative h-[80vh] overflow-hidden">
-        <motion.div initial={{ scale: 1.15 }} animate={{ scale: 1 }} transition={{ duration: 1.5 }} className="absolute inset-0">
-          <img src={frontage} alt="Peaks Hotel Facilities" className="w-full h-full object-cover" />
-          <div className="absolute inset-0 bg-gradient-to-b from-black/65 via-black/40 to-background" />
+      <section className="relative h-[85vh] overflow-hidden">
+        <motion.div initial={{ scale: 1.12 }} animate={{ scale: 1 }} transition={{ duration: 1.6 }} className="absolute inset-0">
+          <img src={conf10} alt="Peaks Hotel Conferences" className="w-full h-full object-cover" />
+          <div className="absolute inset-0 bg-gradient-to-b from-black/70 via-black/50 to-background" />
         </motion.div>
 
         <div className="relative h-full flex flex-col items-center justify-center text-center px-4">
@@ -155,19 +136,18 @@ const Facilities = () => {
           </motion.p>
           <motion.h1 initial={{ opacity: 0, y: 35 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.5, duration: 0.9 }}
             className="font-heading text-5xl md:text-7xl font-bold text-white mb-5 leading-none">
-            World-Class<br /><span className="italic font-light text-accent">Facilities</span>
+            Conferences<br /><span className="italic font-light text-accent">&amp; Events</span>
           </motion.h1>
           <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 1 }}
-            className="text-white/70 text-lg max-w-2xl mb-10 leading-relaxed">
-            From therapeutic wellness to state-of-the-art conference suites — everything you need, all in one place.
+            className="text-white/75 text-lg max-w-2xl mb-10 leading-relaxed">
+            Where Ideas Meet Opportunity. One of Nanyuki's preferred venues for conferences, workshops, retreats and training programmes.
           </motion.p>
 
-          {/* amenity pills */}
           <motion.div initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 1.2 }}
             className="flex flex-wrap justify-center gap-2">
-            {amenities.map(({ icon: Icon, label }) => (
-              <span key={label} className="backdrop-blur-md bg-white/10 border border-white/20 text-white/80 text-xs px-4 py-2 rounded-full flex items-center gap-2">
-                <Icon className="h-3.5 w-3.5 text-accent" />{label}
+            {["200+ Capacity", "Full AV", "Outdoor Grounds", "Event Coordinator", "Catering Included"].map(tag => (
+              <span key={tag} className="backdrop-blur-md bg-white/10 border border-white/20 text-white/80 text-xs px-4 py-2 rounded-full">
+                {tag}
               </span>
             ))}
           </motion.div>
@@ -179,55 +159,116 @@ const Facilities = () => {
         </motion.div>
       </section>
 
-      {/* ── FACILITY TABS ── */}
+      {/* ── INTRO ── */}
       <section className="py-20 bg-background">
         <div className="container mx-auto px-4">
-          <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} className="mb-12">
-            <p className="text-accent text-xs font-medium tracking-[0.25em] uppercase mb-2">Explore by category</p>
-            <h2 className="font-heading text-4xl md:text-5xl font-bold text-foreground">Our Facilities</h2>
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
+            <motion.div initial={{ opacity: 0, x: -40 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: true }} transition={{ duration: 0.7 }}>
+              <p className="text-accent text-xs font-medium tracking-[0.25em] uppercase mb-3">Why choose Peaks</p>
+              <h2 className="font-heading text-4xl md:text-5xl font-bold text-foreground mb-6 leading-tight">
+                The Complete<br />Event Destination
+              </h2>
+              <p className="text-muted-foreground text-lg leading-relaxed mb-5">
+                Peaks Hotel combines comfortable accommodation, quality catering, flexible meeting spaces and unique outdoor experiences to create productive and memorable events.
+              </p>
+              <p className="text-muted-foreground leading-relaxed mb-8">
+                Set against the backdrop of Mount Kenya, the Aberdare Ranges and the Lolldaiga Hills, every event at Peaks is enriched by an extraordinary natural environment.
+              </p>
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                {inclusions.map(({ icon: Icon, label }) => (
+                  <div key={label} className="flex items-center gap-2 bg-secondary rounded-xl px-3 py-2.5">
+                    <Icon className="h-4 w-4 text-accent shrink-0" />
+                    <span className="text-sm text-foreground font-medium">{label}</span>
+                  </div>
+                ))}
+              </div>
+            </motion.div>
+
+            <div className="grid grid-cols-2 gap-3 h-[420px]">
+              {[conf1, conf2, conf3, conf4].map((img, i) => (
+                <motion.div key={i} initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: i * 0.1 }}
+                  className="overflow-hidden rounded-2xl cursor-pointer" onClick={() => setLightbox(img)}>
+                  <img src={img} alt={`Conference space ${i + 1}`} className="w-full h-full object-cover hover:scale-105 transition-transform duration-600" />
+                </motion.div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ── SUITABLE FOR ── */}
+      <section className="py-16 bg-secondary">
+        <div className="container mx-auto px-4">
+          <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} className="text-center mb-10">
+            <p className="text-accent text-xs font-medium tracking-[0.25em] uppercase mb-2">Flexible for every need</p>
+            <h2 className="font-heading text-3xl md:text-4xl font-bold text-foreground">Suitable For</h2>
+          </motion.div>
+          <div className="flex flex-wrap justify-center gap-3 max-w-3xl mx-auto">
+            {suitableFor.map(({ icon: Icon, label }, i) => (
+              <motion.div key={label} initial={{ opacity: 0, scale: 0.9 }} whileInView={{ opacity: 1, scale: 1 }} viewport={{ once: true }} transition={{ delay: i * 0.06 }}
+                className="flex items-center gap-2 bg-background border border-border rounded-full px-5 py-2.5 text-sm font-medium text-foreground hover:border-accent hover:text-accent transition-colors">
+                <Icon className="h-4 w-4 text-accent" />{label}
+              </motion.div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ── VENUES ── */}
+      <section className="py-20 bg-background">
+        <div className="container mx-auto px-4">
+          <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} className="mb-14">
+            <p className="text-accent text-xs font-medium tracking-[0.25em] uppercase mb-2">Our spaces</p>
+            <h2 className="font-heading text-4xl md:text-5xl font-bold text-foreground">Conference Venues</h2>
           </motion.div>
 
           {/* Tab bar */}
-          <div className="flex flex-wrap gap-2 mb-10">
-            {facilityCategories.map(cat => (
-              <button key={cat.id} onClick={() => setActiveTab(cat.id)}
-                className={`px-5 py-2.5 rounded-full text-sm font-medium transition-all duration-200 ${
-                  activeTab === cat.id
+          <div className="flex flex-wrap gap-2 mb-10 overflow-x-auto pb-1">
+            {venues.map((v, i) => (
+              <button key={v.name} onClick={() => setActiveVenue(i)}
+                className={`px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap transition-all duration-200 ${
+                  activeVenue === i
                     ? "bg-accent text-accent-foreground shadow-md"
                     : "bg-secondary text-muted-foreground hover:bg-secondary/70 border border-border"
                 }`}>
-                {cat.label}
+                {v.name}
               </button>
             ))}
           </div>
 
-          {/* Facility cards */}
-          <motion.div key={activeTab} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.35 }}
-            className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
-            {active.facilities.map(({ title, desc, image, link, icon: Icon }, i) => (
-              <motion.div key={title} initial={{ opacity: 0, y: 25 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.07 }}
-                className="group bg-card border border-border rounded-2xl overflow-hidden hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
-                <div className="relative h-52 overflow-hidden cursor-pointer" onClick={() => setLightbox(image)}>
-                  <img src={image} alt={title} className="w-full h-full object-cover group-hover:scale-108 transition-transform duration-700" />
-                  <div className="absolute inset-0 bg-black/0 group-hover:bg-black/25 transition-colors duration-300" />
-                  <div className="absolute top-3 left-3 w-9 h-9 bg-black/40 backdrop-blur-sm rounded-xl flex items-center justify-center">
-                    <Icon className="h-4 w-4 text-accent" />
-                  </div>
+          <AnimatePresence mode="wait">
+            <motion.div key={activeVenue} initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -16 }} transition={{ duration: 0.3 }}
+              className="grid grid-cols-1 lg:grid-cols-2 gap-10 items-center">
+              <div className="overflow-hidden rounded-3xl shadow-xl h-80 md:h-[420px] cursor-pointer" onClick={() => setLightbox(venues[activeVenue].image)}>
+                <img src={venues[activeVenue].image} alt={venues[activeVenue].name} className="w-full h-full object-cover hover:scale-105 transition-transform duration-700" />
+              </div>
+              <div>
+                <h3 className="font-heading text-3xl font-bold text-foreground mb-2">{venues[activeVenue].name}</h3>
+                <div className="flex flex-wrap gap-3 mb-6">
+                  <span className="bg-accent/10 text-accent text-xs font-semibold px-3 py-1.5 rounded-full">
+                    <Users className="h-3 w-3 inline mr-1" />{venues[activeVenue].capacity} guests
+                  </span>
+                  <span className="bg-secondary text-foreground text-xs font-semibold px-3 py-1.5 rounded-full border border-border">
+                    {venues[activeVenue].setup}
+                  </span>
                 </div>
-                <div className="p-5">
-                  <h3 className="font-heading text-lg font-bold text-foreground mb-1.5">{title}</h3>
-                  <p className="text-muted-foreground text-sm leading-relaxed mb-4">{desc}</p>
-                  <Button variant="ghost" size="sm" className="p-0 h-auto text-accent hover:text-accent/80 font-medium" asChild>
-                    <Link to={link}>Learn more <ArrowRight className="h-3.5 w-3.5 ml-1" /></Link>
-                  </Button>
-                </div>
-              </motion.div>
-            ))}
-          </motion.div>
+                <ul className="space-y-3 mb-8">
+                  {venues[activeVenue].features.map(f => (
+                    <li key={f} className="flex items-center gap-3 text-sm text-foreground">
+                      <Check className="h-4 w-4 text-accent shrink-0" />{f}
+                    </li>
+                  ))}
+                </ul>
+                <Button variant="gold" asChild>
+                  <Link to="/contact">Enquire About This Space <ArrowRight className="h-4 w-4 ml-2" /></Link>
+                </Button>
+              </div>
+            </motion.div>
+          </AnimatePresence>
         </div>
       </section>
 
-      {/* ── CONFERENCE PACKAGES ── */}
+      {/* ── PACKAGES ── */}
       <section className="py-20 bg-secondary">
         <div className="container mx-auto px-4">
           <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} className="mb-14 text-center">
@@ -238,7 +279,7 @@ const Facilities = () => {
           </motion.div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-5xl mx-auto">
-            {conferencePackages.map((pkg, i) => (
+            {packages.map((pkg, i) => (
               <motion.div key={pkg.name} initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: i * 0.1 }}
                 className={`relative bg-card rounded-3xl p-7 border transition-shadow hover:shadow-xl ${pkg.popular ? "border-accent ring-2 ring-accent" : "border-border"}`}>
                 {pkg.popular && (
@@ -274,45 +315,50 @@ const Facilities = () => {
         </div>
       </section>
 
-      {/* ── CONFERENCE GALLERY STRIP ── */}
-      <section className="py-8 bg-background">
+      {/* ── PHOTO GALLERY STRIP ── */}
+      <section className="py-4 bg-background">
         <div className="container mx-auto px-4">
-          <div className="grid grid-cols-2 md:grid-cols-5 gap-3 h-48 md:h-60">
-            {[conf2, conf3, conf4, conf6, conf10].map((img, i) => (
-              <motion.div key={i} initial={{ opacity: 0, scale: 0.95 }} whileInView={{ opacity: 1, scale: 1 }} viewport={{ once: true }} transition={{ delay: i * 0.08 }}
-                className="overflow-hidden rounded-2xl cursor-pointer" onClick={() => setLightbox(img)}>
-                <img src={img} alt={`Conference ${i + 1}`} className="w-full h-full object-cover hover:scale-110 transition-transform duration-600" />
+          <div className="grid grid-cols-2 md:grid-cols-6 gap-2 h-40 md:h-52">
+            {[conf1, conf2, conf3, conf4, conf6, conf10].map((img, i) => (
+              <motion.div key={i} initial={{ opacity: 0, scale: 0.95 }} whileInView={{ opacity: 1, scale: 1 }} viewport={{ once: true }} transition={{ delay: i * 0.07 }}
+                className="overflow-hidden rounded-xl cursor-pointer" onClick={() => setLightbox(img)}>
+                <img src={img} alt={`Conference ${i + 1}`} className="w-full h-full object-cover hover:scale-110 transition-transform duration-500" />
               </motion.div>
             ))}
           </div>
         </div>
       </section>
 
-      {/* ── GROUNDS FEATURE ── split */}
+      {/* ── OUTDOOR GROUNDS ── */}
       <section className="py-20 bg-background">
         <div className="container mx-auto px-4">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 items-center">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
             <motion.div initial={{ opacity: 0, x: -40 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: true }} transition={{ duration: 0.7 }}>
-              <p className="text-accent text-xs font-medium tracking-[0.25em] uppercase mb-3">The Setting</p>
+              <p className="text-accent text-xs font-medium tracking-[0.25em] uppercase mb-3">Beyond four walls</p>
               <h2 className="font-heading text-4xl font-bold text-foreground mb-5 leading-tight">
-                Stunning Grounds<br />at Every Turn
+                Outdoor Events &<br />Team Building
               </h2>
               <p className="text-muted-foreground leading-relaxed mb-5">
-                Spread across acres of landscaped gardens, the hotel grounds are as much a facility as any room. Manicured lawns, indigenous trees, and curated outdoor seating areas offer a serene backdrop whether you're hosting an outdoor event or simply unwinding after a long journey.
+                Our landscaped Events Grounds can comfortably host more than 1,000 guests. The open-air setting, combined with a range of outdoor activities, makes Peaks the ideal destination for team building, retreats and large gatherings.
               </p>
               <p className="text-muted-foreground leading-relaxed mb-8">
-                Mount Kenya frames every view — a constant reminder that you are somewhere truly extraordinary.
+                Activities include obstacle courses, ropes challenges, outdoor gym circuits, nature walks and guided Mount Kenya hikes — all available to complement your event programme.
               </p>
+              <div className="flex flex-wrap gap-3 mb-8">
+                {["Weddings", "Gala Dinners", "Corporate Functions", "Team Building", "Concerts", "Community Events"].map(tag => (
+                  <span key={tag} className="bg-secondary border border-border text-foreground text-xs font-medium px-3 py-1.5 rounded-full">{tag}</span>
+                ))}
+              </div>
               <Button variant="gold" asChild>
-                <Link to="/booking">Book a Stay <ArrowRight className="h-4 w-4 ml-2" /></Link>
+                <Link to="/contact">Plan Your Event <ArrowRight className="h-4 w-4 ml-2" /></Link>
               </Button>
             </motion.div>
 
             <div className="grid grid-cols-2 gap-3 h-[400px]">
-              {[grounds1, grounds2, sittingArea, rooftop].map((img, i) => (
+              {[grounds1, grounds2, greatescape, rooftop].map((img, i) => (
                 <motion.div key={i} initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: i * 0.1 }}
                   className="overflow-hidden rounded-2xl cursor-pointer" onClick={() => setLightbox(img)}>
-                  <img src={img} alt="Grounds" className="w-full h-full object-cover hover:scale-110 transition-transform duration-600" />
+                  <img src={img} alt="Outdoor grounds" className="w-full h-full object-cover hover:scale-110 transition-transform duration-600" />
                 </motion.div>
               ))}
             </div>
@@ -323,41 +369,56 @@ const Facilities = () => {
       {/* ── CTA ── */}
       <section className="relative py-32 overflow-hidden">
         <div className="absolute inset-0">
-          <img src={grounds2} alt="Peaks Hotel" className="w-full h-full object-cover" />
+          <img src={frontage} alt="Peaks Hotel" className="w-full h-full object-cover" />
           <div className="absolute inset-0 bg-gradient-to-r from-primary/95 via-primary/80 to-transparent" />
         </div>
         <div className="relative container mx-auto px-4">
           <motion.div initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} className="max-w-xl">
-            <p className="text-accent text-xs font-medium tracking-[0.25em] uppercase mb-4">Plan your visit</p>
+            <p className="text-accent text-xs font-medium tracking-[0.25em] uppercase mb-4">Plan your event</p>
             <h2 className="font-heading text-4xl md:text-5xl font-bold text-primary-foreground mb-5 leading-tight">
-              Ready to Experience It All?
+              Ready to Host Your Next Event?
             </h2>
             <p className="text-primary-foreground/70 text-lg mb-10 leading-relaxed">
-              Book your stay and access every facility from day one — pool, gym, wellness, dining, and more.
+              Our events team is ready to help you plan every detail — from venue setup and catering to accommodation and activities.
             </p>
-            <div className="flex flex-wrap gap-4">
+            <div className="flex flex-wrap gap-4 mb-8">
               <Button size="lg" variant="gold" asChild>
-                <Link to="/booking">Book Your Stay</Link>
-              </Button>
-              <Button size="lg" variant="heroOutline" asChild>
                 <Link to="/contact">Contact Events Team</Link>
               </Button>
+              <Button size="lg" variant="heroOutline" asChild>
+                <Link to="/booking">Book Accommodation</Link>
+              </Button>
+            </div>
+            <div className="flex flex-col sm:flex-row gap-4 text-primary-foreground/70 text-sm">
+              <a href="tel:+254711969690" className="flex items-center gap-2 hover:text-accent transition-colors">
+                <Phone className="h-4 w-4 text-accent" />+254 711 969 690
+              </a>
+              <a href="mailto:info@peakshotels.co.ke" className="flex items-center gap-2 hover:text-accent transition-colors">
+                <Mail className="h-4 w-4 text-accent" />info@peakshotels.co.ke
+              </a>
             </div>
           </motion.div>
         </div>
       </section>
 
       {/* Lightbox */}
-      {lightbox && (
-        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-          className="fixed inset-0 z-50 bg-black/92 flex items-center justify-center p-4"
-          onClick={() => setLightbox(null)}>
-          <button className="absolute top-5 right-5 text-white/60 hover:text-white" onClick={() => setLightbox(null)}>
-            <X className="h-7 w-7" />
-          </button>
-          <img src={lightbox} alt="Facility" className="max-w-full max-h-[88vh] object-contain rounded-2xl" onClick={e => e.stopPropagation()} />
-        </motion.div>
-      )}
+      <AnimatePresence>
+        {lightbox && (
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 bg-black/92 flex items-center justify-center p-4"
+            onClick={() => setLightbox(null)}>
+            <button className="absolute top-5 right-5 text-white/60 hover:text-white transition-colors" onClick={() => setLightbox(null)}>
+              <X className="h-7 w-7" />
+            </button>
+            <motion.img
+              initial={{ scale: 0.93 }} animate={{ scale: 1 }} exit={{ scale: 0.93 }}
+              src={lightbox} alt="Conference space"
+              className="max-w-full max-h-[88vh] object-contain rounded-2xl"
+              onClick={e => e.stopPropagation()}
+            />
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       <Footer />
     </div>
