@@ -1,9 +1,12 @@
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
+import { useState } from "react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
-import { Clock, Phone, Utensils, Wine, Coffee, Award, MapPin, Calendar } from "lucide-react";
+import { Clock, Phone, Utensils, Wine, Coffee, Award, MapPin, Calendar, X, Download, FileText } from "lucide-react";
+
+const menuPdf = new URL("../assets/Mbaruk Restaurant & Spillover/menu.pdf", import.meta.url).href;
 
 // Use simpler image paths from main assets folder
 const getImagePath = (filename: string) => {
@@ -11,6 +14,7 @@ const getImagePath = (filename: string) => {
 };
 
 const Restaurant = () => {
+  const [showMenu, setShowMenu] = useState(false);
   // Define image paths
   const images = {
     main: getImagePath('IMG_0142.JPG'),
@@ -639,11 +643,9 @@ const Restaurant = () => {
               Book your table today for a romantic dinner, family celebration, or business lunch, we're here to serve you.
             </p> */}
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Button variant="hero" size="lg" asChild>
-                <Link to="/booking">
-                  <Calendar className="h-5 w-5 mr-2" />
-                  Make a Reservation
-                </Link>
+              <Button variant="hero" size="lg" onClick={() => setShowMenu(true)}>
+                <FileText className="h-5 w-5 mr-2" />
+                View Menu
               </Button>
               <Button variant="heroOutline" size="lg" asChild>
                 <a href="tel:+254700000000">
@@ -655,6 +657,67 @@ const Restaurant = () => {
           </motion.div>
         </div>
       </section>
+
+      {/* Menu PDF Modal */}
+      <AnimatePresence>
+        {showMenu && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 bg-black/80 flex items-center justify-center p-4"
+            onClick={() => setShowMenu(false)}
+          >
+            <motion.div
+              initial={{ scale: 0.93, opacity: 0, y: 20 }}
+              animate={{ scale: 1, opacity: 1, y: 0 }}
+              exit={{ scale: 0.93, opacity: 0, y: 20 }}
+              transition={{ duration: 0.25 }}
+              className="bg-background rounded-2xl w-full max-w-4xl h-[90vh] flex flex-col shadow-2xl overflow-hidden"
+              onClick={e => e.stopPropagation()}
+            >
+              {/* Header */}
+              <div className="flex items-center justify-between px-6 py-4 border-b border-border shrink-0">
+                <div className="flex items-center gap-3">
+                  <div className="w-9 h-9 bg-accent/10 rounded-xl flex items-center justify-center">
+                    <FileText className="h-5 w-5 text-accent" />
+                  </div>
+                  <div>
+                    <h2 className="font-heading text-lg font-bold text-foreground">Our Menu</h2>
+                    <p className="text-xs text-muted-foreground">Mbaruk Restaurant & Spillover</p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-2">
+                  <a
+                    href={menuPdf}
+                    download="Mbaruk-Menu.pdf"
+                    className="flex items-center gap-2 px-4 py-2 bg-accent text-accent-foreground rounded-lg text-sm font-semibold hover:bg-accent/90 transition-colors"
+                  >
+                    <Download className="h-4 w-4" />
+                    Download
+                  </a>
+                  <button
+                    onClick={() => setShowMenu(false)}
+                    className="p-2 hover:bg-secondary rounded-full transition-colors"
+                    aria-label="Close"
+                  >
+                    <X className="h-5 w-5 text-muted-foreground" />
+                  </button>
+                </div>
+              </div>
+
+              {/* PDF Viewer */}
+              <div className="flex-1 overflow-hidden">
+                <iframe
+                  src={`${menuPdf}#toolbar=0&navpanes=0`}
+                  className="w-full h-full"
+                  title="Mbaruk Restaurant Menu"
+                />
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       <Footer />
     </div>
