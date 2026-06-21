@@ -93,7 +93,8 @@ const Restaurant = () => {
                 <Button variant="hero" size="lg" asChild>
                   <Link to="/booking">Reserve a Table</Link>
                 </Button>
-                <Button variant="heroOutline" size="lg" asChild>
+                {/* <Button variant="hero" size="lg" onClick={() => setShowMenu(true)}></Button> */}
+                <Button variant="heroOutline" size="lg" onClick={() => setShowMenu(true)} asChild>
                   <a href="#menu">View Menu</a>
                 </Button>
               </div>
