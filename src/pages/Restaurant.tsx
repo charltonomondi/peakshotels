@@ -323,8 +323,10 @@ const Restaurant = () => {
         </div>
       </section>
 
-      {/* Dining Spaces - Unique Masonry Layout */}
-      <section className="py-20 bg-secondary">
+      {/* Dining Spaces, Our Menu, Gallery — hidden */}
+      {false && (
+        <>
+            <section className="py-20 bg-secondary">
         <div className="container mx-auto px-4">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -385,7 +387,7 @@ const Restaurant = () => {
                   <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent" />
                   <div className="absolute bottom-0 left-0 right-0 p-6">
                     <h4 className="font-heading text-xl font-bold text-white mb-2">
-                      Smmit Restaurant
+                      Summit Restaurant
                     </h4>
                     <p className="text-white/80 text-sm"></p>
                   </div>
@@ -442,8 +444,7 @@ const Restaurant = () => {
         </div>
       </section>
 
-      {/* Menu Highlights with Images */}
-      <section id="menu" className="py-20 bg-background">
+            <section id="menu" className="py-20 bg-background">
         <div className="container mx-auto px-4">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -556,8 +557,7 @@ const Restaurant = () => {
         </div>
       </section>
 
-      {/* Gallery Showcase */}
-      <section className="py-20 bg-secondary">
+            <section className="py-20 bg-secondary">
         <div className="container mx-auto px-4">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -614,6 +614,8 @@ const Restaurant = () => {
         </div>
       </section>
 
+        </>
+      )}
       {/* Reservation CTA */}
       <section className="py-20 bg-primary relative overflow-hidden">
         <div className="absolute inset-0 opacity-10">
