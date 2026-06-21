@@ -1,9 +1,12 @@
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
+import { useState } from "react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
-import { Clock, Phone, Utensils, Wine, Coffee, Award, MapPin, Calendar } from "lucide-react";
+import { Clock, Phone, Utensils, Wine, Coffee, Award, MapPin, Calendar, X, Download, FileText } from "lucide-react";
+
+const menuPdf = new URL("../assets/Mbaruk Restaurant & Spillover/menu.pdf", import.meta.url).href;
 
 // Use simpler image paths from main assets folder
 const getImagePath = (filename: string) => {
@@ -11,6 +14,7 @@ const getImagePath = (filename: string) => {
 };
 
 const Restaurant = () => {
+  const [showMenu, setShowMenu] = useState(false);
   // Define image paths
   const images = {
     main: getImagePath('IMG_0142.JPG'),
@@ -75,16 +79,15 @@ const Restaurant = () => {
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.8, delay: 0.3 }}
             >
-              <p className="text-accent font-medium tracking-[0.3em] uppercase mb-4 text-sm md:text-base">
+              {/* <p className="text-accent font-medium tracking-[0.3em] uppercase mb-4 text-sm md:text-base">
                 Mbaruk Restaurant & Spillover
-              </p>
+              </p> */}
               <h1 className="font-heading text-5xl md:text-6xl lg:text-7xl font-bold text-white mb-6">
-                A Culinary Journey
+                Taste in Every Choice
               </h1>
               <div className="w-24 h-1 bg-accent mx-auto mb-6" />
               <p className="text-white/90 text-lg md:text-xl max-w-3xl mx-auto mb-8 leading-relaxed">
-                Experience the perfect blend of traditional Kenyan flavors and international cuisine 
-                in an atmosphere of elegance and warmth
+                From family meals and roofto dining to wellness refreshments and outdoor barbecues, Peaks offers a variety of dining experience to suit every occasion.
               </p>
               <div className="flex flex-col sm:flex-row gap-4 justify-center">
                 <Button variant="hero" size="lg" asChild>
@@ -156,21 +159,17 @@ const Restaurant = () => {
               transition={{ duration: 0.6 }}
             >
               <p className="text-accent font-medium tracking-[0.2em] uppercase mb-4">
-                Our Story
+                MBARUK RESTAURANT
               </p>
               <h2 className="font-heading text-4xl md:text-5xl font-bold text-foreground mb-6">
-                Where Flavour Meets Tradition
+                Fresh. Comfortable. Welcoming.
               </h2>
               <div className="w-20 h-1 bg-accent mb-6" />
               <p className="text-muted-foreground text-lg leading-relaxed mb-6">
-                Mbaruk Restaurant & Spillover is more than just a dining destination—it's an experience. 
-                Our chefs masterfully combine locally sourced ingredients with international culinary techniques 
-                to create dishes that tell a story.
+                Our all-day dining restaurant serving Kenyan, African and international favourites.
               </p>
               <p className="text-muted-foreground text-lg leading-relaxed mb-8">
-                From intimate dinners to grand celebrations, our versatile spaces and exceptional service 
-                ensure every moment is memorable. Whether you're enjoying a quiet breakfast, a business lunch, 
-                or an elegant dinner, we promise an unforgettable culinary journey.
+                From family meals and quiet breakfasts to business lunches and celebrations, our versatile spaces and warm service ensure every moment is memorable.
               </p>
               <div className="grid grid-cols-2 gap-6">
                 <div className="text-center p-6 bg-card rounded-xl shadow-elegant">
@@ -226,8 +225,112 @@ const Restaurant = () => {
         </div>
       </section>
 
-      {/* Dining Spaces - Unique Masonry Layout */}
-      <section className="py-20 bg-secondary">
+      {/* Other Dining Venues */}
+      <section className="py-20 bg-background">
+        <div className="container mx-auto px-4">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            className="text-center mb-14"
+          >
+            <p className="text-accent font-medium tracking-[0.2em] uppercase mb-4">More Dining at Peaks</p>
+            <h2 className="font-heading text-4xl md:text-5xl font-bold text-foreground mb-4">
+              Every Occasion, Every Setting
+            </h2>
+            <div className="w-20 h-1 bg-accent mx-auto" />
+          </motion.div>
+
+          <div className="space-y-16">
+            {[
+              {
+                tag: "Outdoor Dining",
+                title: "The Spillover",
+                subtitle: "Outdoor Dining at Its Best.",
+                desc: "A popular open-air dining space where guests enjoy food, refreshments and conversation surrounded by gardens and fresh air.",
+                img: images.outdoor1,
+                alt: "The Spillover outdoor dining",
+                reverse: false,
+              },
+              {
+                tag: "Rooftop Restaurant",
+                title: "Summit Rooftop Restaurant",
+                subtitle: "Dining with a View.",
+                desc: "Enjoy meals and refreshments while taking in panoramic views of Mount Kenya, the Aberdares and the Lolldaiga Hills.",
+                img: images.modern1,
+                alt: "Summit Rooftop Restaurant",
+                reverse: true,
+              },
+              {
+                tag: "Wellness Centre",
+                title: "The Eatery",
+                subtitle: "Fresh and Refreshing.",
+                desc: "Located at the Wellness Centre, The Eatery offers lighter meals, healthy options and refreshing beverages in a relaxed setting.",
+                img: images.dining2,
+                alt: "The Eatery at Wellness Centre",
+                reverse: false,
+              },
+              {
+                tag: "Garden Dining",
+                title: "Front Garden Dining",
+                subtitle: "Food in a Natural Setting.",
+                desc: "Enjoy meals and refreshments outdoors amidst greenery, flowers and the peaceful surroundings that define Peaks.",
+                img: images.outdoor2,
+                alt: "Front Garden Dining",
+                reverse: true,
+              },
+              {
+                tag: "Outdoor Gatherings",
+                title: "Events Grounds Dining",
+                subtitle: "Great Food. Great Company. Great Outdoors.",
+                desc: "Perfect for group meals, celebrations, team-building programmes and outdoor gatherings.",
+                img: images.event1,
+                alt: "Events Grounds Dining",
+                reverse: false,
+              },
+              {
+                tag: "Signature Experience",
+                title: "Peaks Signature BBQ",
+                subtitle: "A Favourite Among Our Guests.",
+                desc: "Our themed barbecue experiences combine delicious food, outdoor dining and the beauty of the Peaks environment.",
+                img: images.modern2,
+                alt: "Peaks Signature BBQ",
+                reverse: true,
+              },
+            ].map((venue, i) => (
+              <motion.div
+                key={venue.title}
+                initial={{ opacity: 0, y: 30 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.6, delay: 0.05 * i }}
+                className={`grid grid-cols-1 lg:grid-cols-2 gap-10 items-center ${venue.reverse ? "lg:flex-row-reverse" : ""}`}
+              >
+                <div className={`overflow-hidden rounded-3xl shadow-xl h-72 md:h-96 ${venue.reverse ? "lg:order-2" : ""}`}>
+                  <img
+                    src={venue.img}
+                    alt={venue.alt}
+                    className="w-full h-full object-cover hover:scale-105 transition-transform duration-700"
+                  />
+                </div>
+                <div className={venue.reverse ? "lg:order-1" : ""}>
+                  <span className="inline-block bg-accent/10 text-accent text-xs font-semibold uppercase tracking-widest px-3 py-1 rounded-full mb-4">
+                    {venue.tag}
+                  </span>
+                  <h3 className="font-heading text-3xl font-bold text-foreground mb-2">{venue.title}</h3>
+                  <p className="text-accent font-medium mb-3 italic">{venue.subtitle}</p>
+                  <p className="text-muted-foreground text-lg leading-relaxed">{venue.desc}</p>
+                </div>
+              </motion.div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Dining Spaces, Our Menu, Gallery — hidden */}
+      {false && (
+        <>
+            <section className="py-20 bg-secondary">
         <div className="container mx-auto px-4">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -288,7 +391,7 @@ const Restaurant = () => {
                   <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent" />
                   <div className="absolute bottom-0 left-0 right-0 p-6">
                     <h4 className="font-heading text-xl font-bold text-white mb-2">
-                      Smmit Restaurant
+                      Summit Restaurant
                     </h4>
                     <p className="text-white/80 text-sm"></p>
                   </div>
@@ -345,8 +448,7 @@ const Restaurant = () => {
         </div>
       </section>
 
-      {/* Menu Highlights with Images */}
-      <section id="menu" className="py-20 bg-background">
+            <section id="menu" className="py-20 bg-background">
         <div className="container mx-auto px-4">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -459,8 +561,7 @@ const Restaurant = () => {
         </div>
       </section>
 
-      {/* Gallery Showcase */}
-      <section className="py-20 bg-secondary">
+            <section className="py-20 bg-secondary">
         <div className="container mx-auto px-4">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -517,6 +618,8 @@ const Restaurant = () => {
         </div>
       </section>
 
+        </>
+      )}
       {/* Reservation CTA */}
       <section className="py-20 bg-primary relative overflow-hidden">
         <div className="absolute inset-0 opacity-10">
@@ -540,14 +643,12 @@ const Restaurant = () => {
               Book your table today for a romantic dinner, family celebration, or business lunch, we're here to serve you.
             </p> */}
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Button variant="hero" size="lg" asChild>
-                <Link to="/booking">
-                  <Calendar className="h-5 w-5 mr-2" />
-                  Make a Reservation
-                </Link>
+              <Button variant="hero" size="lg" onClick={() => setShowMenu(true)}>
+                <FileText className="h-5 w-5 mr-2" />
+                View Menu
               </Button>
               <Button variant="heroOutline" size="lg" asChild>
-                <a href="tel:+254700000000">
+                <a href="tel:+254711969690">
                   <Phone className="h-5 w-5 mr-2" />
                   Call +254 711 969 690
                 </a>
@@ -556,6 +657,67 @@ const Restaurant = () => {
           </motion.div>
         </div>
       </section>
+
+      {/* Menu PDF Modal */}
+      <AnimatePresence>
+        {showMenu && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 bg-black/80 flex items-center justify-center p-4"
+            onClick={() => setShowMenu(false)}
+          >
+            <motion.div
+              initial={{ scale: 0.93, opacity: 0, y: 20 }}
+              animate={{ scale: 1, opacity: 1, y: 0 }}
+              exit={{ scale: 0.93, opacity: 0, y: 20 }}
+              transition={{ duration: 0.25 }}
+              className="bg-background rounded-2xl w-full max-w-4xl h-[90vh] flex flex-col shadow-2xl overflow-hidden"
+              onClick={e => e.stopPropagation()}
+            >
+              {/* Header */}
+              <div className="flex items-center justify-between px-6 py-4 border-b border-border shrink-0">
+                <div className="flex items-center gap-3">
+                  <div className="w-9 h-9 bg-accent/10 rounded-xl flex items-center justify-center">
+                    <FileText className="h-5 w-5 text-accent" />
+                  </div>
+                  <div>
+                    <h2 className="font-heading text-lg font-bold text-foreground">Our Menu</h2>
+                    <p className="text-xs text-muted-foreground">Mbaruk Restaurant & Spillover</p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-2">
+                  <a
+                    href={menuPdf}
+                    download="Mbaruk-Menu.pdf"
+                    className="flex items-center gap-2 px-4 py-2 bg-accent text-accent-foreground rounded-lg text-sm font-semibold hover:bg-accent/90 transition-colors"
+                  >
+                    <Download className="h-4 w-4" />
+                    Download
+                  </a>
+                  <button
+                    onClick={() => setShowMenu(false)}
+                    className="p-2 hover:bg-secondary rounded-full transition-colors"
+                    aria-label="Close"
+                  >
+                    <X className="h-5 w-5 text-muted-foreground" />
+                  </button>
+                </div>
+              </div>
+
+              {/* PDF Viewer */}
+              <div className="flex-1 overflow-hidden">
+                <iframe
+                  src={`${menuPdf}#toolbar=0&navpanes=0`}
+                  className="w-full h-full"
+                  title="Mbaruk Restaurant Menu"
+                />
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       <Footer />
     </div>
