@@ -128,7 +128,7 @@ const Activities = () => {
           <motion.div initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 1.3 }}
             className="flex flex-wrap justify-center gap-3">
             {[
-              { icon: Mountain, text: "8 Activities" },
+              { icon: Mountain, text: "8+ Activities" },
               { icon: Shield,   text: "Safety Certified" },
               { icon: Users,    text: "All Ages Welcome" },
               { icon: Zap,      text: "Year-Round" },
