@@ -16,11 +16,11 @@ const facilities = [
     name: "Infinity Pool",
     description: "Stunning pool overlooking Mount Kenya with poolside service",
   },
-  {
-    icon: UtensilsCrossed,
-    name: "Fine Dining",
-    description: "Award-winning cuisine with local and international flavors",
-  },
+  // {
+  //   icon: UtensilsCrossed,
+  //   name: "Fine Dining",
+  //   description: "Award-winning cuisine with local and international flavors",
+  // },
   {
     icon: Dumbbell,
     name: "Fitness Center",
@@ -31,11 +31,11 @@ const facilities = [
     name: "Conference Halls",
     description: "Modern meeting spaces for up to 200 guests",
   },
-  {
-    icon: Shirt,
-    name: "Laundry Service",
-    description: "Same-day laundry and dry cleaning service",
-  },
+  // {
+  //   icon: Shirt,
+  //   name: "Laundry Service",
+  //   description: "Same-day laundry and dry cleaning service",
+  // },
   {
     icon: Car,
     name: "Secure Parking",
@@ -48,8 +48,8 @@ const facilities = [
   },
   {
     icon: TreePalm,
-    name: "Garden Terrace",
-    description: "Beautiful landscaped gardens for relaxation",
+    name: "Garden & Events Grounds",
+    description: "For events & outdoor activities.",
   },
 ];
 
@@ -68,9 +68,9 @@ const Facilities = () => {
           <p className="text-accent font-medium tracking-[0.2em] uppercase mb-4">
             Hotel Amenities
           </p>
-          <h2 className="font-heading text-4xl md:text-5xl font-bold text-foreground mb-4">
+          {/* <h2 className="font-heading text-4xl md:text-5xl font-bold text-foreground mb-4">
             World-Class Facilities
-          </h2>
+          </h2> */}
           <div className="w-20 h-0.5 bg-accent mx-auto mb-6" />
           <p className="text-muted-foreground max-w-2xl mx-auto">
             Discover our comprehensive range of amenities designed to make your 
@@ -79,7 +79,7 @@ const Facilities = () => {
         </motion.div>
 
         {/* Facilities Grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-3 gap-4 md:gap-6">
           {facilities.map((facility, index) => (
             <motion.div
               key={facility.name}

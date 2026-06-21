@@ -23,7 +23,7 @@ const rooms = [
     price: "From KES 9,600",
     size: "55 sqm",
     // guests: "3 Adults",
-    bed: "King Bed + Sofa",
+    bed: "King Size Bed",
     description: "Additional space and comfort for families, extended stays and guests seeking extra room to relax.",
     amenities: [Wifi, Wind, Coffee],
   },

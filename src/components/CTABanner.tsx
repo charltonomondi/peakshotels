@@ -17,9 +17,9 @@ const CTABanner = () => {
           <h2 className="font-heading text-2xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-6xl font-bold text-primary-foreground mb-4 md:mb-6">
             Ready for the Peaks Experience?
           </h2>
-          <p className="text-primary-foreground/90 text-sm md:text-lg mb-6 md:mb-10 max-w-xl mx-auto px-2">
+          {/* <p className="text-primary-foreground/90 text-sm md:text-lg mb-6 md:mb-10 max-w-xl mx-auto px-2">
             Let us create unforgettable memories for you. Book your stay today and discover the magic of Peaks Hotel.
-          </p>
+          </p> */}
           <div className="flex flex-col sm:flex-row gap-3 justify-center px-4 sm:px-0">
             <Button variant="hero" size="xl" asChild className="w-full sm:w-auto">
               <Link to="/booking">Reserve Your Room</Link>
