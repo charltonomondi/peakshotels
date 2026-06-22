@@ -245,7 +245,7 @@ const Conferences = () => {
       </section>
 
       {/* ── PACKAGES ── */}
-      <section className="py-24 bg-secondary">
+      {/* <section className="py-24 bg-secondary">
         <div className="container mx-auto px-4">
           <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} className="mb-14 text-center">
             <p className="text-accent text-xs font-medium tracking-[0.25em] uppercase mb-2">Pricing</p>
@@ -290,7 +290,7 @@ const Conferences = () => {
             ))}
           </div>
         </div>
-      </section>
+      </section> */}
 
       {/* ── GALLERY STRIP ── */}
       <section className="py-10 bg-background">
