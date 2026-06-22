@@ -190,10 +190,11 @@ const Index = () => {
             >
               <div className="overflow-hidden rounded-3xl shadow-2xl aspect-video">
                 <iframe
-                  src="https://www.youtube.com/embed/ccKNjEAzbz0"
-                  title="Peaks Hotel experience"
+                  src="https://www.youtube.com/embed/kwW1S6c_RlM"
+                  title="Peaks Tv | Easter Outdoor Experience at Peaks"
                   frameBorder="0"
-                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                  referrerPolicy="strict-origin-when-cross-origin"
                   allowFullScreen
                   className="w-full h-full"
                 />
