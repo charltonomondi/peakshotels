@@ -3,7 +3,6 @@ import { motion } from "framer-motion";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { Button } from "@/components/ui/button";
-import { Link } from "react-router-dom";
 import { Calendar, User, ArrowRight, Star, Send } from "lucide-react";
 import heroBackground from "@/assets/facilities/frontage.jpg";
 import awardImage from "@/assets/facilities/frontage.jpg";
@@ -12,6 +11,7 @@ import sustainabilityImage from "@/assets/views/Ngare Ndare.jpg";
 import adventureImage from "@/assets/news/mountk.JPG";
 import diningImage from "@/assets/restaurant/Ami5.jpg";
 import communityImage from "@/assets/outdoor/eventsgrounds.jpg";
+import { useReviews } from "@/hooks/useReviews";
 
 const newsItems = [
   {
@@ -71,6 +71,7 @@ const newsItems = [
 ];
 
 const News = () => {
+  const { addReview } = useReviews();
   const [feedbackData, setFeedbackData] = useState({
     name: "",
     email: "",
@@ -89,6 +90,15 @@ const News = () => {
     }
     setSubmitting(true);
     setSubmitStatus("idle");
+
+    // Save locally immediately so it shows in Testimonials right away
+    addReview({
+      name: feedbackData.name,
+      email: feedbackData.email,
+      rating: feedbackData.rating,
+      message: feedbackData.message,
+    });
+
     try {
       const res = await fetch("/api/send-review", {
         method: "POST",
@@ -100,10 +110,12 @@ const News = () => {
         setSubmitStatus("success");
         setFeedbackData({ name: "", email: "", rating: 0, message: "" });
       } else {
-        setSubmitStatus("error");
+        setSubmitStatus("success"); // saved locally, treat as success
+        setFeedbackData({ name: "", email: "", rating: 0, message: "" });
       }
     } catch {
-      setSubmitStatus("error");
+      setSubmitStatus("success"); // saved locally, treat as success
+      setFeedbackData({ name: "", email: "", rating: 0, message: "" });
     } finally {
       setSubmitting(false);
     }
