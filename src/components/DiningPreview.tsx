@@ -9,7 +9,7 @@ import summit from "@/assets/restaurant/rooftop.jpg";
 const menuPdf = new URL("../assets/Mbaruk Restaurant & Spillover/menu.pdf", import.meta.url).href;
 
 const DiningPreview = () => {
-  const [showMenu, setShowMenu] = useState(false);
+  const [showMenu, setShowMenu] = useState(false); 
 
   return (
     <section className="py-24 bg-background">
