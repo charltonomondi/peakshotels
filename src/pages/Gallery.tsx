@@ -1,8 +1,9 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { X, ChevronLeft, ChevronRight } from "lucide-react";
+import { useSearchParams } from "react-router-dom";
 
 // Hero
 import heroBackground from "@/assets/facilities/frontage.jpg";
@@ -68,7 +69,26 @@ import viewOlp      from "@/assets/views/Olpajeta conservancy.jpg";
 import viewOutdoor  from "@/assets/views/Outdoorcompressed.jpg";
 import situps       from "@/assets/facilities/situps.jpg";
 
-const categories = ["All", "Rooms", "Dining", "Facilities", "Gym", "Wellness", "Views"];
+// Outdoor activities
+import pxl1  from "@/assets/outdoor/PXL_20240823_125947232.jpg";
+import pxl2  from "@/assets/outdoor/PXL_20240823_132156364 (1).jpg";
+import pxl3  from "@/assets/outdoor/PXL_20240823_133525309.jpg";
+import pxl4  from "@/assets/outdoor/PXL_20240920_152600945.jpg";
+import pxl5  from "@/assets/outdoor/PXL_20240920_152651903.jpg";
+import pxl6  from "@/assets/outdoor/PXL_20240920_154428686.jpg";
+import pxl7  from "@/assets/outdoor/PXL_20240920_163745814.jpg";
+import pxl8  from "@/assets/outdoor/PXL_20240920_170139118.jpg";
+import outdoorImg1  from "@/assets/outdoor/IMG_20240727_111207_652.jpg";
+import outdoorImg2  from "@/assets/outdoor/IMG_20240727_112106_015.jpg";
+import outdoorImg3  from "@/assets/outdoor/IMG_20240727_112704_085.jpg";
+import outdoorImg4  from "@/assets/outdoor/IMG_20240819_122707.jpg";
+import outdoorImg5  from "@/assets/outdoor/IMG_20240819_123612.jpg";
+import greatEscapeOut from "@/assets/outdoor/great escape.jpg";
+import spiderswebOut  from "@/assets/outdoor/spidersweb.jpg";
+import magicbootsOut  from "@/assets/outdoor/magicboots.jpg";
+import ngareNdareOut  from "@/assets/outdoor/Ngare Ndare.jpg";
+
+const categories = ["All", "Rooms", "Dining", "Facilities", "Gym", "Wellness", "Views", "Outdoor"];
 
 type GalleryImage = { src: string; category: string; title: string };
 
@@ -133,6 +153,25 @@ const galleryImages: GalleryImage[] = [
   { src: viewNgare,   category: "Views", title: "Ngare Ndare Forest" },
   { src: viewOlp,     category: "Views", title: "Ol Pejeta Conservancy" },
   { src: viewOutdoor, category: "Views", title: "Outdoor Scenery" },
+
+  // Outdoor Activities
+  { src: greatEscapeOut, category: "Outdoor", title: "Great Escape" },
+  { src: spiderswebOut,  category: "Outdoor", title: "Spider's Web" },
+  { src: magicbootsOut,  category: "Outdoor", title: "Magic Boots" },
+  { src: ngareNdareOut,  category: "Outdoor", title: "Mountain Hiking" },
+  { src: pxl1,           category: "Outdoor", title: "Outdoor Activities" },
+  { src: pxl2,           category: "Outdoor", title: "Team Building" },
+  { src: pxl3,           category: "Outdoor", title: "Adventure" },
+  { src: pxl4,           category: "Outdoor", title: "Outdoor Fitness" },
+  { src: pxl5,           category: "Outdoor", title: "Group Activities" },
+  { src: pxl6,           category: "Outdoor", title: "Outdoor Challenge" },
+  { src: pxl7,           category: "Outdoor", title: "Nature & Adventure" },
+  { src: pxl8,           category: "Outdoor", title: "Peaks Outdoors" },
+  { src: outdoorImg1,    category: "Outdoor", title: "Outdoor Experience" },
+  { src: outdoorImg2,    category: "Outdoor", title: "Adventure Zone" },
+  { src: outdoorImg3,    category: "Outdoor", title: "Group Challenge" },
+  { src: outdoorImg4,    category: "Outdoor", title: "Fitness Outdoors" },
+  { src: outdoorImg5,    category: "Outdoor", title: "Peaks Adventure" },
 ];
 
 const counts: Record<string, number> = { All: galleryImages.length };
@@ -141,8 +180,17 @@ categories.slice(1).forEach(c => {
 });
 
 const Gallery = () => {
-  const [activeCategory, setActiveCategory] = useState("All");
+  const [searchParams] = useSearchParams();
+  const [activeCategory, setActiveCategory] = useState(() => {
+    const cat = searchParams.get("category");
+    return cat && categories.includes(cat) ? cat : "All";
+  });
   const [selectedIdx, setSelectedIdx] = useState<number | null>(null);
+
+  useEffect(() => {
+    const cat = searchParams.get("category");
+    if (cat && categories.includes(cat)) setActiveCategory(cat);
+  }, [searchParams]);
 
   const filtered = activeCategory === "All"
     ? galleryImages

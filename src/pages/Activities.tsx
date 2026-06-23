@@ -7,7 +7,7 @@ import { Link } from "react-router-dom";
 import { Mountain, Clock, Users, Check, X, ChevronDown, ArrowRight, MapPin, Shield, Zap } from "lucide-react";
 
 // Hero & key images
-import heroImg        from "@/assets/outdoor/Out door compressed.jpg";
+import heroImg        from "@/assets/outdoor/outdoorgym.png";
 import ngareNdare     from "@/assets/outdoor/Ngare Ndare.jpg";
 import greatEscape    from "@/assets/outdoor/great escape.jpg";
 import greatescape2   from "@/assets/outdoor/greatescape.jpg";
@@ -106,11 +106,11 @@ const Activities = () => {
 
         <motion.div style={{ opacity: heroOpacity }}
           className="relative h-full flex flex-col items-center justify-center text-center px-4">
-          <motion.div initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }}
+          {/* <motion.div initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }}
             className="flex items-center gap-2 mb-5">
             <MapPin className="h-4 w-4 text-green-400" />
             <span className="text-green-300 font-medium tracking-[0.3em] uppercase text-xs">Nanyuki · Kenya</span>
-          </motion.div>
+          </motion.div> */}
 
           <motion.h1 initial={{ opacity: 0, y: 40 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.5, duration: 1 }}
             className="font-heading text-6xl md:text-8xl lg:text-9xl font-bold text-white leading-none mb-4">
@@ -155,7 +155,7 @@ const Activities = () => {
           </motion.div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-            {activities.map(({ image, name, tagline, description, duration, difficulty, group }, i) => (
+            {activities.slice(0, 3).map(({ image, name, tagline, description, duration, difficulty, group }, i) => (
               <motion.div key={name} initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }} transition={{ delay: i * 0.07 }}
                 className="group relative overflow-hidden rounded-2xl h-80 cursor-default">
@@ -202,7 +202,7 @@ const Activities = () => {
           </motion.div>
 
           <div className="columns-2 md:columns-3 lg:columns-4 gap-3 space-y-3">
-            {displayed.map((img, i) => (
+            {galleryAll.slice(0, 12).map((img, i) => (
               <motion.div key={i} initial={{ opacity: 0, scale: 0.95 }} whileInView={{ opacity: 1, scale: 1 }}
                 viewport={{ once: true }} transition={{ delay: i * 0.04 }}
                 className="break-inside-avoid overflow-hidden rounded-xl cursor-pointer group"
@@ -214,9 +214,10 @@ const Activities = () => {
           </div>
 
           <div className="text-center mt-8">
-            <Button onClick={() => setShowAll(v => !v)} variant="outline"
-              className="border-green-700 text-green-300 hover:bg-green-900 rounded-full px-8">
-              {showAll ? "Show Less" : `Show All (${galleryAll.length - 12} more)`}
+            <Button variant="outline" className="border-green-700 text-green-300 hover:bg-green-900 rounded-full px-8" asChild>
+              <Link to="/gallery?category=Outdoor">
+                View All in Gallery <ArrowRight className="h-4 w-4 ml-2" />
+              </Link>
             </Button>
           </div>
         </div>
@@ -284,7 +285,7 @@ const Activities = () => {
           <motion.div initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} className="max-w-xl">
             <p className="text-green-400 text-xs font-medium tracking-[0.3em] uppercase mb-4">Ready to explore?</p>
             <h2 className="font-heading text-4xl md:text-5xl font-bold text-white mb-5 leading-tight">
-              The Mountain Is Calling
+              The Mountain Forest Is Calling
             </h2>
             <p className="text-white/60 text-lg mb-10 leading-relaxed">
               Book your stay and our team will arrange your full adventure programme — from sunrise hikes to sunset bonfire sessions.
