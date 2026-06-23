@@ -8,19 +8,14 @@ import { Mountain, Clock, Users, Check, X, ChevronDown, ArrowRight, MapPin, Shie
 
 // Hero & key images
 import heroImg        from "@/assets/outdoor/outdoorgym.png";
-import ngareNdare     from "@/assets/outdoor/Ngare Ndare.jpg";
-import greatEscape    from "@/assets/outdoor/great escape.jpg";
+import forestImg      from "@/assets/outdoor/forest.JPG";
+import teambuildingImg from "@/assets/outdoor/teambuilding.JPG";
+import mountImg       from "@/assets/outdoor/mount.jpeg";
 import greatescape2   from "@/assets/outdoor/greatescape.jpg";
-import spidersweb     from "@/assets/outdoor/spidersweb.jpg";
-import magicboots     from "@/assets/outdoor/magicboots.jpg";
-import berlingwall    from "@/assets/outdoor/berlingwall.jpg";
-import situps         from "@/assets/outdoor/situps.jpg";
 import inclinedsitups from "@/assets/outdoor/inclinedsitups.jpg";
 import stepups        from "@/assets/outdoor/stepups.jpg";
 import eventsgrounds  from "@/assets/outdoor/eventsgrounds.jpg";
 import eventsgrounds1 from "@/assets/outdoor/Eventsgrounds1.jpg";
-import garden9        from "@/assets/outdoor/garden9.jpg";
-import outdoor2       from "@/assets/outdoor/Outdoorcompressed.jpg";
 import pxl1  from "@/assets/outdoor/PXL_20240823_125947232.jpg";
 import pxl2  from "@/assets/outdoor/PXL_20240823_132156364 (1).jpg";
 import pxl3  from "@/assets/outdoor/PXL_20240823_133525309.jpg";
@@ -48,15 +43,38 @@ const difficultyColor: Record<Difficulty, string> = {
 const activities: {
   image: string; name: string; tagline: string;
   description: string; duration: string; difficulty: Difficulty; group: string;
+  accent: string;
 }[] = [
-  { image: ngareNdare,   name: "Mountain Hiking",     tagline: "Into the wild",         description: "Guided trails through indigenous forests to panoramic Mount Kenya viewpoints.",       duration: "Half – Full day", difficulty: "Moderate",    group: "All ages" },
-  { image: greatEscape,  name: "Great Escape",         tagline: "Push your limits",      description: "A full obstacle course that tests agility, strength, and teamwork across multi-stage challenges.", duration: "2 – 3 hrs",       difficulty: "Challenging", group: "12+" },
-  { image: spidersweb,   name: "Spider's Web",         tagline: "Teamwork conquers all", description: "Navigate through a rope web without touching the sides — a true test of coordination and trust.", duration: "30 – 45 min",     difficulty: "Moderate",    group: "All" },
-  { image: magicboots,   name: "Magic Boots",          tagline: "Bounce to new heights", description: "Strap into spring-loaded stilts and bounce across our adventure zone.",                duration: "1 – 2 hrs",       difficulty: "Moderate",    group: "All ages" },
-  { image: berlingwall,  name: "Berlin Wall",          tagline: "Conquer the wall",      description: "Scale a vertical timber wall using only teamwork — no footholds, only each other.",   duration: "30 – 45 min",     difficulty: "Challenging", group: "12+" },
-  { image: situps,       name: "Outdoor Fitness",      tagline: "Train in fresh air",    description: "A circuit of outdoor fitness stations — sit-ups, step-ups, incline work, and more.",  duration: "45 – 60 min",     difficulty: "Varies",      group: "All" },
-  { image: outdoor2,     name: "Wildlife Safari",      tagline: "Kenya's wild heart",    description: "Day excursions to Ol Pejeta Conservancy and Ngare Ndare Forest.",                      duration: "Full day",         difficulty: "Easy",        group: "All ages" },
-  { image: garden9,      name: "Garden & Nature Walk", tagline: "Slow down, look up",    description: "A guided stroll through the hotel's landscaped grounds learning about local flora.",  duration: "1 – 2 hrs",        difficulty: "Easy",        group: "All ages" },
+  {
+    image: teambuildingImg,
+    name: "Team Building Activities",
+    tagline: "Together we rise",
+    description: "From ropes courses and obstacle challenges to group problem-solving exercises — our outdoor team building programmes are designed to strengthen bonds, build trust and unlock potential.",
+    duration: "2 – 4 hrs",
+    difficulty: "Varies",
+    group: "Groups of 10+",
+    accent: "#22c55e",
+  },
+  {
+    image: mountImg,
+    name: "Mountain Climbing",
+    tagline: "Reach the summit",
+    description: "Guided expeditions to the peaks of Mount Kenya including the iconic Point Lenana at 4,985 m. From introductory hikes to multi-day summit attempts — our experienced team takes you safely to the top.",
+    duration: "1 – 5 days",
+    difficulty: "Challenging",
+    group: "All levels",
+    accent: "#f59e0b",
+  },
+  {
+    image: forestImg,
+    name: "Forest Hiking",
+    tagline: "Into the wild",
+    description: "Walk through the indigenous Mount Kenya forest ecosystem — ancient trees, birdsong, wildlife and fresh highland air. Our guides bring the forest alive with stories of ecology, culture and conservation.",
+    duration: "Half – Full day",
+    difficulty: "Moderate",
+    group: "All ages",
+    accent: "#84cc16",
+  },
 ];
 
 const packages = [
@@ -125,7 +143,7 @@ const Activities = () => {
             Adventure, nature, and open air — all on the doorstep of Mount Kenya. Guided experiences for every level.
           </motion.p>
 
-          <motion.div initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 1.3 }}
+          {/* <motion.div initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 1.3 }}
             className="flex flex-wrap justify-center gap-3">
             {[
               { icon: Mountain, text: "8+ Activities" },
@@ -137,7 +155,7 @@ const Activities = () => {
                 <Icon className="h-3.5 w-3.5" />{text}
               </span>
             ))}
-          </motion.div>
+          </motion.div> */}
         </motion.div>
 
         <motion.div className="absolute bottom-8 left-1/2 -translate-x-1/2"
@@ -146,7 +164,7 @@ const Activities = () => {
         </motion.div>
       </section>
 
-      {/* ── ACTIVITIES GRID ── */}
+      {/* ── ACTIVITIES ── unique staggered layout */}
       <section className="py-24" style={{ background: "#0d1a0f" }}>
         <div className="container mx-auto px-4">
           <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} className="mb-14">
@@ -154,41 +172,84 @@ const Activities = () => {
             <h2 className="font-heading text-4xl md:text-5xl font-bold text-white">Available Activities</h2>
           </motion.div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-            {activities.slice(0, 3).map(({ image, name, tagline, description, duration, difficulty, group }, i) => (
-              <motion.div key={name} initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }} transition={{ delay: i * 0.07 }}
-                className="group relative overflow-hidden rounded-2xl h-80 cursor-default">
-                <img src={image} alt={name} className="absolute inset-0 w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" />
-                {/* default gradient */}
-                <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/30 to-transparent" />
-                {/* hover overlay */}
-                <div className="absolute inset-0 bg-green-950/80 opacity-0 group-hover:opacity-100 transition-opacity duration-350" />
+          {/* Feature layout: large left + two stacked right */}
+          <div className="grid grid-cols-1 lg:grid-cols-5 gap-4 h-auto lg:h-[680px]">
 
-                {/* difficulty badge */}
-                <div className="absolute top-3 right-3">
-                  <span className={`text-xs font-bold px-2.5 py-1 rounded-full ${difficultyColor[difficulty]}`}>
-                    {difficulty}
+            {/* Large feature card — Team Building */}
+            <motion.div
+              initial={{ opacity: 0, x: -40 }}
+              whileInView={{ opacity: 1, x: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.7 }}
+              className="lg:col-span-3 relative overflow-hidden rounded-3xl group cursor-default"
+            >
+              <img src={activities[0].image} alt={activities[0].name}
+                className="w-full h-72 lg:h-full object-cover group-hover:scale-105 transition-transform duration-700" />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/30 to-transparent" />
+
+              {/* difficulty badge */}
+              <div className="absolute top-5 left-5">
+                <span className={`text-xs font-bold px-3 py-1.5 rounded-full ${difficultyColor[activities[0].difficulty]}`}>
+                  {activities[0].difficulty}
+                </span>
+              </div>
+
+              <div className="absolute bottom-0 left-0 right-0 p-8">
+                <p className="text-green-400 text-xs font-medium tracking-[0.2em] uppercase mb-2">{activities[0].tagline}</p>
+                <h3 className="font-heading text-3xl md:text-4xl font-bold text-white mb-3">{activities[0].name}</h3>
+                <p className="text-white/70 text-sm leading-relaxed mb-5 max-w-lg">{activities[0].description}</p>
+                <div className="flex flex-wrap gap-4 text-xs text-green-300">
+                  <span className="flex items-center gap-1.5 bg-white/10 backdrop-blur-sm px-3 py-1.5 rounded-full">
+                    <Clock className="h-3 w-3" />{activities[0].duration}
+                  </span>
+                  <span className="flex items-center gap-1.5 bg-white/10 backdrop-blur-sm px-3 py-1.5 rounded-full">
+                    <Users className="h-3 w-3" />{activities[0].group}
                   </span>
                 </div>
+              </div>
+            </motion.div>
 
-                {/* default content */}
-                <div className="absolute bottom-0 left-0 p-5 group-hover:opacity-0 transition-opacity duration-200">
-                  <p className="text-green-400 text-xs uppercase tracking-wider mb-1">{tagline}</p>
-                  <h3 className="font-heading text-xl font-bold text-white">{name}</h3>
-                </div>
+            {/* Right column — Mountain Climbing + Forest Hiking stacked */}
+            <div className="lg:col-span-2 flex flex-col gap-4">
+              {activities.slice(1).map((act, i) => (
+                <motion.div
+                  key={act.name}
+                  initial={{ opacity: 0, x: 40 }}
+                  whileInView={{ opacity: 1, x: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ duration: 0.7, delay: i * 0.15 }}
+                  className="relative overflow-hidden rounded-3xl group cursor-default flex-1"
+                >
+                  <img src={act.image} alt={act.name}
+                    className="w-full h-56 lg:h-full object-cover group-hover:scale-105 transition-transform duration-700" />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/20 to-transparent" />
 
-                {/* hover content */}
-                <div className="absolute inset-0 flex flex-col justify-center p-6 opacity-0 group-hover:opacity-100 transition-opacity duration-350">
-                  <h3 className="font-heading text-xl font-bold text-white mb-2">{name}</h3>
-                  <p className="text-green-100/80 text-sm leading-relaxed mb-4">{description}</p>
-                  <div className="flex flex-wrap gap-3 text-xs text-green-200">
-                    <span className="flex items-center gap-1"><Clock className="h-3 w-3" />{duration}</span>
-                    <span className="flex items-center gap-1"><Users className="h-3 w-3" />{group}</span>
+                  {/* difficulty badge */}
+                  <div className="absolute top-4 left-4">
+                    <span className={`text-xs font-bold px-2.5 py-1 rounded-full ${difficultyColor[act.difficulty]}`}>
+                      {act.difficulty}
+                    </span>
                   </div>
-                </div>
-              </motion.div>
-            ))}
+
+                  {/* default */}
+                  <div className="absolute bottom-0 left-0 right-0 p-5 group-hover:opacity-0 transition-opacity duration-300">
+                    <p className="text-xs uppercase tracking-wider mb-1" style={{ color: act.accent }}>{act.tagline}</p>
+                    <h3 className="font-heading text-xl font-bold text-white">{act.name}</h3>
+                  </div>
+
+                  {/* hover */}
+                  <div className="absolute inset-0 flex flex-col justify-end p-5 opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+                    style={{ background: "linear-gradient(to top, rgba(0,0,0,0.92) 60%, transparent)" }}>
+                    <h3 className="font-heading text-xl font-bold text-white mb-2">{act.name}</h3>
+                    <p className="text-white/75 text-xs leading-relaxed mb-3">{act.description}</p>
+                    <div className="flex gap-3 text-xs" style={{ color: act.accent }}>
+                      <span className="flex items-center gap-1"><Clock className="h-3 w-3" />{act.duration}</span>
+                      <span className="flex items-center gap-1"><Users className="h-3 w-3" />{act.group}</span>
+                    </div>
+                  </div>
+                </motion.div>
+              ))}
+            </div>
           </div>
         </div>
       </section>
@@ -196,7 +257,7 @@ const Activities = () => {
       {/* ── MASONRY PHOTO WALL ── */}
       <section className="py-8" style={{ background: "#0d1a0f" }}>
         <div className="container mx-auto px-4">
-          <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} className="mb-10">
+          {/* <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} className="mb-10">
             <p className="text-green-500 text-xs font-medium tracking-[0.25em] uppercase mb-2">In action</p>
             <h2 className="font-heading text-4xl font-bold text-white">Adventure Gallery</h2>
           </motion.div>
@@ -211,7 +272,7 @@ const Activities = () => {
                   className="w-full object-cover group-hover:scale-105 transition-transform duration-500 group-hover:brightness-110" />
               </motion.div>
             ))}
-          </div>
+          </div> */}
 
           <div className="text-center mt-8">
             <Button variant="outline" className="border-green-700 text-green-300 hover:bg-green-900 rounded-full px-8" asChild>
@@ -278,7 +339,7 @@ const Activities = () => {
       {/* ── CTA ── full-bleed forest image */}
       <section className="relative py-36 overflow-hidden">
         <div className="absolute inset-0">
-          <img src={ngareNdare} alt="Ngare Ndare Forest" className="w-full h-full object-cover" />
+          <img src={forestImg} alt="Forest Hiking" className="w-full h-full object-cover" />
           <div className="absolute inset-0 bg-gradient-to-r from-green-950/95 via-green-900/80 to-transparent" />
         </div>
         <div className="relative container mx-auto px-4">
