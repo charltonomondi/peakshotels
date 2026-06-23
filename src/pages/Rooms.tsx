@@ -58,7 +58,7 @@ const rooms = [
     // guests: "4 Adults",
     bed: "King Size Beds",
     description: "Our most spacious accommodation option, offering enhanced comfort, additional living space and beautiful views.",
-    amenities: ["Free WiFi",   "Flat Screen TV",  "Luxury Bathroom",     ],
+    amenities: ["Free WiFi",   "Flat Screen TV",  "Luxury Bathroom", "En-suite Bathroom",   "Bathtub", ],
   },
 ];
 

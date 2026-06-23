@@ -11,8 +11,8 @@ import {
   Zap,
   Target
 } from "lucide-react";
-import gymHero from "@/assets/gym/gym.jpg";
-import gym1 from "@/assets/gym/gym1.jpg";
+import gymHero from "@/assets/gym/gym1.jpg";
+import gym1 from "@/assets/gym/gym.jpg";
 import gym2 from "@/assets/gym/gym2.jpg";
 import gym3 from "@/assets/gym/gym3.jpg";
 

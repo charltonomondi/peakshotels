@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { X, Mountain, ChevronLeft, ChevronRight, Calendar, Users, Phone, Mail, User, MapPin, AlertCircle, CheckCircle, Loader2, Smartphone } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
-import mountk  from "@/assets/mountain/mountk.JPG";
+import mountk  from "@/assets/mountain/mountk.jpg";
 import mountk1 from "@/assets/mountain/mountk1.JPG";
 import mountk2 from "@/assets/mountain/mountk2.JPG";
 import mountk3 from "@/assets/mountain/mountk3.JPG";

@@ -216,7 +216,7 @@ const BeautyParlour = () => {
       </section> */}
 
       {/* ── SERVICES HOVER GRID ── */}
-      <section className="py-8 pb-24" style={{ background: "#faf7f4" }}>
+      {/* <section className="py-8 pb-24" style={{ background: "#faf7f4" }}>
         <div className="container mx-auto px-4">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -240,18 +240,18 @@ const BeautyParlour = () => {
                 onHoverEnd={() => setHoveredService(null)}
                 className="group relative overflow-hidden rounded-3xl h-64 cursor-default"
               >
-                {/* background image */}
+                
                 <img
                   src={image}
                   alt={name}
                   className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
                 />
-                {/* default overlay */}
+                
                 <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/30 to-transparent transition-opacity duration-300 group-hover:opacity-0" />
-                {/* hover overlay */}
+                
                 <div className="absolute inset-0 bg-rose-900/80 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
 
-                {/* default content */}
+               
                 <div className="absolute bottom-0 left-0 p-7 transition-opacity duration-300 group-hover:opacity-0">
                   <div className="flex items-center gap-2 mb-1">
                     <Icon className="h-4 w-4 text-rose-300" />
@@ -260,7 +260,7 @@ const BeautyParlour = () => {
                   <h3 className="font-heading text-2xl font-bold text-white">{name}</h3>
                 </div>
 
-                {/* hover content */}
+               
                 <div className="absolute inset-0 flex flex-col justify-center p-8 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
                   <h3 className="font-heading text-2xl font-bold text-white mb-3">{name}</h3>
                   <p className="text-rose-100/80 text-sm leading-relaxed mb-2">{description}</p>
@@ -273,7 +273,7 @@ const BeautyParlour = () => {
             ))}
           </div>
         </div>
-      </section>
+      </section> */}
 
       {/* ── FULL-BLEED IMAGE QUOTE ── */}
       {/* <section className="relative h-72 md:h-96 overflow-hidden">
@@ -317,7 +317,7 @@ const BeautyParlour = () => {
                 <Link to="/booking">Book</Link>
               </Button>
               <Button size="lg" variant="outline" className="border-stone-300 text-stone-700 hover:bg-stone-100 rounded-full px-10" asChild>
-                <Link to="/facilities">All Facilities</Link>
+                <Link to="#">All Facilities</Link>
               </Button>
             </div>
           </motion.div>

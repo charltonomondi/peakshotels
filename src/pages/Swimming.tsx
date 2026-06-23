@@ -19,7 +19,7 @@ const stats = [
 const features = [
   { icon: Waves,       title: "Lap Swimming",       desc: "Multiple lanes for serious swimmers and leisurely floats alike." },
   { icon: Sun,         title: "Sun Deck",            desc: "Poolside loungers with umbrellas and panoramic mountain views." },
-  { icon: Thermometer, title: "Heated Year-Round",   desc: "Temperature-controlled water ensures comfort in every season." },
+  // { icon: Thermometer, title: "Heated Year-Round",   desc: "Temperature-controlled water ensures comfort in every season." },
   { icon: Users,       title: "Swimming Lessons",    desc: "Certified instructors available for all ages and skill levels." },
 ];
 
@@ -36,7 +36,7 @@ const Swimming = () => {
       {/* HERO */}
       <section ref={heroRef} className="relative h-screen overflow-hidden">
         <motion.div style={{ y: heroY }} className="absolute inset-0 scale-110">
-          <img src={swim1} alt="Swimming Pool" className="w-full h-full object-cover" />
+          <img src={swim3} alt="Swimming Pool" className="w-full h-full object-cover" />
           <div className="absolute inset-0 bg-gradient-to-b from-sky-900/70 via-teal-900/50 to-black/80" />
         </motion.div>
 

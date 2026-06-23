@@ -12,7 +12,7 @@ import mas3 from "@/assets/massage/mas3.jpg";
 const massageTypes = [
   {
     id: 0,
-    name: "Swedish",
+    name: "Stone Therapy",
     tagline: "The classic unwind",
     description: "Long, flowing strokes melt surface tension and ease the nervous system into profound calm. The perfect introduction to massage therapy.",
     duration: "60 – 90 min",
@@ -151,7 +151,7 @@ const Massage = () => {
             viewport={{ once: true }}
             className="mb-10"
           >
-            <p className="text-rose-400 text-xs font-medium tracking-[0.25em] uppercase mb-2">Our treatments</p>
+            {/* <p className="text-rose-400 text-xs font-medium tracking-[0.25em] uppercase mb-2">Our treatments</p> */}
             <h2 className="font-heading text-4xl md:text-5xl font-bold text-stone-900">Choose Your Journey</h2>
           </motion.div>
 

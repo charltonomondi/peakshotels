@@ -73,21 +73,21 @@ const venues = [
 const packages = [
   {
     name: "Half Day",
-    price: "KES 2,500",
+    price: "",
     popular: false,
     features: ["4 hours venue", "Tea/Coffee break", "Mineral water", "Projector & screen", "WiFi", "Stationery"],
     excluded: ["Lunch", "Full day access"],
   },
   {
     name: "Full Day",
-    price: "KES 4,500",
+    price: "",
     popular: true,
     features: ["8 hours venue", "Morning & afternoon tea", "Buffet lunch", "Mineral water", "Projector & screen", "WiFi", "Stationery", "Flip charts"],
     excluded: [],
   },
   {
     name: "Residential",
-    price: "KES 12,000",
+    price: "",
     popular: false,
     features: ["Accommodation (single)", "All meals", "Conference facilities", "Tea breaks", "AV equipment", "WiFi", "Stationery", "Pool access"],
     excluded: [],

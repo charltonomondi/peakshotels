@@ -339,7 +339,7 @@ const Activities = () => {
       {/* ── CTA ── full-bleed forest image */}
       <section className="relative py-36 overflow-hidden">
         <div className="absolute inset-0">
-          <img src={forestImg} alt="Forest Hiking" className="w-full h-full object-cover object-top" />
+          <img src={forestImg} alt="Forest Hiking" className="w-full h-full object-cover object-[center_38%]" />
           <div className="absolute inset-0 bg-gradient-to-r from-green-950/95 via-green-900/80 to-transparent" />
         </div>
         <div className="relative container mx-auto px-4">

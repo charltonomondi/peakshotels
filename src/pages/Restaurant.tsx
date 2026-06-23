@@ -17,8 +17,8 @@ const Restaurant = () => {
   const [showMenu, setShowMenu] = useState(false);
   // Define image paths
   const images = {
-    main: getImagePath('IMG_0142.JPG'),
-    interior1: getImagePath('IMG_0146.JPG'),
+    main: getImagePath('spillover2.jpg'),
+    interior1: getImagePath('ngt.jpg'),
     interior2: getImagePath('IMG_0147.JPG'),
     dining1: getImagePath('IMG_0148.JPG'),
     dining2: getImagePath('IMG_0150.JPG'),
@@ -28,7 +28,7 @@ const Restaurant = () => {
     food1: getImagePath('IMG_1130.JPG'),
     food2: getImagePath('IMG_1134.JPG'),
     food3: getImagePath('IMG_1149.JPG'),
-    ambiance1: getImagePath('IMG_1576.JPG'),
+    ambiance1: getImagePath('meat.jpg'),
     ambiance2: getImagePath('IMG_1580.JPG'),
     ambiance3: getImagePath('IMG_1582.JPG'),
     event1: getImagePath('IMG_1595.JPG'),
@@ -50,6 +50,8 @@ const Restaurant = () => {
     evening1: getImagePath('PXL_20241224_184750186.jpg'),
     evening2: getImagePath('PXL_20241224_184847229.jpg'),
     evening3: getImagePath('PXL_20241224_191954033.jpg'),
+    rooftop:getImagePath('rooftop.jpg'),
+    garden:getImagePath('garden.jpg'),
   };
 
   return (
@@ -91,7 +93,7 @@ const Restaurant = () => {
               </p>
               <div className="flex flex-col sm:flex-row gap-4 justify-center">
                 <Button variant="hero" size="lg" asChild>
-                  <Link to="/booking">Reserve a Table</Link>
+                  <Link to="#">Reserve a Table</Link>
                 </Button>
                 {/* <Button variant="hero" size="lg" onClick={() => setShowMenu(true)}></Button> */}
                 <Button variant="heroOutline" size="lg" onClick={() => setShowMenu(true)} asChild>
@@ -249,7 +251,7 @@ const Restaurant = () => {
                 title: "The Spillover",
                 subtitle: "Outdoor Dining at Its Best.",
                 desc: "A popular open-air dining space where guests enjoy food, refreshments and conversation surrounded by gardens and fresh air.",
-                img: images.outdoor1,
+                img: images.modern1,
                 alt: "The Spillover outdoor dining",
                 reverse: false,
               },
@@ -258,7 +260,7 @@ const Restaurant = () => {
                 title: "Summit Rooftop Restaurant",
                 subtitle: "Dining with a View.",
                 desc: "Enjoy meals and refreshments while taking in panoramic views of Mount Kenya, the Aberdares and the Lolldaiga Hills.",
-                img: images.modern1,
+                img: images.rooftop,
                 alt: "Summit Rooftop Restaurant",
                 reverse: true,
               },
@@ -276,7 +278,7 @@ const Restaurant = () => {
                 title: "Front Garden Dining",
                 subtitle: "Food in a Natural Setting.",
                 desc: "Enjoy meals and refreshments outdoors amidst greenery, flowers and the peaceful surroundings that define Peaks.",
-                img: images.outdoor2,
+                img: images.garden,
                 alt: "Front Garden Dining",
                 reverse: true,
               },
