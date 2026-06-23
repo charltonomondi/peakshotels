@@ -5,7 +5,7 @@ import Footer from "@/components/Footer";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
 import { Cloud, Clock, Heart, Droplets, Sparkles, Wind, ChevronDown } from "lucide-react";
-import steam1 from "@/assets/steam bath/steam1.jpeg";
+import steam1 from "@/assets/steam bath/steam1.png";
 import steam2 from "@/assets/steam bath/steam2.jpeg";
 
 const benefits = [
@@ -114,50 +114,56 @@ const SteamBath = () => {
         </motion.div>
       </section>
 
-      {/* ── INTRO ── */}
+      {/* ── BENEFITS + IMAGE side by side ── */}
       <section className="py-24" style={{ background: "#f0f4f6" }}>
         <div className="container mx-auto px-4">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 items-center">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-start">
+
+            {/* Image */}
             <motion.div
               initial={{ opacity: 0, x: -40 }}
               whileInView={{ opacity: 1, x: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.7 }}
+              className="overflow-hidden rounded-3xl h-[520px] relative sticky top-24"
             >
-              <p className="text-teal-600 text-xs font-medium tracking-[0.25em] uppercase mb-3">The experience</p>
-              <h2 className="font-heading text-4xl md:text-5xl font-bold text-slate-900 mb-6 leading-tight">
-                Moist Heat.<br />Ancient Healing.
-              </h2>
-              <p className="text-slate-500 leading-relaxed mb-5">
-                Unlike the dry heat of a sauna, steam bathing envelops you in 100% humidity at a gentler temperature — allowing the warmth to penetrate deeper while keeping the body hydrated throughout the session.
-              </p>
-              <p className="text-slate-500 leading-relaxed mb-8">
-                We infuse our steam with eucalyptus and peppermint essential oils, turning each session into an aromatherapy experience that clears the mind as it cleanses the body.
-              </p>
-              <div className="grid grid-cols-3 gap-4">
-                {[["40 - 45°C", "Temperature"], ["30 min", "Per session"]].map(([val, lbl]) => (
-                  <div key={lbl} className="bg-white rounded-2xl p-4 text-center shadow-sm">
-                    <p className="font-heading text-2xl font-bold text-teal-600">{val}</p>
-                    <p className="text-slate-400 text-xs mt-1">{lbl}</p>
-                  </div>
-                ))}
-              </div>
+              <img src={steam2} alt="Steam Bath" className="w-full h-full object-cover hover:scale-105 transition-transform duration-700" />
+              <div className="absolute inset-0 bg-gradient-to-t from-teal-900/30 to-transparent pointer-events-none" />
             </motion.div>
 
+            {/* Benefits */}
             <motion.div
               initial={{ opacity: 0, x: 40 }}
               whileInView={{ opacity: 1, x: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.7 }}
-              className="overflow-hidden rounded-3xl h-[460px] relative"
             >
-              <img src={steam2} alt="Steam Bath" className="w-full h-full object-cover hover:scale-105 transition-transform duration-700" />
-              {/* steam overlay */}
-              <div className="absolute inset-0 bg-gradient-to-t from-teal-900/30 to-transparent pointer-events-none" />
+              <p className="text-teal-600 text-xs font-medium tracking-[0.25em] uppercase mb-2">Why it works</p>
+              <h2 className="font-heading text-4xl font-bold text-slate-900 mb-8">Health Benefits</h2>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                {benefits.map(({ icon: Icon, title, desc }, i) => (
+                  <motion.div
+                    key={title}
+                    initial={{ opacity: 0, y: 20 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    viewport={{ once: true }}
+                    transition={{ delay: i * 0.07 }}
+                    className="group bg-white rounded-2xl p-5 hover:shadow-md hover:-translate-y-1 transition-all duration-300 border border-slate-100"
+                  >
+                    <div className="w-10 h-10 bg-teal-50 rounded-xl flex items-center justify-center mb-3 group-hover:bg-teal-100 transition-colors">
+                      <Icon className="h-5 w-5 text-teal-500" />
+                    </div>
+                    <h3 className="font-semibold text-slate-900 mb-1 text-sm">{title}</h3>
+                    <p className="text-slate-400 text-xs leading-relaxed">{desc}</p>
+                  </motion.div>
+                ))}
+              </div>
             </motion.div>
           </div>
         </div>
       </section>
+
 
       {/* ── SESSION GUIDE ── horizontal steps */}
       <section className="py-16" style={{ background: "white" }}>
@@ -198,38 +204,7 @@ const SteamBath = () => {
       </section>
 
       {/* ── BENEFITS GRID ── */}
-      <section className="py-24" style={{ background: "#f0f4f6" }}>
-        <div className="container mx-auto px-4">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            className="mb-12"
-          >
-            <p className="text-teal-600 text-xs font-medium tracking-[0.25em] uppercase mb-2">Why it works</p>
-            <h2 className="font-heading text-4xl font-bold text-slate-900">Health Benefits</h2>
-          </motion.div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-            {benefits.map(({ icon: Icon, title, desc }, i) => (
-              <motion.div
-                key={title}
-                initial={{ opacity: 0, y: 30 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ delay: i * 0.08 }}
-                className="group bg-white rounded-2xl p-6 hover:shadow-md hover:-translate-y-1 transition-all duration-300 border border-slate-100"
-              >
-                <div className="w-10 h-10 bg-teal-50 rounded-xl flex items-center justify-center mb-4 group-hover:bg-teal-100 transition-colors">
-                  <Icon className="h-5 w-5 text-teal-500" />
-                </div>
-                <h3 className="font-semibold text-slate-900 mb-1.5 text-base">{title}</h3>
-                <p className="text-slate-400 text-sm leading-relaxed">{desc}</p>
-              </motion.div>
-            ))}
-          </div>
-        </div>
-      </section>
+      
 
       {/* ── CTA ── */}
       <section className="relative py-32 overflow-hidden">
