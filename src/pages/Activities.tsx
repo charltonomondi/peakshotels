@@ -348,16 +348,16 @@ const Activities = () => {
             <h2 className="font-heading text-4xl md:text-5xl font-bold text-white mb-5 leading-tight">
               The Mountain Forest Is Calling
             </h2>
-            <p className="text-white/60 text-lg mb-10 leading-relaxed">
+            {/* <p className="text-white/60 text-lg mb-10 leading-relaxed">
               Book your stay and our team will arrange your full adventure programme — from sunrise hikes to sunset bonfire sessions.
-            </p>
+            </p> */}
             <div className="flex flex-wrap gap-4">
               <Button size="lg" className="bg-green-600 hover:bg-green-500 text-white border-0 rounded-full px-10" asChild>
-                <Link to="/booking">Book a Stay</Link>
+                <Link to="/booking">Book Now</Link>
               </Button>
-              <Button size="lg" variant="outline" className="border-white/30 text-white hover:bg-white/10 rounded-full px-10" asChild>
+              {/* <Button size="lg" variant="outline" className="bg-green-600 hover:bg-green-500 text-white border-0 rounded-full px-10" asChild>
                 <Link to="/contact">Plan Custom Trip <ArrowRight className="h-4 w-4 ml-2" /></Link>
-              </Button>
+              </Button> */}
             </div>
           </motion.div>
         </div>
