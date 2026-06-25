@@ -3,12 +3,12 @@ import { X, Download, ExternalLink } from "lucide-react";
 
 // Import advert images
 import peaksTvLogo from "@/assets/adverts/peaksTv.png";
-import conferenceRates from "@/assets/adverts/Conference_Rates_A5(1).png";
+import conferenceRates from "@/assets/adverts/Conference_Rates_A5.png";
 import rackRates from "@/assets/adverts/Rack_Rates_A5.png";
 import redesignedA5 from "@/assets/adverts/redesigned_a5_page_1.png";
-import stuAccomm from "@/assets/adverts/stuaccommm(2).png";
-import studentSteam from "@/assets/adverts/studentsteam(1).png";
-import teamBuilding from "@/assets/adverts/Team_Building_Rates_A5(1).png";
+import stuAccomm from "@/assets/adverts/stuaccommm.png";
+import studentSteam from "@/assets/adverts/studentsteam.png";
+import teamBuilding from "@/assets/adverts/Team_Building_Rates_A5.png";
 
 interface Advert {
   id: string;
