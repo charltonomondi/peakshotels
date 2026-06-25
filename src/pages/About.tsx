@@ -86,7 +86,7 @@ const About = () => {
               viewport={{ once: true }}
               transition={{ duration: 0.6 }}
             >
-              <p className="text-accent font-medium tracking-[0.2em] uppercase mb-4">Our Name</p>
+              {/* <p className="text-accent font-medium tracking-[0.2em] uppercase mb-4">Our Name</p> */}
               <h2 className="font-heading text-4xl md:text-5xl font-bold text-foreground mb-6">The Three Peaks</h2>
               <div className="w-20 h-0.5 bg-accent mx-auto mb-8" />
               <p className="text-muted-foreground text-lg leading-relaxed mb-10">

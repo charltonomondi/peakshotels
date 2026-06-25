@@ -14,7 +14,7 @@ const rooms = [
     size: "35 sqm",
     // guests: "2 Adults",
     bed: "King Size Bed",
-    description: "Comfortable and practical accommodation ideal for business travellers, couples and short stays.",
+    description:"",
     amenities: [Wifi, Wind, Coffee],
   },
   {
@@ -24,7 +24,7 @@ const rooms = [
     size: "55 sqm",
     // guests: "3 Adults",
     bed: "King Size Bed",
-    description: "Additional space and comfort for families, extended stays and guests seeking extra room to relax.",
+    // description: "Additional space and comfort for families, extended stays and guests seeking extra room to relax.",
     amenities: [Wifi, Wind, Coffee],
   },
   {
@@ -34,7 +34,7 @@ const rooms = [
     size: "90 sqm",
     // guests: "4 Adults",
     bed: "King size Bed",
-    description: "Our most spacious accommodation option, offering enhanced comfort, additional living space and beautiful views.",
+    // description: "Our most spacious accommodation option, offering enhanced comfort, additional living space and beautiful views.",
     amenities: [Wifi, Wind, Coffee],
   },
 ];

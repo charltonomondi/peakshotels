@@ -6,11 +6,11 @@ import { Button } from "@/components/ui/button";
 import { Calendar, User, ArrowRight, Star, Send } from "lucide-react";
 import heroBackground from "@/assets/facilities/frontage.jpg";
 import awardImage from "@/assets/facilities/frontage.jpg";
-import wellnessImage from "@/assets/spa.jpg";
+import wellnessImage from "@/assets/massage/mas1.jpg";
 import sustainabilityImage from "@/assets/views/Ngare Ndare.jpg";
-import adventureImage from "@/assets/news/mountk.JPG";
-import diningImage from "@/assets/restaurant/Ami5.jpg";
-import communityImage from "@/assets/outdoor/eventsgrounds.jpg";
+import adventureImage from "@/assets/outdoor/mount.jpeg";
+import diningImage from "@/assets/restaurant/rest1.jpg";
+import communityImage from "@/assets/restaurant/tm.jpg";
 import { useReviews } from "@/hooks/useReviews";
 
 const newsItems = [
@@ -52,7 +52,7 @@ const newsItems = [
   },
   {
     id: 5,
-    title: "Culinary Excellence: New Executive Chef",
+    title: "Culinary Excellence: Executive Chef",
     excerpt: "Welcome our new executive chef bringing innovative fusion cuisine inspired by local ingredients and international techniques.",
     date: "2023-12-15",
     author: "Food & Beverage Manager",
@@ -61,7 +61,7 @@ const newsItems = [
   },
   {
     id: 6,
-    title: "Community Partnership Program",
+    title: "Team building at its best",
     excerpt: "Peaks Hotel launches partnership with local communities to support education and conservation initiatives.",
     date: "2023-12-01",
     author: "Community Relations",

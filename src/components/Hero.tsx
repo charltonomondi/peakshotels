@@ -51,7 +51,7 @@ const Hero = () => {
           </motion.h1> */}
           <motion.p initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6, delay: 0.2 }}
             className="text-primary-foreground/80 text-sm sm:text-base md:text-lg max-w-2xl mx-auto mb-6 md:mb-10 px-2">
-            Beauty and nature in our setting, and taste in our choices.
+            Beauty and taste with nature.
           </motion.p>
           <motion.div initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6, delay: 0.3 }}
             className="flex flex-col sm:flex-row gap-3 justify-center mb-8 md:mb-16 px-4 sm:px-0">

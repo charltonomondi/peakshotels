@@ -14,12 +14,12 @@ import { Button } from "@/components/ui/button";
 import { Award, Heart, Shield, Users, MapPin, Mountain, Star, ArrowRight } from "lucide-react";
 
 // Images
-import grounds1   from "@/assets/facilities/Grounds1.jpg";
+import grounds1   from "@/assets/facilities/conference10.jpg";
 import grounds2   from "@/assets/facilities/Grounds2.jpg";
 import frontage   from "@/assets/facilities/frontage.jpg";
 import rooftop    from "@/assets/facilities/rooftop.jpg";
 import bed5       from "@/assets/bed5.jpg";
-import viewOlp    from "@/assets/views/Olpajeta conservancy.jpg";
+import viewOlp    from "@/assets/outdoor/mount.jpeg";
 
 const stats = [
   { value: "42+", label: "Rooms" },
@@ -32,7 +32,7 @@ const values = [
   // { icon: Mountain, title: "The Three Peaks", description: "Inspired by Mount Kenya, the Aberdare Ranges and the Lolldaiga Hills." },
   { icon: Users,    title: "Something for Everybody", description: "Accommodation, dining, wellness, adventure, conferences, events and celebrations." },
   { icon: Heart,    title: "Wellness and Recreation", description: "Heated pool, gym, sauna, steam bath, massage and beauty services." },
-  { icon: Award,    title: "Adventure and Discovery", description: "Outdoor challenges, nature walks, hiking, mountain climbing and Mount Kenya expeditions." },
+  { icon: Award,    title: "Adventure, Fun and Discovery", description: "Outdoor challenges, nature walks, hiking, mountain climbing and Mount Kenya expeditions." },
 ];
 
 const Index = () => {
@@ -78,22 +78,23 @@ const Index = () => {
               viewport={{ once: true }}
               transition={{ duration: 0.8 }}
             >
-              <div className="flex items-center gap-3 mb-5">
+              {/* <div className="flex items-center gap-3 mb-5">
                 <MapPin className="h-4 w-4 text-accent" />
                 <span className="text-accent text-xs font-medium tracking-[0.25em] uppercase">Nanyuki, Kenya</span>
-              </div>
+              </div> */}
               <h2 className="font-heading text-5xl md:text-6xl font-bold text-foreground leading-tight mb-6">
                 Welcome to<br />
                 <span className="text-accent italic font-light">Peaks Hotel Nanyuki</span>
               </h2>
               <p className="text-muted-foreground text-lg leading-relaxed mb-5">
-                Nestled at the foot of Mount Kenya and inspired by the magnificent landscapes of Mount Kenya, the Aberdare Ranges and the Lolldaiga Hills, Peaks Hotel is one of Nanyuki's most distinctive hospitality destinations.
+                Nestled at the foot of Mount Kenya, Peaks Hotel is one of Nanyuki's most distinctive hospitality destinations. Here, our service brings a unique Kenyan setting shaped by nature and guided by genuine hospitality. Whether a business person, a family or a tourist — Peaks Hotel offers an experience designed for you.
               </p>
               <p className="text-muted-foreground leading-relaxed mb-8">
-                Here, accommodation, dining, wellness, adventure, conferences and celebrations come together in a uniquely Kenyan setting shaped by nature and guided by genuine hospitality. Whether you are a local resident, a traveller, a business guest, a family, or a visitor from anywhere in the world — Peaks Hotel offers an experience designed for you.
+                
               </p>
 
               {/* location pills */}
+              //name the pictures
               <div className="flex flex-wrap gap-3 mb-10">
                 {[
                   { icon: Mountain, text: "Mount Kenya" },
@@ -160,7 +161,7 @@ const Index = () => {
                 <img src={rooftop} alt="Rooftop" className="w-full h-full object-cover" />
               </motion.div>
               {/* floating badge */}
-              <motion.div
+              {/* <motion.div
                 initial={{ opacity: 0, scale: 0.8 }}
                 whileInView={{ opacity: 1, scale: 1 }}
                 viewport={{ once: true }}
@@ -169,7 +170,7 @@ const Index = () => {
               >
                 <p className="font-heading text-2xl font-bold leading-none">0°</p>
                 <p className="text-xs font-medium mt-0.5 opacity-80">The Equator</p>
-              </motion.div>
+              </motion.div> */}
             </div>
           </div>
         </div>
@@ -210,9 +211,9 @@ const Index = () => {
               viewport={{ once: true }}
               transition={{ duration: 0.8 }}
             >
-              <p className="text-accent text-xs font-medium tracking-[0.25em] uppercase mb-3">Our philosophy</p>
+              {/* <p className="text-accent text-xs font-medium tracking-[0.25em] uppercase mb-3">Our philosophy</p> */}
               <h2 className="font-heading text-4xl md:text-5xl font-bold text-foreground mb-10 leading-tight">
-                Why Guests Choose Peaks
+                Why Peaks?
               </h2>
               <div className="space-y-6">
                 {values.map(({ icon: Icon, title, description }, i) => (

@@ -7,6 +7,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import SplashScreen from "./components/SplashScreen";
 import LipaMdogoMdogoPopup from "./components/LipaMdogoMdogoPopup";
 import MountainClimbingPopup from "./components/MountainClimbingPopup";
+import AdvertPopup from "./components/AdvertPopup";
 import { LoyaltyAuthProvider } from "./lib/loyaltyAuth";
 import Index from "./pages/Index";
 import About from "./pages/About";
@@ -54,6 +55,7 @@ const App = () => {
               <>
                 <LipaMdogoMdogoPopup />
                 <MountainClimbingPopup />
+                <AdvertPopup />
                 <Routes>
                   <Route path="/" element={<Index />} />
                   <Route path="/about" element={<About />} />
