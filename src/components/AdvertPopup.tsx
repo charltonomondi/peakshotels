@@ -1,166 +1,243 @@
-import { useState, useEffect, useCallback } from "react";
-import { X, Download, ExternalLink } from "lucide-react";
+import { useState, useEffect, useCallback, useRef } from "react";
+import { X, Download, ChevronLeft, ChevronRight, ExternalLink } from "lucide-react";
 
 interface Advert {
   id: string;
-  type: "peaks-tv" | "rates";
   image: string;
   title: string;
-  description?: string;
-  link?: string;
-  downloadName?: string;
+  subtitle?: string;
+  cta?: { label: string; href?: string; download?: string };
+  accent: string; // tailwind bg colour for the bottom bar
 }
 
 const adverts: Advert[] = [
   {
     id: "peaks-tv",
-    type: "peaks-tv",
     image: "/adverts/peaksTv.png",
     title: "Watch Peaks TV",
-    description: "Subscribe to our YouTube channel for the latest videos from Peaks Hotel Nanyuki",
-    link: "https://www.youtube.com/@PeaksHotelNanyukiTv",
+    subtitle: "Subscribe for the latest videos from Peaks Hotel Nanyuki",
+    cta: { label: "Subscribe Now", href: "https://www.youtube.com/@PeaksHotelNanyukiTv" },
+    accent: "bg-red-700",
   },
   {
     id: "rack-rates",
-    type: "rates",
     image: "/adverts/Rack_Rates_A5.png",
     title: "Rack Rates",
-    downloadName: "Peaks_Hotel_Rack_Rates.png",
+    subtitle: "Our standard accommodation rates",
+    cta: { label: "Download", download: "Peaks_Hotel_Rack_Rates.png" },
+    accent: "bg-amber-700",
   },
   {
     id: "conference-rates",
-    type: "rates",
     image: "/adverts/Conference_Rates_A5.png",
     title: "Conference Rates",
-    downloadName: "Peaks_Hotel_Conference_Rates.png",
+    subtitle: "Full-day & half-day packages available",
+    cta: { label: "Download", download: "Peaks_Hotel_Conference_Rates.png" },
+    accent: "bg-amber-700",
   },
   {
     id: "team-building",
-    type: "rates",
     image: "/adverts/Team_Building_Rates_A5.png",
     title: "Team Building Rates",
-    downloadName: "Peaks_Hotel_Team_Building_Rates.png",
+    subtitle: "Outdoor challenges, nature walks & more",
+    cta: { label: "Download", download: "Peaks_Hotel_Team_Building.png" },
+    accent: "bg-amber-700",
   },
   {
     id: "stu-accomm",
-    type: "rates",
     image: "/adverts/stuaccommm.png",
-    title: "Student Accommodation Rates",
-    downloadName: "Peaks_Hotel_Student_Accommodation.png",
+    title: "Student Accommodation",
+    subtitle: "Special rates for students & groups",
+    cta: { label: "Download", download: "Peaks_Hotel_Student_Accommodation.png" },
+    accent: "bg-amber-700",
   },
   {
     id: "student-steam",
-    type: "rates",
     image: "/adverts/studentsteam.png",
-    title: "Student Steam Bath Rates",
-    downloadName: "Peaks_Hotel_Student_Steam_Rates.png",
+    title: "Student Steam Bath",
+    subtitle: "Discounted wellness rates for students",
+    cta: { label: "Download", download: "Peaks_Hotel_Student_Steam.png" },
+    accent: "bg-amber-700",
   },
   {
-    id: "redesigned-a5",
-    type: "rates",
+    id: "special-rates",
     image: "/adverts/redesigned_a5_page_1.png",
     title: "Special Rates",
-    downloadName: "Peaks_Hotel_Special_Rates.png",
+    subtitle: "Exclusive offers for our valued guests",
+    cta: { label: "Download", download: "Peaks_Hotel_Special_Rates.png" },
+    accent: "bg-amber-700",
   },
 ];
 
-const INITIAL_DELAY = 8000;
-const INTERVAL = 30000;
+const DISPLAY_DURATION = 10000; // how long each ad shows
+const BETWEEN_DELAY   = 25000; // gap before next ad
 
 export default function AdvertPopup() {
-  const [visible, setVisible] = useState(false);
-  const [currentIndex, setCurrentIndex] = useState(0);
+  const [visible, setVisible]       = useState(false);
+  const [index, setIndex]           = useState(0);
+  const [progress, setProgress]     = useState(0);
+  const [exiting, setExiting]       = useState(false);
+  const progressRef                 = useRef<ReturnType<typeof setInterval> | null>(null);
+  const nextTimerRef                = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  const showNext = useCallback((prevIndex: number) => {
-    setCurrentIndex((prevIndex + 1) % adverts.length);
-    setVisible(true);
-  }, []);
-
-  useEffect(() => {
-    const initial = setTimeout(() => {
-      setCurrentIndex(0);
-      setVisible(true);
-    }, INITIAL_DELAY);
-    return () => clearTimeout(initial);
-  }, []);
-
-  useEffect(() => {
-    if (!visible) return;
-    const autoDismiss = setTimeout(() => {
-      setVisible(false);
-      const next = setTimeout(() => showNext(currentIndex), INTERVAL - 12000);
-      return () => clearTimeout(next);
-    }, 12000);
-    return () => clearTimeout(autoDismiss);
-  }, [visible, currentIndex, showNext]);
-
-  const handleClose = () => {
-    setVisible(false);
-    setTimeout(() => showNext(currentIndex), INTERVAL);
+  const clearTimers = () => {
+    if (progressRef.current)  clearInterval(progressRef.current);
+    if (nextTimerRef.current) clearTimeout(nextTimerRef.current);
   };
 
-  const handleDownload = (advert: Advert) => {
-    const link = document.createElement("a");
-    link.href = advert.image;
-    link.download = advert.downloadName || `${advert.title}.png`;
-    link.click();
+  const dismiss = useCallback((andShowNext = true) => {
+    clearTimers();
+    setExiting(true);
+    setTimeout(() => {
+      setExiting(false);
+      setVisible(false);
+      setProgress(0);
+      if (andShowNext) {
+        nextTimerRef.current = setTimeout(() => {
+          setIndex(i => (i + 1) % adverts.length);
+          setVisible(true);
+        }, BETWEEN_DELAY);
+      }
+    }, 350);
+  }, []);
+
+  // Start progress bar when visible
+  useEffect(() => {
+    if (!visible) return;
+    setProgress(0);
+    const tick = 100;
+    const steps = DISPLAY_DURATION / tick;
+    let step = 0;
+    progressRef.current = setInterval(() => {
+      step++;
+      setProgress(Math.min((step / steps) * 100, 100));
+      if (step >= steps) {
+        clearInterval(progressRef.current!);
+        dismiss();
+      }
+    }, tick);
+    return () => clearTimers();
+  }, [visible, index, dismiss]);
+
+  // Initial delay
+  useEffect(() => {
+    const t = setTimeout(() => setVisible(true), 8000);
+    return () => clearTimeout(t);
+  }, []);
+
+  const goTo = (i: number) => {
+    clearTimers();
+    setProgress(0);
+    setIndex(i);
+    // re-trigger the effect by briefly flipping visible
+    setVisible(false);
+    setTimeout(() => setVisible(true), 50);
+  };
+
+  const handleCta = (ad: Advert) => {
+    if (ad.cta?.href) {
+      window.open(ad.cta.href, "_blank", "noopener,noreferrer");
+      dismiss(false);
+    } else if (ad.cta?.download) {
+      const a = document.createElement("a");
+      a.href = ad.image;
+      a.download = ad.cta.download;
+      a.click();
+    }
   };
 
   if (!visible) return null;
 
-  const advert = adverts[currentIndex];
+  const ad = adverts[index];
 
   return (
-    <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-in fade-in duration-300">
-      <div className="relative bg-white rounded-2xl shadow-2xl max-w-md w-full overflow-hidden animate-in zoom-in-95 duration-300">
+    <div
+      className={`fixed inset-0 z-[9999] flex items-center justify-center p-4 transition-all duration-350
+        ${exiting ? "opacity-0 backdrop-blur-none" : "opacity-100 backdrop-blur-sm bg-black/60"}`}
+      onClick={() => dismiss()}
+    >
+      <div
+        className={`relative w-full max-w-sm rounded-3xl overflow-hidden shadow-2xl transition-all duration-350
+          ${exiting ? "scale-90 opacity-0" : "scale-100 opacity-100"}`}
+        onClick={e => e.stopPropagation()}
+      >
+        {/* Progress bar */}
+        <div className="absolute top-0 left-0 right-0 h-1 bg-white/20 z-20">
+          <div
+            className="h-full bg-white transition-none"
+            style={{ width: `${progress}%`, transition: "width 0.1s linear" }}
+          />
+        </div>
+
+        {/* Close button */}
         <button
-          onClick={handleClose}
-          className="absolute top-3 right-3 z-10 bg-black/60 hover:bg-black/80 text-white rounded-full p-1.5 transition-colors"
-          aria-label="Close advertisement"
+          onClick={() => dismiss(false)}
+          aria-label="Close"
+          className="absolute top-3 right-3 z-20 w-8 h-8 flex items-center justify-center bg-black/50 hover:bg-black/80 rounded-full transition-colors"
         >
-          <X size={16} />
+          <X size={15} className="text-white" />
         </button>
 
-        {advert.type === "peaks-tv" ? (
-          <a href={advert.link} target="_blank" rel="noopener noreferrer" className="block group" onClick={handleClose}>
-            <div className="bg-gradient-to-br from-red-700 to-red-900 p-6 flex flex-col items-center gap-4">
-              <img src={advert.image} alt="Peaks TV" className="w-32 h-32 object-contain rounded-xl shadow-lg" />
-              <div className="text-center text-white">
-                <h3 className="text-2xl font-bold">{advert.title}</h3>
-                <p className="text-red-100 text-sm mt-1">{advert.description}</p>
-              </div>
-              <span className="inline-flex items-center gap-2 bg-white text-red-700 font-semibold px-5 py-2 rounded-full text-sm group-hover:bg-red-50 transition-colors">
-                <ExternalLink size={14} />
-                Subscribe Now
-              </span>
-            </div>
-          </a>
-        ) : (
-          <div>
-            <img
-              src={advert.image}
-              alt={advert.title}
-              className="w-full object-contain cursor-pointer"
-              onClick={() => handleDownload(advert)}
-            />
-            <div className="p-4 flex items-center justify-between bg-gray-50">
-              <span className="text-sm font-medium text-gray-700">{advert.title}</span>
-              <button
-                onClick={() => handleDownload(advert)}
-                className="inline-flex items-center gap-2 bg-amber-600 hover:bg-amber-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors"
-              >
-                <Download size={14} />
-                Download
-              </button>
-            </div>
-          </div>
+        {/* Nav arrows */}
+        {adverts.length > 1 && (
+          <>
+            <button
+              onClick={() => goTo((index - 1 + adverts.length) % adverts.length)}
+              aria-label="Previous"
+              className="absolute left-2 top-1/2 -translate-y-1/2 z-20 w-8 h-8 flex items-center justify-center bg-black/40 hover:bg-black/70 rounded-full transition-colors"
+            >
+              <ChevronLeft size={16} className="text-white" />
+            </button>
+            <button
+              onClick={() => goTo((index + 1) % adverts.length)}
+              aria-label="Next"
+              className="absolute right-2 top-1/2 -translate-y-1/2 z-20 w-8 h-8 flex items-center justify-center bg-black/40 hover:bg-black/70 rounded-full transition-colors"
+            >
+              <ChevronRight size={16} className="text-white" />
+            </button>
+          </>
         )}
 
-        <div className="flex justify-center gap-1.5 py-2 bg-white">
+        {/* Full advert image */}
+        <div className="relative w-full bg-gray-100" style={{ aspectRatio: "3/4" }}>
+          <img
+            src={ad.image}
+            alt={ad.title}
+            className="w-full h-full object-cover"
+          />
+          {/* Gradient overlay at bottom */}
+          <div className="absolute inset-x-0 bottom-0 h-40 bg-gradient-to-t from-black/80 to-transparent" />
+        </div>
+
+        {/* Bottom bar */}
+        <div className={`${ad.accent} px-5 py-4 flex items-center justify-between gap-3`}>
+          <div className="min-w-0">
+            <p className="text-white font-bold text-sm leading-tight truncate">{ad.title}</p>
+            {ad.subtitle && (
+              <p className="text-white/70 text-xs mt-0.5 leading-tight line-clamp-1">{ad.subtitle}</p>
+            )}
+          </div>
+          {ad.cta && (
+            <button
+              onClick={() => handleCta(ad)}
+              className="shrink-0 flex items-center gap-1.5 bg-white/20 hover:bg-white/30 text-white text-xs font-semibold px-3 py-2 rounded-xl transition-colors border border-white/30"
+            >
+              {ad.cta.href ? <ExternalLink size={12} /> : <Download size={12} />}
+              {ad.cta.label}
+            </button>
+          )}
+        </div>
+
+        {/* Dot indicators */}
+        <div className="absolute bottom-[56px] left-0 right-0 flex justify-center gap-1.5 pb-2">
           {adverts.map((_, i) => (
-            <div
+            <button
               key={i}
-              className={`w-1.5 h-1.5 rounded-full transition-colors ${i === currentIndex ? "bg-amber-600" : "bg-gray-300"}`}
+              onClick={() => goTo(i)}
+              aria-label={`Go to advert ${i + 1}`}
+              className={`rounded-full transition-all duration-300 ${
+                i === index ? "w-5 h-1.5 bg-white" : "w-1.5 h-1.5 bg-white/40"
+              }`}
             />
           ))}
         </div>
