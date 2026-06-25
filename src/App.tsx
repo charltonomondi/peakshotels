@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, lazy, Suspense } from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -7,7 +7,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import SplashScreen from "./components/SplashScreen";
 import LipaMdogoMdogoPopup from "./components/LipaMdogoMdogoPopup";
 import MountainClimbingPopup from "./components/MountainClimbingPopup";
-import AdvertPopup from "./components/AdvertPopup";
+const AdvertPopup = lazy(() => import("./components/AdvertPopup"));
 import { LoyaltyAuthProvider } from "./lib/loyaltyAuth";
 import Index from "./pages/Index";
 import About from "./pages/About";
@@ -55,7 +55,9 @@ const App = () => {
               <>
                 <LipaMdogoMdogoPopup />
                 <MountainClimbingPopup />
-                <AdvertPopup />
+                <Suspense fallback={null}>
+                  <AdvertPopup />
+                </Suspense>
                 <Routes>
                   <Route path="/" element={<Index />} />
                   <Route path="/about" element={<About />} />
