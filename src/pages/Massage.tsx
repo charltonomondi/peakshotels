@@ -5,6 +5,7 @@ import Footer from "@/components/Footer";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
 import { Hand, Clock, Heart, Sparkles, Leaf, Wind, ChevronDown } from "lucide-react";
+import WhatsAppBookingModal from "@/components/WhatsAppBookingModal";
 import mas1 from "@/assets/massage/mas1.jpg";
 import mas2 from "@/assets/massage/mas2.jpg";
 import mas3 from "@/assets/massage/mas3.jpg";
@@ -59,6 +60,7 @@ const benefits = [
 
 const Massage = () => {
   const [active, setActive] = useState(0);
+  const [waOpen, setWaOpen] = useState(false);
   const heroRef = useRef<HTMLDivElement>(null);
   const { scrollYProgress } = useScroll({ target: heroRef, offset: ["start start", "end start"] });
   const heroY       = useTransform(scrollYProgress, [0, 1], ["0%", "28%"]);
@@ -216,8 +218,8 @@ const Massage = () => {
                 </div>
               </div>
 
-              <Button size="lg" className="mt-8 w-full bg-stone-900 hover:bg-stone-700 text-white rounded-full" asChild>
-                <Link to="/booking">Book {selected.name} Massage</Link>
+              <Button size="lg" className="mt-8 w-full bg-stone-900 hover:bg-stone-700 text-white rounded-full" onClick={() => setWaOpen(true)}>
+                Book {selected.name} Massage
               </Button>
             </div>
           </motion.div>
@@ -299,8 +301,8 @@ const Massage = () => {
               Sessions are available daily by appointment. Book your stay and we'll arrange everything.
             </p>
             <div className="flex flex-wrap gap-4">
-              <Button size="lg" className="bg-white text-stone-900 hover:bg-rose-50 rounded-full px-10 font-semibold" asChild>
-                <Link to="/booking">Book a Session</Link>
+              <Button size="lg" className="bg-white text-stone-900 hover:bg-rose-50 rounded-full px-10 font-semibold" onClick={() => setWaOpen(true)}>
+                Book a Session
               </Button>
               <Button size="lg" variant="outline" className="border-white/40 text-white hover:bg-white/10 rounded-full px-10" asChild>
                 <Link to="/spa">Full Spa Menu</Link>
@@ -310,6 +312,7 @@ const Massage = () => {
         </div>
       </section>
 
+      <WhatsAppBookingModal open={waOpen} onClose={() => setWaOpen(false)} service="Massage Session" />
       <Footer />
     </div>
   );

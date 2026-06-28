@@ -5,6 +5,7 @@ import Footer from "@/components/Footer";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
 import { Mountain, Clock, Users, Check, X, ChevronDown, ArrowRight, MapPin, Shield, Zap } from "lucide-react";
+import WhatsAppBookingModal from "@/components/WhatsAppBookingModal";
 
 // Hero & key images
 import heroImg        from "@/assets/outdoor/outdoorgym.png";
@@ -99,6 +100,7 @@ const galleryAll = [
 ];
 
 const Activities = () => {
+  const [waOpen, setWaOpen] = useState(false);
   const [lightbox, setLightbox]           = useState<string | null>(null);
   const [showAll, setShowAll]             = useState(false);
   const heroRef = useRef<HTMLDivElement>(null);
@@ -352,8 +354,8 @@ const Activities = () => {
               Book your stay and our team will arrange your full adventure programme — from sunrise hikes to sunset bonfire sessions.
             </p> */}
             <div className="flex flex-wrap gap-4">
-              <Button size="lg" className="bg-green-600 hover:bg-green-500 text-white border-0 rounded-full px-10" asChild>
-                <Link to="/booking">Book Now</Link>
+              <Button size="lg" className="bg-green-600 hover:bg-green-500 text-white border-0 rounded-full px-10" onClick={() => setWaOpen(true)}>
+                Book Now
               </Button>
               {/* <Button size="lg" variant="outline" className="bg-green-600 hover:bg-green-500 text-white border-0 rounded-full px-10" asChild>
                 <Link to="/contact">Plan Custom Trip <ArrowRight className="h-4 w-4 ml-2" /></Link>
@@ -376,6 +378,7 @@ const Activities = () => {
         </motion.div>
       )}
 
+      <WhatsAppBookingModal open={waOpen} onClose={() => setWaOpen(false)} service="Outdoor Activities" />
       <Footer />
     </div>
   );

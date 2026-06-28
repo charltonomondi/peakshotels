@@ -1,10 +1,11 @@
 import { motion, useScroll, useTransform } from "framer-motion";
-import { useRef } from "react";
+import { useRef, useState } from "react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
 import { Flame, Clock, Heart, Droplets, Shield, Wind } from "lucide-react";
+import WhatsAppBookingModal from "@/components/WhatsAppBookingModal";
 import sauna  from "@/assets/sauna/sauna.jpg";
 import sauna1 from "@/assets/sauna/sauna1.jpg";
 import sauna2 from "@/assets/sauna/sauna2.jpg";
@@ -19,6 +20,7 @@ const benefits = [
 ];
 
 const Sauna = () => {
+  const [waOpen, setWaOpen] = useState(false);
   const heroRef = useRef<HTMLDivElement>(null);
   const { scrollYProgress } = useScroll({ target: heroRef, offset: ["start start", "end start"] });
   const heroY      = useTransform(scrollYProgress, [0, 1], ["0%", "25%"]);
@@ -258,8 +260,8 @@ const Sauna = () => {
               Sessions available daily. Book your stay and reserve private sauna time for the ultimate unwind.
             </p>
             <div className="flex flex-wrap justify-center gap-4">
-              <Button size="lg" className="bg-orange-600 hover:bg-orange-500 text-white border-0 rounded-full px-10" asChild>
-                <Link to="/booking">Book a Session</Link>
+              <Button size="lg" className="bg-orange-600 hover:bg-orange-500 text-white border-0 rounded-full px-10" onClick={() => setWaOpen(true)}>
+                Book a Session
               </Button>
               {/* <Button size="lg" variant="outline" className="border-orange-800 text-blue hover:bg-orange-950 rounded-full px-10" asChild>
                 <Link to="/facilities">All Facilities</Link>
@@ -269,6 +271,7 @@ const Sauna = () => {
         </div>
       </section>
 
+      <WhatsAppBookingModal open={waOpen} onClose={() => setWaOpen(false)} service="Sauna Session" />
       <Footer />
     </div>
   );

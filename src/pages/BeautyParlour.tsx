@@ -5,6 +5,7 @@ import Footer from "@/components/Footer";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
 import { Sparkles, Clock, Scissors, Palette, Heart, Star, ChevronDown } from "lucide-react";
+import WhatsAppBookingModal from "@/components/WhatsAppBookingModal";
 import beauty1 from "@/assets/beauty/beauty1.jpg";
 import beauty2 from "@/assets/beauty/beauty2.jpg";
 
@@ -47,6 +48,7 @@ const marqueeItems = ["Hair Styling", "Facials", "Manicure", "Pedicure", "Skin C
 
 const BeautyParlour = () => {
   const [hoveredService, setHoveredService] = useState<number | null>(null);
+  const [waOpen, setWaOpen] = useState(false);
   const heroRef = useRef<HTMLDivElement>(null);
   const { scrollYProgress } = useScroll({ target: heroRef, offset: ["start start", "end start"] });
   const leftY   = useTransform(scrollYProgress, [0, 1], ["0%", "15%"]);
@@ -313,8 +315,8 @@ const BeautyParlour = () => {
               Book your stay at Peaks Hotel and reserve your beauty treatment in advance. Our specialists will be expecting you.
             </p> */}
             <div className="flex flex-wrap justify-center gap-4">
-              <Button size="lg" className="bg-rose-600 hover:bg-rose-500 text-white border-0 rounded-full px-10 shadow-lg shadow-rose-200" asChild>
-                <Link to="/booking">Book</Link>
+              <Button size="lg" className="bg-rose-600 hover:bg-rose-500 text-white border-0 rounded-full px-10 shadow-lg shadow-rose-200" onClick={() => setWaOpen(true)}>
+                Book
               </Button>
               <Button size="lg" variant="outline" className="border-stone-300 text-stone-700 hover:bg-stone-100 rounded-full px-10" asChild>
                 <Link to="#">All Facilities</Link>
@@ -324,6 +326,7 @@ const BeautyParlour = () => {
         </div>
       </section>
 
+      <WhatsAppBookingModal open={waOpen} onClose={() => setWaOpen(false)} service="Beauty Treatment" />
       <Footer />
     </div>
   );

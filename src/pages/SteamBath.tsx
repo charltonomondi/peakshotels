@@ -1,10 +1,11 @@
 import { motion, useScroll, useTransform } from "framer-motion";
-import { useRef } from "react";
+import { useRef, useState } from "react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
 import { Cloud, Clock, Heart, Droplets, Sparkles, Wind, ChevronDown } from "lucide-react";
+import WhatsAppBookingModal from "@/components/WhatsAppBookingModal";
 import steam1 from "@/assets/steam bath/steam1.png";
 import steam2 from "@/assets/steam bath/steam2.jpeg";
 
@@ -26,6 +27,7 @@ const steps = [
 ];
 
 const SteamBath = () => {
+  const [waOpen, setWaOpen] = useState(false);
   const heroRef = useRef<HTMLDivElement>(null);
   const { scrollYProgress } = useScroll({ target: heroRef, offset: ["start start", "end start"] });
   const heroY      = useTransform(scrollYProgress, [0, 1], ["0%", "28%"]);
@@ -227,8 +229,8 @@ const SteamBath = () => {
               Available daily to all hotel guests. Reserve your session in advance for guaranteed access.
             </p>
             <div className="flex flex-wrap gap-4">
-              <Button size="lg" className="bg-teal-500 hover:bg-teal-400 text-white border-0 rounded-full px-10" asChild>
-                <Link to="/booking">Book Your Stay</Link>
+              <Button size="lg" className="bg-teal-500 hover:bg-teal-400 text-white border-0 rounded-full px-10" onClick={() => setWaOpen(true)}>
+                Book Your Stay
               </Button>
               {/* <Button size="lg" variant="outline" className="border-black/40 text-black hover:bg-white/10 rounded-full px-10" asChild>
                 <Link to="/facilities">All Facilities</Link>
@@ -238,6 +240,7 @@ const SteamBath = () => {
         </div>
       </section>
 
+      <WhatsAppBookingModal open={waOpen} onClose={() => setWaOpen(false)} service="Steam Bath Session" />
       <Footer />
     </div>
   );

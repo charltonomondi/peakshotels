@@ -1,4 +1,5 @@
 import { motion } from "framer-motion";
+import { useState } from "react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { Button } from "@/components/ui/button";
@@ -11,6 +12,7 @@ import {
   Zap,
   Target
 } from "lucide-react";
+import WhatsAppBookingModal from "@/components/WhatsAppBookingModal";
 import gymHero from "@/assets/gym/gym1.jpg";
 import gym1 from "@/assets/gym/gym.jpg";
 import gym2 from "@/assets/gym/gym2.jpg";
@@ -42,6 +44,7 @@ const features = [
 ];
 
 const Gym = () => {
+  const [waOpen, setWaOpen] = useState(false);
   return (
     <div className="min-h-screen">
       <Navbar />
@@ -258,13 +261,14 @@ const Gym = () => {
             {/* <p className="text-primary-foreground/80 max-w-xl mx-auto mb-8">
               Visit our gym anytime during your stay. Personal training sessions can be booked in advance.
             </p> */}
-            <Button variant="hero" size="lg" asChild>
-              <Link to="/booking">Book your session</Link>
+            <Button variant="hero" size="lg" onClick={() => setWaOpen(true)}>
+              Book your session
             </Button>
           </motion.div>
         </div>
       </section>
 
+      <WhatsAppBookingModal open={waOpen} onClose={() => setWaOpen(false)} service="Gym Session" />
       <Footer />
     </div>
   );
