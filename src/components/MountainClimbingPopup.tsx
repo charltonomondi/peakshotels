@@ -149,8 +149,8 @@ export default function MountainClimbingPopup() {
             className="fixed bottom-6 right-6 z-50 w-80 sm:w-96 rounded-2xl overflow-hidden shadow-2xl"
             style={{ boxShadow: "0 25px 60px rgba(0,0,0,0.5)" }}
           >
-            {/* image slider — clicking anywhere on it opens the modal */}
-            <div className="relative h-52 overflow-hidden cursor-pointer" onClick={openModal}>
+            {/* image slider — clicking anywhere on it navigates to the mountain climbing page */}
+            <div className="relative h-52 overflow-hidden cursor-pointer" onClick={() => { dismiss(); window.location.href = '/mountain-climbing'; }}>
               <AnimatePresence mode="wait">
                 <motion.img
                   key={slideIdx}

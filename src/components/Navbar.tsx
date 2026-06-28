@@ -21,7 +21,8 @@ const primaryNavItems = [
   { name: "Accommodation", path: "/rooms" },
   { name: "Restaurant & Dining", path: "/restaurant" },
   { name: "Conference", path: "/facilities" },
-  { name: "Outdoor Fitness", path: "/activities" },
+  { name: "Outdoor Activities", path: "/activities" },
+  { name: "Mt. Kenya Climbing", path: "/mountain-climbing" },
 ];
 
 const wellnessLinks = [

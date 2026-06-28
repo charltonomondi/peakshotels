@@ -699,6 +699,147 @@ app.get("/api/health", (req, res) => {
   res.json({ status: "ok", message: "Peaks Hotel Booking API is running" });
 });
 
+// Mount Kenya climbing expedition booking
+app.post("/api/send-mountain-booking", async (req, res) => {
+  try {
+    const {
+      fullName, email, phone,
+      entryPoint, exitPoint, groupSize,
+      accommodation, numberOfDays, startDate,
+      residency, experience, specialRequests,
+      package: pkg,
+    } = req.body;
+
+    if (!fullName || !email || !phone) {
+      return res.status(400).json({ success: false, error: "Missing required fields" });
+    }
+
+    const residencyLabel = residency === "eac" ? "EAC Resident" : "Non-EAC Resident";
+    const accomLabel     = accommodation === "bandas" ? "Bandas (Huts)" : "Tents";
+    const expLabel       = { beginner: "Beginner — first time", intermediate: "Intermediate — some hiking", experienced: "Experienced — high altitude" }[experience] || experience;
+    const formattedDate  = startDate ? new Date(startDate).toLocaleDateString("en-KE", { weekday: "long", year: "numeric", month: "long", day: "numeric" }) : "Not specified";
+
+    const rows = [
+      ["Full Name",          fullName],
+      ["Email",              email],
+      ["Phone",              phone],
+      ["Preferred Start Date", formattedDate],
+      ["Entry Point",        entryPoint || "Sirimon Gate"],
+      ["Exit Point",         exitPoint  || "Sirimon Gate"],
+      ["Number of People",   `${groupSize} ${groupSize === "1" ? "person" : "people"}`],
+      ["Number of Days",     `${numberOfDays} days`],
+      ["Accommodation",      accomLabel],
+      ["Residency",          residencyLabel],
+      ["Experience Level",   expLabel],
+    ].map(([label, val]) => `
+      <tr>
+        <td style="padding:11px 16px;border-bottom:1px solid #1e3320;color:#9ca3af;font-size:12px;text-transform:uppercase;letter-spacing:.5px;width:38%;vertical-align:top">${label}</td>
+        <td style="padding:11px 16px;border-bottom:1px solid #1e3320;color:#ffffff;font-size:14px;font-weight:600;vertical-align:top">${val}</td>
+      </tr>`).join("");
+
+    const hotelHtml = `<!DOCTYPE html>
+<html><head><meta charset="UTF-8"></head>
+<body style="margin:0;padding:20px;background:#0a1208;font-family:'Segoe UI',sans-serif">
+<div style="max-width:620px;margin:0 auto;background:#0d1a0f;border-radius:20px;overflow:hidden;border:1px solid #1e3320;box-shadow:0 20px 60px rgba(0,0,0,0.5)">
+
+  <!-- Header -->
+  <div style="background:linear-gradient(135deg,#14401a 0%,#0d1a0f 100%);padding:32px 28px;border-bottom:3px solid #16a34a;text-align:center">
+    <div style="display:inline-flex;align-items:center;gap:8px;background:rgba(22,163,74,0.15);border:1px solid rgba(22,163,74,0.3);padding:6px 16px;border-radius:50px;margin-bottom:14px">
+      <span style="color:#4ade80;font-size:11px;font-weight:700;letter-spacing:3px;text-transform:uppercase">Peaks Hotel · Adventures</span>
+    </div>
+    <h1 style="color:#ffffff;font-size:26px;font-weight:800;margin:0 0 6px;letter-spacing:-0.5px">🏔️ Mount Kenya Expedition</h1>
+    <p style="color:#6b7280;font-size:13px;margin:0">New booking enquiry received</p>
+  </div>
+
+  <!-- Details table -->
+  <div style="padding:28px">
+    <table style="width:100%;border-collapse:collapse;background:#162018;border-radius:12px;overflow:hidden;border:1px solid #1e3320">
+      ${rows}
+    </table>
+
+    ${specialRequests ? `
+    <div style="margin-top:20px;background:#111f13;border-left:4px solid #16a34a;border-radius:10px;padding:16px">
+      <p style="color:#6b7280;font-size:11px;text-transform:uppercase;letter-spacing:.5px;margin:0 0 8px;font-weight:600">Special Requests / Notes</p>
+      <p style="color:#d1fae5;font-size:14px;line-height:1.6;margin:0">${specialRequests}</p>
+    </div>` : ""}
+
+    <!-- Summary pill -->
+    <div style="margin-top:24px;background:linear-gradient(135deg,#14401a,#0d2e12);border:1px solid #16a34a;border-radius:14px;padding:20px;text-align:center">
+      <p style="color:#4ade80;font-size:11px;font-weight:700;letter-spacing:2px;text-transform:uppercase;margin:0 0 8px">Expedition Summary</p>
+      <p style="color:#ffffff;font-size:18px;font-weight:800;margin:0 0 4px">${accomLabel} · ${numberOfDays} Days · ${groupSize} ${groupSize === "1" ? "Person" : "People"}</p>
+      <p style="color:#86efac;font-size:13px;margin:0">${residencyLabel} · Starting ${formattedDate}</p>
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <div style="background:#060e07;padding:16px 28px;display:flex;justify-content:space-between;align-items:center">
+    <span style="color:#374151;font-size:11px">Peaks Hotel Nanyuki · peakshotels.co.ke</span>
+    <span style="color:#374151;font-size:11px">${new Date().toLocaleString("en-KE", { timeZone: "Africa/Nairobi" })}</span>
+  </div>
+</div>
+</body></html>`;
+
+    const guestHtml = `<!DOCTYPE html>
+<html><head><meta charset="UTF-8"></head>
+<body style="margin:0;padding:20px;background:#f0f4f0;font-family:'Segoe UI',sans-serif">
+<div style="max-width:560px;margin:0 auto;background:#ffffff;border-radius:16px;overflow:hidden;box-shadow:0 8px 30px rgba(0,0,0,0.1)">
+  <div style="background:linear-gradient(135deg,#14532d 0%,#166534 100%);padding:32px;text-align:center;border-bottom:4px solid #16a34a">
+    <p style="color:#86efac;font-size:11px;font-weight:700;letter-spacing:3px;text-transform:uppercase;margin:0 0 10px">Peaks Hotel · Adventures</p>
+    <h1 style="color:#ffffff;font-size:24px;font-weight:800;margin:0">🏔️ Expedition Request Received</h1>
+  </div>
+  <div style="padding:32px">
+    <p style="color:#374151;font-size:16px;margin:0 0 12px">Dear <strong>${fullName}</strong>,</p>
+    <p style="color:#6b7280;line-height:1.8;margin:0 0 20px">
+      Thank you for your Mount Kenya climbing expedition request. Our adventure team at Peaks Hotel will review your enquiry and <strong style="color:#374151">contact you within 24 hours</strong> to confirm availability and arrange the details.
+    </p>
+    <div style="background:#f0fdf4;border:1px solid #bbf7d0;border-radius:12px;padding:20px;margin-bottom:20px">
+      <p style="color:#14532d;font-weight:700;font-size:14px;margin:0 0 12px">📋 Your Expedition Summary</p>
+      ${[
+        ["Start Date",     formattedDate],
+        ["Entry / Exit",   `${entryPoint || "Sirimon Gate"} → ${exitPoint || "Sirimon Gate"}`],
+        ["Group Size",     `${groupSize} ${groupSize === "1" ? "person" : "people"}`],
+        ["Duration",       `${numberOfDays} days`],
+        ["Accommodation",  accomLabel],
+        ["Rate Category",  residencyLabel],
+      ].map(([l, v]) => `<p style="color:#374151;font-size:13px;margin:5px 0"><strong>${l}:</strong> ${v}</p>`).join("")}
+    </div>
+    <p style="color:#6b7280;font-size:13px;margin:0">
+      Have questions? Call us at <a href="tel:+254711969690" style="color:#16a34a;font-weight:600">+254 711 969 690</a> or email 
+      <a href="mailto:info@peakshotels.co.ke" style="color:#16a34a;font-weight:600">info@peakshotels.co.ke</a>
+    </p>
+  </div>
+  <div style="background:#0d1a0f;padding:16px 24px;text-align:center">
+    <p style="color:#4b5563;font-size:11px;margin:0">Peaks Hotel Nanyuki · Nanyuki-Meru Highway, Kenya</p>
+  </div>
+</div>
+</body></html>`;
+
+    await transporter.verify();
+
+    // Send to hotel
+    await transporter.sendMail({
+      from: '"Peaks Hotel Adventures" <cipherctech@gmail.com>',
+      to: "info@peakshotels.co.ke",
+      replyTo: email,
+      subject: `🏔️ Mt. Kenya Expedition — ${fullName} — ${formattedDate} — ${groupSize} pax`,
+      html: hotelHtml,
+    });
+
+    // Send confirmation to guest
+    await transporter.sendMail({
+      from: '"Peaks Hotel Adventures" <cipherctech@gmail.com>',
+      to: email,
+      subject: "Your Mount Kenya Expedition Request — Peaks Hotel Nanyuki",
+      html: guestHtml,
+    });
+
+    res.json({ success: true });
+  } catch (err) {
+    console.error("mountain booking error:", err.message);
+    res.status(500).json({ success: false, error: "Failed to send reservation" });
+  }
+});
+
 // Email diagnostics endpoint
 app.get("/api/email-diagnostics", async (req, res) => {
   try {
