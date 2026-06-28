@@ -1,6 +1,6 @@
 import { Link } from "react-router-dom";
 import { useState } from "react";
-import { MapPin, Phone, Mail, Clock, Facebook, Instagram, Twitter, Youtube } from "lucide-react";
+import { MapPin, Phone, Mail, Clock, Facebook, Instagram, Youtube } from "lucide-react";
 import logo from "/logo.jpeg";
 import footerBg from "@/assets/footer.jpg";
 
@@ -43,16 +43,18 @@ const Footer = () => {
               Experience unparalleled luxury at the foot of Mount Kenya. Peaks Hotel offers a perfect blend of African elegance and modern comfort.
             </p> */}
             <div className="flex gap-4">
-              <a href="#" className="p-2 bg-primary-foreground/10 rounded-full hover:bg-accent transition-colors">
+              <a href="https://www.facebook.com/peakshotels/" target="_blank" rel="noopener noreferrer" aria-label="Facebook" className="p-2 bg-primary-foreground/10 rounded-full hover:bg-accent transition-colors">
                 <Facebook className="h-5 w-5" />
               </a>
-              <a href="#" className="p-2 bg-primary-foreground/10 rounded-full hover:bg-accent transition-colors">
+              <a href="https://www.instagram.com/peakshotels/" target="_blank" rel="noopener noreferrer" aria-label="Instagram" className="p-2 bg-primary-foreground/10 rounded-full hover:bg-accent transition-colors">
                 <Instagram className="h-5 w-5" />
               </a>
-              <a href="#" className="p-2 bg-primary-foreground/10 rounded-full hover:bg-accent transition-colors">
-                <Twitter className="h-5 w-5" />
+              <a href="https://www.tiktok.com/@peakshotelnanyuki" target="_blank" rel="noopener noreferrer" aria-label="TikTok" className="p-2 bg-primary-foreground/10 rounded-full hover:bg-accent transition-colors">
+                <svg className="h-5 w-5" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                  <path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-2.88 2.5 2.89 2.89 0 0 1-2.89-2.89 2.89 2.89 0 0 1 2.89-2.89c.28 0 .54.04.79.1V9.01a6.33 6.33 0 0 0-.79-.05 6.34 6.34 0 0 0-6.34 6.34 6.34 6.34 0 0 0 6.34 6.34 6.34 6.34 0 0 0 6.33-6.34V8.69a8.18 8.18 0 0 0 4.78 1.52V6.75a4.85 4.85 0 0 1-1.01-.06z"/>
+                </svg>
               </a>
-              <a href="#" className="p-2 bg-primary-foreground/10 rounded-full hover:bg-accent transition-colors">
+              <a href="https://www.youtube.com/channel/UC-cEto_3d-O_v8Dr8gNFRaA" target="_blank" rel="noopener noreferrer" aria-label="YouTube" className="p-2 bg-primary-foreground/10 rounded-full hover:bg-accent transition-colors">
                 <Youtube className="h-5 w-5" />
               </a>
             </div>

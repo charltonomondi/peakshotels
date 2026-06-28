@@ -8,7 +8,7 @@ const adverts = [
     image: "/adverts/peaksTv.png",
     title: "Watch Peaks TV",
     subtitle: "Subscribe for the latest videos from Peaks Hotel Nanyuki",
-    cta: { label: "Subscribe Now", href: "https://www.youtube.com/@PeaksHotelNanyukiTv" },
+    cta: { label: "Subscribe Now", href: "https://www.youtube.com/channel/UC-cEto_3d-O_v8Dr8gNFRaA" },
     accent: "#991b1b",
   },
   {
