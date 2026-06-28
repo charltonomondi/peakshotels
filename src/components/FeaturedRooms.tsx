@@ -59,7 +59,7 @@ const FeaturedRooms = () => {
           </h2>
           <div className="w-20 h-0.5 bg-accent mx-auto mb-6" />
           <p className="text-muted-foreground max-w-2xl mx-auto">
-            Our rooms are designed to provide comfort, convenience and value for both business and leisure travellers.
+            Our rooms are designed for comfort, convenience and value.
 
           </p>
         </motion.div>

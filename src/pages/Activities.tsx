@@ -140,7 +140,7 @@ const Activities = () => {
 
           <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 1.1 }}
             className="text-white/70 text-lg max-w-2xl leading-relaxed mb-10">
-            Adventure, nature, and open air — all on the doorstep of Mount Kenya. Guided experiences for every level.
+            Team Building, Adventure and Nature — at the Foothills of Mt Kenya
           </motion.p>
 
           {/* <motion.div initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 1.3 }}

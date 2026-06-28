@@ -50,7 +50,7 @@ const Testimonials = () => {
           transition={{ duration: 0.6 }}
           className="text-center mb-16"
         >
-          <p className="text-accent font-medium tracking-[0.2em] uppercase mb-4">Guest Reviews</p>
+          {/* <p className="text-accent font-medium tracking-[0.2em] uppercase mb-4">Guest Reviews</p> */}
           <h2 className="font-heading text-4xl md:text-5xl font-bold text-primary-foreground mb-4">
             What Our Guests Say
           </h2>

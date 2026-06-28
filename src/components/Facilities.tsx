@@ -13,8 +13,8 @@ import {
 const facilities = [
   {
     icon: Waves,
-    name: "Infinity Pool",
-    description: "Stunning pool overlooking Mount Kenya with poolside service",
+    name: "Heated Pool",
+    description: "",
   },
   // {
   //   icon: UtensilsCrossed,
@@ -24,12 +24,12 @@ const facilities = [
   {
     icon: Dumbbell,
     name: "Fitness Center",
-    description: "Fully equipped gym with personal training available",
+    description: "",
   },
   {
     icon: Users,
     name: "Conference Halls",
-    description: "Modern meeting spaces for up to 200 guests",
+    description: "Five meeting spaces for up to 200 guests",
   },
   // {
   //   icon: Shirt,
@@ -39,7 +39,7 @@ const facilities = [
   {
     icon: Car,
     name: "Secure Parking",
-    description: "Complimentary covered parking with 24/7 security",
+    description: "Complimentary parking with 24/7 security",
   },
   {
     icon: Wifi,
@@ -73,8 +73,7 @@ const Facilities = () => {
           </h2> */}
           <div className="w-20 h-0.5 bg-accent mx-auto mb-6" />
           <p className="text-muted-foreground max-w-2xl mx-auto">
-            Discover our comprehensive range of amenities designed to make your 
-            stay exceptional in every way.
+            Discover our comprehensive range of amenities designed for your comfort.
           </p>
         </motion.div>
 

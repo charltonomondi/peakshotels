@@ -89,7 +89,7 @@ const Restaurant = () => {
               </h1>
               <div className="w-24 h-1 bg-accent mx-auto mb-6" />
               <p className="text-white/90 text-lg md:text-xl max-w-3xl mx-auto mb-8 leading-relaxed">
-                From family meals and roofto dining to wellness refreshments and outdoor barbecues, Peaks offers a variety of dining experience to suit every occasion.
+                From family meals, Peaks offers a variety of dining experiences to suit every occasion.
               </p>
               <div className="flex flex-col sm:flex-row gap-4 justify-center">
                 <Button variant="hero" size="lg" asChild>
@@ -171,9 +171,9 @@ const Restaurant = () => {
               <p className="text-muted-foreground text-lg leading-relaxed mb-6">
                 Our all-day dining restaurant serving Kenyan, African and international favourites.
               </p>
-              <p className="text-muted-foreground text-lg leading-relaxed mb-8">
+              {/* <p className="text-muted-foreground text-lg leading-relaxed mb-8">
                 From family meals and quiet breakfasts to business lunches and celebrations, our versatile spaces and warm service ensure every moment is memorable.
-              </p>
+              </p> */}
               <div className="grid grid-cols-2 gap-6">
                 <div className="text-center p-6 bg-card rounded-xl shadow-elegant">
                   <Award className="h-8 w-8 text-accent mx-auto mb-3" />
@@ -250,14 +250,14 @@ const Restaurant = () => {
                 tag: "Outdoor Dining",
                 title: "The Spillover",
                 subtitle: "Outdoor Dining at Its Best.",
-                desc: "A popular open-air dining space where guests enjoy food, refreshments and conversation surrounded by gardens and fresh air.",
+                desc: "A popular open-air dining space where guests enjoy food, refreshments and conversation surrounded by the fresh air of our gardens.",
                 img: images.modern1,
                 alt: "The Spillover outdoor dining",
                 reverse: false,
               },
               {
-                tag: "Rooftop Restaurant",
-                title: "Summit Rooftop Restaurant",
+                tag: "Rooftop ",
+                title: "Summit  Restaurant",
                 subtitle: "Dining with a View.",
                 desc: "Enjoy meals and refreshments while taking in panoramic views of Mount Kenya, the Aberdares and the Lolldaiga Hills.",
                 img: images.rooftop,
@@ -275,16 +275,16 @@ const Restaurant = () => {
               // },
               {
                 tag: "Garden Dining",
-                title: "Front Garden Dining",
+                title: "Front Garden",
                 subtitle: "Food in a Natural Setting.",
-                desc: "Enjoy meals and refreshments outdoors amidst greenery, flowers and the peaceful surroundings that define Peaks.",
+                desc: "Enjoy meals and refreshments in our front garden amidst greenery, flowers and the peaceful surroundings that define Peaks.",
                 img: images.garden,
                 alt: "Front Garden Dining",
                 reverse: true,
               },
               {
                 tag: "Outdoor Gatherings",
-                title: "Events Grounds Dining",
+                title: "Events Grounds ",
                 subtitle: "Great Food. Great Company. Great Outdoors.",
                 desc: "Perfect for group meals, celebrations, team-building programmes and outdoor gatherings.",
                 img: images.event1,

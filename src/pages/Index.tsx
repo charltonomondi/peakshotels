@@ -17,7 +17,7 @@ import { Award, Heart, Shield, Users, MapPin, Mountain, Star, ArrowRight } from 
 import grounds1   from "@/assets/facilities/conference10.jpg";
 import grounds2   from "@/assets/facilities/Grounds2.jpg";
 import frontage   from "@/assets/facilities/frontage.jpg";
-import rooftop    from "@/assets/facilities/rooftop.jpg";
+import rooftop    from "@/assets/restaurant/rest2.jpg";
 import bed5       from "@/assets/bed5.jpg";
 import viewOlp    from "@/assets/outdoor/mount.jpeg";
 
@@ -32,7 +32,7 @@ const values = [
   // { icon: Mountain, title: "The Three Peaks", description: "Inspired by Mount Kenya, the Aberdare Ranges and the Lolldaiga Hills." },
   { icon: Users,    title: "Something for Everybody", description: "Accommodation, dining, wellness, adventure, conferences, events and celebrations." },
   { icon: Heart,    title: "Wellness and Recreation", description: "Heated pool, gym, sauna, steam bath, massage and beauty services." },
-  { icon: Award,    title: "Adventure, Fun and Discovery", description: "Outdoor challenges, nature walks, hiking, mountain climbing and Mount Kenya expeditions." },
+  { icon: Award,    title: "Adventure, Fun and Discovery", description: "Outdoor challenges, nature walks, hiking, and Mount Kenya expeditions." },
 ];
 
 const Index = () => {
@@ -87,14 +87,14 @@ const Index = () => {
                 <span className="text-accent italic font-light">Peaks Hotel Nanyuki</span>
               </h2>
               <p className="text-muted-foreground text-lg leading-relaxed mb-5">
-                Nestled at the foot of Mount Kenya, Peaks Hotel is one of Nanyuki's most distinctive hospitality destinations. Here, our service brings a unique Kenyan setting shaped by nature and guided by genuine hospitality. Whether a business person, a family or a tourist — Peaks Hotel offers an experience designed for you.
+                Nestled at the foothills of Mt. Kenya, Peaks Hotel Nanyuki combines genuine Kenyan hospitality in a setting of natural beauty. Whether you are travelling for business, leisure or adventure, discover unique experiences in one destination.  From memorable stays and fine dining to wellness, and team building - every visit to Peaks is designed to exceed your expectations.
               </p>
               <p className="text-muted-foreground leading-relaxed mb-8">
                 
               </p>
 
               {/* location pills */}
-              //name the pictures
+              
               <div className="flex flex-wrap gap-3 mb-10">
                 {[
                   { icon: Mountain, text: "Mount Kenya" },

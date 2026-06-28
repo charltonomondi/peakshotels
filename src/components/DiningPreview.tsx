@@ -27,8 +27,7 @@ const DiningPreview = () => {
           </h2>
           <div className="w-20 h-0.5 bg-accent mx-auto mb-6" />
           <p className="text-muted-foreground max-w-2xl mx-auto">
-            Savor exquisite cuisine crafted by our chefs, featuring
-            the finest local ingredients and international flavors.
+            Savour our cuisine featuring the finest local and international flavours.
           </p>
         </motion.div>
 

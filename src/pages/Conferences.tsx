@@ -117,10 +117,10 @@ const Conferences = () => {
           style={{ opacity: heroOpacity }}
           className="relative h-full flex flex-col items-center justify-center text-center px-4"
         >
-          <motion.p initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }}
+          {/* <motion.p initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }}
             className="text-accent font-medium tracking-[0.3em] uppercase text-xs mb-5">
             Peaks Hotel Nanyuki
-          </motion.p>
+          </motion.p> */}
           <motion.h1 initial={{ opacity: 0, y: 40 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.5, duration: 0.9 }}
             className="font-heading text-5xl md:text-7xl lg:text-8xl font-bold text-white leading-none mb-5">
             Conferences<br />
@@ -153,7 +153,7 @@ const Conferences = () => {
         <div className="container mx-auto px-4">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-14 items-center">
             <motion.div initial={{ opacity: 0, x: -40 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: true }} transition={{ duration: 0.7 }}>
-              <p className="text-accent text-xs font-medium tracking-[0.25em] uppercase mb-3">Why choose Peaks</p>
+              {/* <p className="text-accent text-xs font-medium tracking-[0.25em] uppercase mb-3">Why choose Peaks</p> */}
               <h2 className="font-heading text-4xl md:text-5xl font-bold text-foreground mb-6 leading-tight">
                 Where Ideas Meet<br />Opportunity
               </h2>

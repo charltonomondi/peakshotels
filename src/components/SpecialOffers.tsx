@@ -39,7 +39,7 @@ const SpecialOffers = () => {
             No Active Offers Right Now
           </h3>
           <p className="text-muted-foreground leading-relaxed mb-8">
-            We don't have any special offers running at the moment, but great deals come and go. Get in touch and we'll let you know as soon as something is available.
+            We do not have any special offers running at the moment. Keep an eye for a next offer.
           </p>
 
           <div className="flex flex-col sm:flex-row gap-3 justify-center">

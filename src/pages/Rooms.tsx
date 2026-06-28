@@ -25,7 +25,7 @@ const rooms = [
     size: "35 sqm",
     // guests: "2 Adults",
     bed: "King Bed",
-    description: "Comfortable and practical accommodation ideal for business travellers, couples and short stays.",
+    description: "",
     amenities: ["Free WiFi", "Flat Screen TV",  "En-suite Bathroom",],
   },
   {
@@ -40,8 +40,8 @@ const rooms = [
     },
     size: "55 sqm",
     // guests: "3 Adults",
-    bed: "King Bed + Sofa Bed",
-    description: "Additional space and comfort for families, extended stays and guests seeking extra room to relax.",
+    bed: "King Bed",
+    description: "",
     amenities: ["Free WiFi",  "Flat Screen TV",  "En-suite Bathroom",   "Bathtub",],
   },
   {
@@ -57,7 +57,7 @@ const rooms = [
     size: "90 sqm",
     // guests: "4 Adults",
     bed: "King Size Beds",
-    description: "Our most spacious accommodation option, offering enhanced comfort, additional living space and beautiful views.",
+    description: "",
     amenities: ["Free WiFi",   "Flat Screen TV",  "Luxury Bathroom", "En-suite Bathroom",   "Bathtub", ],
   },
 ];
@@ -290,12 +290,12 @@ const Rooms = () => {
             <h2 className="font-heading text-3xl font-bold text-foreground mb-4">
               Room Policies
             </h2>
-            <p className="text-muted-foreground mb-8 max-w-xl mx-auto">
-              Read our check-in, check-out and cancellation policies before booking.
-            </p>
+            {/* <p className="text-muted-foreground mb-8 max-w-xl mx-auto">
+              Read our check-in, check-out and cancellation policies.
+            </p> */}
             <Button variant="outline" size="lg" onClick={() => setShowPolicies(true)}>
               <FileText className="h-5 w-5 mr-2" />
-              View Room Policies
+              View Policies
             </Button>
           </motion.div>
         </div>

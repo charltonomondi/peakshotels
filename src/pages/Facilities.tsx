@@ -164,16 +164,16 @@ const Facilities = () => {
         <div className="container mx-auto px-4">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
             <motion.div initial={{ opacity: 0, x: -40 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: true }} transition={{ duration: 0.7 }}>
-              <p className="text-accent text-xs font-medium tracking-[0.25em] uppercase mb-3">Why choose Peaks</p>
+              {/* <p className="text-accent text-xs font-medium tracking-[0.25em] uppercase mb-3">Why choose Peaks</p> */}
               <h2 className="font-heading text-4xl md:text-5xl font-bold text-foreground mb-6 leading-tight">
-                The Complete<br />Event Destination
+                Events Destination
               </h2>
               <p className="text-muted-foreground text-lg leading-relaxed mb-5">
                 Peaks Hotel combines comfortable accommodation, quality catering, flexible meeting spaces and unique outdoor experiences to create productive and memorable events.
               </p>
-              <p className="text-muted-foreground leading-relaxed mb-8">
+              {/* <p className="text-muted-foreground leading-relaxed mb-8">
                 Set against the backdrop of Mount Kenya, the Aberdare Ranges and the Lolldaiga Hills, every event at Peaks is enriched by an extraordinary natural environment.
-              </p>
+              </p> */}
               <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
                 {inclusions.map(({ icon: Icon, label }) => (
                   <div key={label} className="flex items-center gap-2 bg-secondary rounded-xl px-3 py-2.5">

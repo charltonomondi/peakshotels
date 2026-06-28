@@ -1,84 +1,100 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import { X, Download, ChevronLeft, ChevronRight, ExternalLink } from "lucide-react";
 
+import imgPeaksTv       from "@/assets/adverts/peaksTv.png";
+import imgRackRates     from "@/assets/adverts/Rack_Rates_A5.png";
+import imgConference    from "@/assets/adverts/Conference_Rates_A5.png";
+import imgTeamBuilding  from "@/assets/adverts/Team_Building_Rates_A5.png";
+import imgStuAccomm     from "@/assets/adverts/stuaccommm.png";
+import imgStudentSteam  from "@/assets/adverts/studentsteam.png";
+import imgSpecialRates  from "@/assets/adverts/redesigned_a5_page_1.png";
+
 interface Advert {
   id: string;
   image: string;
   title: string;
-  subtitle?: string;
-  cta?: { label: string; href?: string; download?: string };
-  accent: string; // tailwind bg colour for the bottom bar
+  subtitle: string;
+  cta: { label: string; href?: string; download?: string };
+  accentFrom: string;
+  accentTo: string;
 }
 
 const adverts: Advert[] = [
   {
     id: "peaks-tv",
-    image: "/adverts/peaksTv.png",
+    image: imgPeaksTv,
     title: "Watch Peaks TV",
     subtitle: "Subscribe for the latest videos from Peaks Hotel Nanyuki",
     cta: { label: "Subscribe Now", href: "https://www.youtube.com/@PeaksHotelNanyukiTv" },
-    accent: "bg-red-700",
+    accentFrom: "from-red-800",
+    accentTo: "to-red-600",
   },
   {
     id: "rack-rates",
-    image: "/adverts/Rack_Rates_A5.png",
+    image: imgRackRates,
     title: "Rack Rates",
     subtitle: "Our standard accommodation rates",
     cta: { label: "Download", download: "Peaks_Hotel_Rack_Rates.png" },
-    accent: "bg-amber-700",
+    accentFrom: "from-amber-900",
+    accentTo: "to-amber-700",
   },
   {
     id: "conference-rates",
-    image: "/adverts/Conference_Rates_A5.png",
+    image: imgConference,
     title: "Conference Rates",
     subtitle: "Full-day & half-day packages available",
     cta: { label: "Download", download: "Peaks_Hotel_Conference_Rates.png" },
-    accent: "bg-amber-700",
+    accentFrom: "from-amber-900",
+    accentTo: "to-amber-700",
   },
   {
     id: "team-building",
-    image: "/adverts/Team_Building_Rates_A5.png",
+    image: imgTeamBuilding,
     title: "Team Building Rates",
     subtitle: "Outdoor challenges, nature walks & more",
     cta: { label: "Download", download: "Peaks_Hotel_Team_Building.png" },
-    accent: "bg-amber-700",
+    accentFrom: "from-amber-900",
+    accentTo: "to-amber-700",
   },
   {
     id: "stu-accomm",
-    image: "/adverts/stuaccommm.png",
+    image: imgStuAccomm,
     title: "Student Accommodation",
     subtitle: "Special rates for students & groups",
     cta: { label: "Download", download: "Peaks_Hotel_Student_Accommodation.png" },
-    accent: "bg-amber-700",
+    accentFrom: "from-amber-900",
+    accentTo: "to-amber-700",
   },
   {
     id: "student-steam",
-    image: "/adverts/studentsteam.png",
+    image: imgStudentSteam,
     title: "Student Steam Bath",
     subtitle: "Discounted wellness rates for students",
     cta: { label: "Download", download: "Peaks_Hotel_Student_Steam.png" },
-    accent: "bg-amber-700",
+    accentFrom: "from-amber-900",
+    accentTo: "to-amber-700",
   },
   {
     id: "special-rates",
-    image: "/adverts/redesigned_a5_page_1.png",
+    image: imgSpecialRates,
     title: "Special Rates",
     subtitle: "Exclusive offers for our valued guests",
     cta: { label: "Download", download: "Peaks_Hotel_Special_Rates.png" },
-    accent: "bg-amber-700",
+    accentFrom: "from-amber-900",
+    accentTo: "to-amber-700",
   },
 ];
 
-const DISPLAY_DURATION = 10000; // how long each ad shows
-const BETWEEN_DELAY   = 25000; // gap before next ad
+const DISPLAY_DURATION = 10000;
+const BETWEEN_DELAY    = 25000;
 
 export default function AdvertPopup() {
-  const [visible, setVisible]       = useState(false);
-  const [index, setIndex]           = useState(0);
-  const [progress, setProgress]     = useState(0);
-  const [exiting, setExiting]       = useState(false);
-  const progressRef                 = useRef<ReturnType<typeof setInterval> | null>(null);
-  const nextTimerRef                = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const [visible,  setVisible]  = useState(false);
+  const [index,    setIndex]    = useState(0);
+  const [progress, setProgress] = useState(0);
+  const [exiting,  setExiting]  = useState(false);
+  const progressRef  = useRef<ReturnType<typeof setInterval>  | null>(null);
+  const nextTimerRef = useRef<ReturnType<typeof setTimeout>   | null>(null);
 
   const clearTimers = () => {
     if (progressRef.current)  clearInterval(progressRef.current);
@@ -101,13 +117,13 @@ export default function AdvertPopup() {
     }, 350);
   }, []);
 
-  // Start progress bar when visible
+  // Progress bar ticker
   useEffect(() => {
     if (!visible) return;
     setProgress(0);
-    const tick = 100;
+    const tick  = 100;
     const steps = DISPLAY_DURATION / tick;
-    let step = 0;
+    let step    = 0;
     progressRef.current = setInterval(() => {
       step++;
       setProgress(Math.min((step / steps) * 100, 100));
@@ -119,7 +135,7 @@ export default function AdvertPopup() {
     return () => clearTimers();
   }, [visible, index, dismiss]);
 
-  // Initial delay
+  // Initial delay before first ad
   useEffect(() => {
     const t = setTimeout(() => setVisible(true), 8000);
     return () => clearTimeout(t);
@@ -128,19 +144,20 @@ export default function AdvertPopup() {
   const goTo = (i: number) => {
     clearTimers();
     setProgress(0);
-    setIndex(i);
-    // re-trigger the effect by briefly flipping visible
-    setVisible(false);
-    setTimeout(() => setVisible(true), 50);
+    setExiting(true);
+    setTimeout(() => {
+      setExiting(false);
+      setIndex(i);
+    }, 200);
   };
 
   const handleCta = (ad: Advert) => {
-    if (ad.cta?.href) {
+    if (ad.cta.href) {
       window.open(ad.cta.href, "_blank", "noopener,noreferrer");
       dismiss(false);
-    } else if (ad.cta?.download) {
-      const a = document.createElement("a");
-      a.href = ad.image;
+    } else if (ad.cta.download) {
+      const a    = document.createElement("a");
+      a.href     = ad.image;          // resolved asset URL from the import
       a.download = ad.cta.download;
       a.click();
     }
@@ -152,94 +169,97 @@ export default function AdvertPopup() {
 
   return (
     <div
-      className={`fixed inset-0 z-[9999] flex items-center justify-center p-4 transition-all duration-350
-        ${exiting ? "opacity-0 backdrop-blur-none" : "opacity-100 backdrop-blur-sm bg-black/60"}`}
+      className={`fixed inset-0 z-[9999] flex items-end sm:items-center justify-center sm:p-4
+        transition-opacity duration-300 ${exiting ? "opacity-0" : "opacity-100"}
+        bg-black/60 backdrop-blur-sm`}
       onClick={() => dismiss()}
     >
+      {/* Card */}
       <div
-        className={`relative w-full max-w-sm rounded-3xl overflow-hidden shadow-2xl transition-all duration-350
-          ${exiting ? "scale-90 opacity-0" : "scale-100 opacity-100"}`}
+        className={`relative w-full sm:max-w-sm rounded-t-3xl sm:rounded-3xl overflow-hidden shadow-2xl
+          transition-transform duration-300 ${exiting ? "translate-y-8 scale-95" : "translate-y-0 scale-100"}`}
         onClick={e => e.stopPropagation()}
       >
         {/* Progress bar */}
         <div className="absolute top-0 left-0 right-0 h-1 bg-white/20 z-20">
           <div
-            className="h-full bg-white transition-none"
+            className="h-full bg-white"
             style={{ width: `${progress}%`, transition: "width 0.1s linear" }}
           />
         </div>
 
-        {/* Close button */}
+        {/* Close */}
         <button
           onClick={() => dismiss(false)}
           aria-label="Close"
-          className="absolute top-3 right-3 z-20 w-8 h-8 flex items-center justify-center bg-black/50 hover:bg-black/80 rounded-full transition-colors"
+          className="absolute top-3 right-3 z-20 w-8 h-8 flex items-center justify-center
+            bg-black/50 hover:bg-black/80 rounded-full transition-colors"
         >
           <X size={15} className="text-white" />
         </button>
 
-        {/* Nav arrows */}
+        {/* Prev / Next */}
         {adverts.length > 1 && (
           <>
             <button
               onClick={() => goTo((index - 1 + adverts.length) % adverts.length)}
               aria-label="Previous"
-              className="absolute left-2 top-1/2 -translate-y-1/2 z-20 w-8 h-8 flex items-center justify-center bg-black/40 hover:bg-black/70 rounded-full transition-colors"
+              className="absolute left-2 top-1/2 -translate-y-1/2 z-20 w-8 h-8 flex items-center
+                justify-center bg-black/40 hover:bg-black/70 rounded-full transition-colors"
             >
               <ChevronLeft size={16} className="text-white" />
             </button>
             <button
               onClick={() => goTo((index + 1) % adverts.length)}
               aria-label="Next"
-              className="absolute right-2 top-1/2 -translate-y-1/2 z-20 w-8 h-8 flex items-center justify-center bg-black/40 hover:bg-black/70 rounded-full transition-colors"
+              className="absolute right-2 top-1/2 -translate-y-1/2 z-20 w-8 h-8 flex items-center
+                justify-center bg-black/40 hover:bg-black/70 rounded-full transition-colors"
             >
               <ChevronRight size={16} className="text-white" />
             </button>
           </>
         )}
 
-        {/* Full advert image */}
-        <div className="relative w-full bg-gray-100" style={{ aspectRatio: "3/4" }}>
+        {/* Advert image */}
+        <div className="relative w-full bg-gray-200" style={{ aspectRatio: "3/4" }}>
           <img
+            key={ad.id}
             src={ad.image}
             alt={ad.title}
-            className="w-full h-full object-cover"
+            className="w-full h-full object-contain"
           />
-          {/* Gradient overlay at bottom */}
-          <div className="absolute inset-x-0 bottom-0 h-40 bg-gradient-to-t from-black/80 to-transparent" />
+          {/* Bottom gradient */}
+          <div className="absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-black/70 to-transparent" />
+
+          {/* Dot indicators (inside image area) */}
+          <div className="absolute bottom-3 left-0 right-0 flex justify-center gap-1.5">
+            {adverts.map((_, i) => (
+              <button
+                key={i}
+                onClick={() => goTo(i)}
+                aria-label={`Go to advert ${i + 1}`}
+                className={`rounded-full transition-all duration-300 ${
+                  i === index ? "w-5 h-1.5 bg-white" : "w-1.5 h-1.5 bg-white/50"
+                }`}
+              />
+            ))}
+          </div>
         </div>
 
-        {/* Bottom bar */}
-        <div className={`${ad.accent} px-5 py-4 flex items-center justify-between gap-3`}>
+        {/* Bottom action bar */}
+        <div className={`bg-gradient-to-r ${ad.accentFrom} ${ad.accentTo} px-5 py-4 flex items-center justify-between gap-3`}>
           <div className="min-w-0">
             <p className="text-white font-bold text-sm leading-tight truncate">{ad.title}</p>
-            {ad.subtitle && (
-              <p className="text-white/70 text-xs mt-0.5 leading-tight line-clamp-1">{ad.subtitle}</p>
-            )}
+            <p className="text-white/70 text-xs mt-0.5 leading-tight line-clamp-1">{ad.subtitle}</p>
           </div>
-          {ad.cta && (
-            <button
-              onClick={() => handleCta(ad)}
-              className="shrink-0 flex items-center gap-1.5 bg-white/20 hover:bg-white/30 text-white text-xs font-semibold px-3 py-2 rounded-xl transition-colors border border-white/30"
-            >
-              {ad.cta.href ? <ExternalLink size={12} /> : <Download size={12} />}
-              {ad.cta.label}
-            </button>
-          )}
-        </div>
-
-        {/* Dot indicators */}
-        <div className="absolute bottom-[56px] left-0 right-0 flex justify-center gap-1.5 pb-2">
-          {adverts.map((_, i) => (
-            <button
-              key={i}
-              onClick={() => goTo(i)}
-              aria-label={`Go to advert ${i + 1}`}
-              className={`rounded-full transition-all duration-300 ${
-                i === index ? "w-5 h-1.5 bg-white" : "w-1.5 h-1.5 bg-white/40"
-              }`}
-            />
-          ))}
+          <button
+            onClick={() => handleCta(ad)}
+            className="shrink-0 flex items-center gap-1.5 bg-white/20 hover:bg-white/35
+              text-white text-xs font-semibold px-3 py-2 rounded-xl transition-colors border border-white/30"
+          >
+            {ad.cta.href ? <ExternalLink size={12} /> : <Download size={12} />}
+            {ad.cta.label}
+          </button>
         </div>
       </div>
     </div>

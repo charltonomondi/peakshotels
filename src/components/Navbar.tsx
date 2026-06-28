@@ -19,7 +19,7 @@ import moreBanner from "@/assets/facilities/Grounds1.jpg";
 const primaryNavItems = [
   { name: "Home", path: "/" },
   { name: "Accommodation", path: "/rooms" },
-  { name: "Restaurant & Bar", path: "/restaurant" },
+  { name: "Restaurant & Dining", path: "/restaurant" },
   { name: "Conference", path: "/facilities" },
   { name: "Outdoor Fitness", path: "/activities" },
 ];
