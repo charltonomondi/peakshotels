@@ -1,7 +1,8 @@
 import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { X, Mountain, ChevronLeft, ChevronRight, Calendar, Users, Phone, Mail, User, MapPin, AlertCircle, CheckCircle, Loader2, Smartphone } from "lucide-react";
+import { X, Mountain, ChevronLeft, ChevronRight, Calendar, Users, Phone, Mail, User, MapPin, AlertCircle, CheckCircle, Loader2, Smartphone, ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Link } from "react-router-dom";
 
 import mountk  from "@/assets/mountain/mountk.jpg";
 import mountk1 from "@/assets/mountain/mountk1.JPG";
@@ -199,18 +200,26 @@ export default function MountainClimbingPopup() {
             </div>
 
             {/* bottom CTA */}
-            <div className="bg-[#0d1a0f] border-t border-green-900/40 px-4 py-3 flex items-center justify-between cursor-pointer hover:bg-[#111f13] transition-colors" onClick={openModal}>
-              <div>
+            <div className="bg-[#0d1a0f] border-t border-green-900/40 px-4 py-3 flex items-center justify-between">
+              <div className="cursor-pointer" onClick={openModal}>
                 <p className="text-white text-sm font-semibold flex items-center gap-1.5">
                   <Mountain className="h-4 w-4 text-green-400" />
                   Mount Kenya Climbing
                 </p>
                 <p className="text-white/50 text-xs">From KES 8,500 per person</p>
               </div>
-              <Button onClick={(e) => { e.stopPropagation(); openModal(); }} size="sm"
-                className="bg-green-600 hover:bg-green-500 text-white border-0 rounded-full px-4 text-xs">
-                Book Now
-              </Button>
+              <div className="flex items-center gap-2">
+                <Button asChild size="sm"
+                  className="bg-white/10 hover:bg-white/20 text-white border border-white/20 rounded-full px-3 text-xs">
+                  <Link to="/mountain-climbing" onClick={dismiss}>
+                    Rates <ArrowRight className="h-3 w-3 ml-1" />
+                  </Link>
+                </Button>
+                <Button onClick={(e) => { e.stopPropagation(); openModal(); }} size="sm"
+                  className="bg-green-600 hover:bg-green-500 text-white border-0 rounded-full px-4 text-xs">
+                  Book Now
+                </Button>
+              </div>
             </div>
           </motion.div>
         )}
