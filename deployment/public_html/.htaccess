@@ -8,6 +8,16 @@ RewriteCond %{REQUEST_FILENAME} !-d
 # Route all other requests to index.html (React Router)
 RewriteRule ^ index.html [QSA,L]
 
+# MIME types for media
+<IfModule mod_mime.c>
+  AddType video/mp4 .mp4
+  AddType video/webm .webm
+  AddType image/jpeg .jpg .jpeg .JPG .JPEG
+  AddType image/png .png
+  AddType image/webp .webp
+  AddType image/svg+xml .svg
+</IfModule>
+
 # Cache static assets
 <IfModule mod_expires.c>
   ExpiresActive On
@@ -16,6 +26,8 @@ RewriteRule ^ index.html [QSA,L]
   ExpiresByType image/gif "access plus 1 year"
   ExpiresByType image/webp "access plus 1 year"
   ExpiresByType image/svg+xml "access plus 1 year"
+  ExpiresByType video/mp4 "access plus 1 year"
+  ExpiresByType video/webm "access plus 1 year"
   ExpiresByType text/css "access plus 1 month"
   ExpiresByType application/javascript "access plus 1 month"
   ExpiresByType application/json "access plus 0 seconds"
