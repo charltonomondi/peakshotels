@@ -1,0 +1,14 @@
+---
+deployment:
+  tasks:
+    # 1. Copy built frontend to public_html
+    - export DEPLOYPATH=/home/$USER/public_html
+    - /bin/cp -r deployment/public_html/. $DEPLOYPATH/
+
+    # 2. Copy server to nodeapp directory (outside public_html)
+    - export SERVERPATH=/home/$USER/nodeapp
+    - /bin/mkdir -p $SERVERPATH
+    - /bin/cp -r deployment/server/. $SERVERPATH/
+
+    # 3. Install server Node.js dependencies
+    - cd $SERVERPATH && npm install --omit=dev
