@@ -2,6 +2,7 @@ import { motion, useScroll, useTransform } from "framer-motion";
 import { useRef, useState } from "react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
+import SEO from "@/components/SEO";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
 import { Mountain, Clock, Users, Check, X, ChevronDown, ArrowRight, MapPin, Shield, Zap } from "lucide-react";
@@ -112,6 +113,12 @@ const Activities = () => {
 
   return (
     <div className="min-h-screen overflow-x-hidden" style={{ background: "#0d1a0f" }}>
+      <SEO
+        title="Outdoor Activities & Adventures | Peaks Hotel Nanyuki"
+        description="Thrilling outdoor activities near Mount Kenya at Peaks Hotel Nanyuki. Nature walks, game drives, cycling, bird watching, team building and guided adventures in Laikipia."
+        keywords="outdoor activities Nanyuki, adventure Nanyuki, nature walks Nanyuki, game drives Nanyuki, cycling Nanyuki, bird watching Nanyuki, team building Nanyuki, Laikipia adventure, Mount Kenya activities"
+        canonical="https://www.peakshotels.co.ke/activities"
+      />
       <Navbar />
 
       {/* ── HERO ── */}

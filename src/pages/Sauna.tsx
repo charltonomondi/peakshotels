@@ -2,6 +2,7 @@ import { motion, useScroll, useTransform } from "framer-motion";
 import { useRef, useState } from "react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
+import SEO from "@/components/SEO";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
 import { Flame, Clock, Heart, Droplets, Shield, Wind } from "lucide-react";
@@ -28,6 +29,12 @@ const Sauna = () => {
 
   return (
     <div className="min-h-screen overflow-x-hidden bg-[#0e0a07]">
+      <SEO
+        title="Sauna | Peaks Hotel Nanyuki Wellness Centre"
+        description="Relax in the traditional Finnish sauna at Peaks Hotel Nanyuki. Detox, unwind and rejuvenate in our wellness centre. Best sauna in Nanyuki, open daily."
+        keywords="sauna Nanyuki, Peaks Hotel sauna, Finnish sauna Nanyuki, hotel with sauna Nanyuki, wellness centre Nanyuki, relaxation Nanyuki, detox sauna Kenya"
+        canonical="https://www.peakshotels.co.ke/sauna"
+      />
       <Navbar />
 
       {/* ── HERO ── */}

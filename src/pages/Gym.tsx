@@ -2,6 +2,7 @@ import { motion } from "framer-motion";
 import { useState } from "react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
+import SEO from "@/components/SEO";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
 import {
@@ -47,6 +48,12 @@ const Gym = () => {
   const [waOpen, setWaOpen] = useState(false);
   return (
     <div className="min-h-screen">
+      <SEO
+        title="Gym & Fitness Centre | Peaks Hotel Nanyuki"
+        description="State-of-the-art gym and fitness centre at Peaks Hotel Nanyuki. Modern equipment, personal training and daily access. Stay fit while enjoying your stay near Mount Kenya."
+        keywords="gym Nanyuki, fitness centre Nanyuki, Peaks Hotel gym, hotel gym Nanyuki, workout Nanyuki, fitness Nanyuki, wellness centre Nanyuki"
+        canonical="https://www.peakshotels.co.ke/gym"
+      />
       <Navbar />
 
       {/* Hero Section */}

@@ -2,6 +2,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useState } from "react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
+import SEO from "@/components/SEO";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
 import { Clock, Phone, Utensils, Wine, Coffee, Award, MapPin, Calendar, X, Download, FileText } from "lucide-react";
@@ -56,6 +57,12 @@ const Restaurant = () => {
 
   return (
     <div className="min-h-screen bg-background">
+      <SEO
+        title="Restaurant & Fine Dining | Peaks Hotel Nanyuki"
+        description="Enjoy fine dining at Mbaruk Restaurant, Peaks Hotel Nanyuki. Breakfast, lunch and dinner with stunning views. Best restaurant in Nanyuki with indoor and outdoor seating."
+        keywords="Peaks Hotel restaurant, Mbaruk restaurant Nanyuki, fine dining Nanyuki, best restaurant Nanyuki, breakfast Nanyuki, lunch Nanyuki, dinner Nanyuki, hotel restaurant Kenya"
+        canonical="https://www.peakshotels.co.ke/restaurant"
+      />
       <Navbar />
 
       {/* Hero Section with Parallax Effect */}

@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  <url><loc>https://www.peakshotels.co.ke/</loc><changefreq>weekly</changefreq><priority>1.0</priority></url>
+  <url><loc>https://www.peakshotels.co.ke/rooms</loc><changefreq>weekly</changefreq><priority>0.9</priority></url>
+  <url><loc>https://www.peakshotels.co.ke/booking</loc><changefreq>weekly</changefreq><priority>0.9</priority></url>
+  <url><loc>https://www.peakshotels.co.ke/restaurant</loc><changefreq>monthly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://www.peakshotels.co.ke/facilities</loc><changefreq>monthly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://www.peakshotels.co.ke/activities</loc><changefreq>monthly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://www.peakshotels.co.ke/mountain-climbing</loc><changefreq>monthly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://www.peakshotels.co.ke/swimming</loc><changefreq>monthly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://www.peakshotels.co.ke/gym</loc><changefreq>monthly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://www.peakshotels.co.ke/sauna</loc><changefreq>monthly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://www.peakshotels.co.ke/steam-bath</loc><changefreq>monthly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://www.peakshotels.co.ke/spa</loc><changefreq>monthly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://www.peakshotels.co.ke/massage</loc><changefreq>monthly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://www.peakshotels.co.ke/beauty-parlour</loc><changefreq>monthly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://www.peakshotels.co.ke/dining</loc><changefreq>monthly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://www.peakshotels.co.ke/conferences</loc><changefreq>monthly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://www.peakshotels.co.ke/gallery</loc><changefreq>monthly</changefreq><priority>0.6</priority></url>
+  <url><loc>https://www.peakshotels.co.ke/news</loc><changefreq>weekly</changefreq><priority>0.6</priority></url>
+  <url><loc>https://www.peakshotels.co.ke/about</loc><changefreq>monthly</changefreq><priority>0.6</priority></url>
+  <url><loc>https://www.peakshotels.co.ke/contact</loc><changefreq>monthly</changefreq><priority>0.6</priority></url>
+</urlset>

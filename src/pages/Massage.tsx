@@ -2,6 +2,7 @@ import { motion, useScroll, useTransform } from "framer-motion";
 import { useRef, useState } from "react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
+import SEO from "@/components/SEO";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
 import { Hand, Clock, Heart, Sparkles, Leaf, Wind, ChevronDown } from "lucide-react";
@@ -69,6 +70,12 @@ const Massage = () => {
 
   return (
     <div className="min-h-screen overflow-x-hidden bg-[#f7f3ee]">
+      <SEO
+        title="Massage Therapy | Peaks Hotel Nanyuki Wellness Centre"
+        description="Professional massage therapy at Peaks Hotel Nanyuki. Swedish, deep tissue, hot stone and more. Certified therapists available daily. Book your massage in Nanyuki."
+        keywords="massage Nanyuki, massage therapy Nanyuki, Peaks Hotel massage, spa massage Nanyuki, relaxation massage Kenya, wellness centre Nanyuki"
+        canonical="https://www.peakshotels.co.ke/massage"
+      />
       <Navbar />
 
       {/* ── HERO ── */}

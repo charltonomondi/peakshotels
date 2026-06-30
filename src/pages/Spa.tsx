@@ -1,6 +1,7 @@
 import { motion } from "framer-motion";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
+import SEO from "@/components/SEO";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
 import {
@@ -43,6 +44,12 @@ const spaServices = [
 const Spa = () => {
   return (
     <div className="min-h-screen">
+      <SEO
+        title="Spa | Peaks Hotel Nanyuki Wellness Centre"
+        description="Indulge in luxury spa treatments at Peaks Hotel Nanyuki. Full-body treatments, facials and holistic therapies. Relax and rejuvenate at the best spa in Nanyuki."
+        keywords="spa Nanyuki, luxury spa Nanyuki, Peaks Hotel spa, spa treatments Nanyuki, wellness spa Kenya, holistic therapy Nanyuki, spa near Mount Kenya"
+        canonical="https://www.peakshotels.co.ke/spa"
+      />
       <Navbar />
 
       {/* Hero Section */}

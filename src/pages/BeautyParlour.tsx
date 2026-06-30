@@ -2,6 +2,7 @@ import { motion, useScroll, useTransform } from "framer-motion";
 import { useRef, useState } from "react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
+import SEO from "@/components/SEO";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
 import { Sparkles, Clock, Scissors, Palette, Heart, Star, ChevronDown } from "lucide-react";
@@ -57,6 +58,12 @@ const BeautyParlour = () => {
 
   return (
     <div className="min-h-screen overflow-x-hidden" style={{ background: "#faf7f4" }}>
+      <SEO
+        title="Beauty Parlour | Peaks Hotel Nanyuki"
+        description="Professional beauty services at Peaks Hotel Nanyuki. Hair, skin, nails and more. Expert beauticians available daily. Best beauty parlour in Nanyuki."
+        keywords="beauty parlour Nanyuki, hair salon Nanyuki, nail care Nanyuki, skin care Nanyuki, Peaks Hotel beauty, beauty services Nanyuki, wellness Nanyuki"
+        canonical="https://www.peakshotels.co.ke/beauty-parlour"
+      />
       <Navbar />
 
       {/* ── SPLIT HERO ── */}

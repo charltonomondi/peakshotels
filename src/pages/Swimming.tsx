@@ -2,6 +2,7 @@ import { motion, useScroll, useTransform } from "framer-motion";
 import { useRef } from "react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
+import SEO from "@/components/SEO";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
 import { Waves, Clock, Sun, Thermometer, Users, ChevronDown } from "lucide-react";
@@ -31,6 +32,12 @@ const Swimming = () => {
 
   return (
     <div className="min-h-screen overflow-x-hidden">
+      <SEO
+        title="Heated Swimming Pool | Peaks Hotel Nanyuki"
+        description="Swim in our heated outdoor pool at Peaks Hotel Nanyuki. Open year-round with stunning Mount Kenya views. Best swimming pool in Nanyuki for guests and day visitors."
+        keywords="heated swimming pool Nanyuki, swimming pool Nanyuki, outdoor pool Nanyuki, Peaks Hotel pool, hotel with heated pool Nanyuki, swimming Nanyuki"
+        canonical="https://www.peakshotels.co.ke/swimming"
+      />
       <Navbar />
 
       {/* HERO */}

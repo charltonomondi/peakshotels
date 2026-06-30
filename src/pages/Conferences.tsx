@@ -2,6 +2,7 @@ import { motion, useScroll, useTransform, AnimatePresence } from "framer-motion"
 import { useRef, useState } from "react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
+import SEO from "@/components/SEO";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
 import {
@@ -104,6 +105,12 @@ const Conferences = () => {
 
   return (
     <div className="min-h-screen overflow-x-hidden bg-background">
+      <SEO
+        title="Conference & Event Facilities | Peaks Hotel Nanyuki"
+        description="World-class conference and event facilities at Peaks Hotel Nanyuki. Meeting rooms, conference halls, wedding venue and corporate retreat near Mount Kenya. Book your event today."
+        keywords="conference hotel Nanyuki, meeting rooms Nanyuki, conference facilities Nanyuki, wedding venue Nanyuki, corporate events Nanyuki, event space Nanyuki, Nanyuki conference centre, corporate retreat Kenya"
+        canonical="https://www.peakshotels.co.ke/conferences"
+      />
       <Navbar />
 
       {/* ── HERO ── */}

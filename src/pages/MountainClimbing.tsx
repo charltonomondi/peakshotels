@@ -4,6 +4,7 @@ import { motion } from "framer-motion";
 import { Mountain, Mail, Users, Info } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
+import SEO from "@/components/SEO";
 import { Button } from "@/components/ui/button";
 import MountainBookingModal from "@/components/MountainBookingModal";
 
@@ -212,6 +213,12 @@ export default function MountainClimbing() {
 
   return (
     <div className="min-h-screen bg-gray-50">
+      <SEO
+        title="Mount Kenya Climbing | Peaks Hotel Nanyuki"
+        description="Guided Mount Kenya climbing packages from Peaks Hotel Nanyuki. Expert guides, all routes including Sirimon, Chogoria and Naromoru. Book your Mount Kenya hiking adventure."
+        keywords="Mount Kenya climbing, Mount Kenya hiking, guided Mount Kenya, Peaks Hotel Mount Kenya, Sirimon route, Chogoria route, Naromoru route, Mount Kenya tourism, hiking Mount Kenya, Mount Kenya accommodation"
+        canonical="https://www.peakshotels.co.ke/mountain-climbing"
+      />
       <Navbar />
       <MountainBookingModal open={bookingOpen} onClose={() => setBookingOpen(false)} />
 

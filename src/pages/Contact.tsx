@@ -2,6 +2,7 @@ import { useState } from "react";
 import { motion } from "framer-motion";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
+import SEO from "@/components/SEO";
 import { Button } from "@/components/ui/button";
 import { MapPin, Phone, Mail, Clock, MessageCircle, Send } from "lucide-react";
 import heroBackground from "@/assets/facilities/frontage1.jpg";
@@ -24,6 +25,12 @@ const Contact = () => {
 
   return (
     <div className="min-h-screen">
+      <SEO
+        title="Contact Us | Peaks Hotel Nanyuki"
+        description="Get in touch with Peaks Hotel Nanyuki. Call us on 0711969690 or email info@peakshotels.co.ke. We are located in Nanyuki, at the foot of Mount Kenya."
+        keywords="contact Peaks Hotel, Peaks Hotel Nanyuki phone, Peaks Hotel email, Nanyuki hotel contact, how to reach Peaks Hotel, Peaks Hotel location, visit Nanyuki"
+        canonical="https://www.peakshotels.co.ke/contact"
+      />
       <Navbar />
       
       {/* Hero Section */}

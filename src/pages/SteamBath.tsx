@@ -2,6 +2,7 @@ import { motion, useScroll, useTransform } from "framer-motion";
 import { useRef, useState } from "react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
+import SEO from "@/components/SEO";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
 import { Cloud, Clock, Heart, Droplets, Sparkles, Wind, ChevronDown } from "lucide-react";
@@ -35,6 +36,12 @@ const SteamBath = () => {
 
   return (
     <div className="min-h-screen overflow-x-hidden" style={{ background: "#f0f4f6" }}>
+      <SEO
+        title="Steam Bath | Peaks Hotel Nanyuki Wellness Centre"
+        description="Therapeutic steam bath at Peaks Hotel Nanyuki. Moist heat therapy to relieve stress and muscle tension. Visit our wellness centre in Nanyuki today."
+        keywords="steam bath Nanyuki, steam room Nanyuki, Peaks Hotel steam bath, wellness Nanyuki, hotel with steam bath Nanyuki, therapeutic steam Nanyuki"
+        canonical="https://www.peakshotels.co.ke/steam-bath"
+      />
       <Navbar />
 
       {/* ── HERO ── */}

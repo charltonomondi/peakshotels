@@ -1,6 +1,7 @@
 import { motion } from "framer-motion";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
+import SEO from "@/components/SEO";
 import { Award, Heart, Shield, Users } from "lucide-react";
 
 const values = [
@@ -29,6 +30,12 @@ const values = [
 const About = () => {
   return (
     <div className="min-h-screen">
+      <SEO
+        title="About Us | Peaks Hotel Nanyuki Kenya"
+        description="Learn about Peaks Hotel Nanyuki — a luxury hotel at the foot of Mount Kenya. Our story, values and commitment to hospitality in Nanyuki, Laikipia, Kenya."
+        keywords="about Peaks Hotel, Peaks Hotel story, Nanyuki hotel history, luxury hotel Kenya, hospitality Nanyuki, Peaks Hotel values, hotel near Mount Kenya Kenya"
+        canonical="https://www.peakshotels.co.ke/about"
+      />
       <Navbar />
       
       {/* Hero Section */}

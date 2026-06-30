@@ -2,6 +2,7 @@ import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
+import SEO from "@/components/SEO";
 import { Button } from "@/components/ui/button";
 import { Link, useNavigate } from "react-router-dom";
 import { Bed, Users, Maximize, Wifi, Wind, Tv, Bath, ArrowRight, Check, X, FileText } from "lucide-react";
@@ -126,6 +127,12 @@ const Rooms = () => {
 
   return (
     <div className="min-h-screen">
+      <SEO
+        title="Rooms & Accommodation | Peaks Hotel Nanyuki"
+        description="Book luxury rooms at Peaks Hotel Nanyuki. Deluxe, Executive and Presidential suites near Mount Kenya. Best accommodation in Nanyuki with breakfast options."
+        keywords="Peaks Hotel rooms, accommodation Nanyuki, luxury rooms Nanyuki, hotel rooms near Mount Kenya, book hotel Nanyuki, Nanyuki lodging, Peaks Hotel booking"
+        canonical="https://www.peakshotels.co.ke/rooms"
+      />
       <Navbar />
       
       {/* Hero Section */}
