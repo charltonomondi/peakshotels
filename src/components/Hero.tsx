@@ -3,7 +3,7 @@ import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Link, useNavigate } from "react-router-dom";
 import { CalendarDays, Users, ChevronDown } from "lucide-react";
-import vid1 from "@/assets/video/vid1.mp4";
+const HERO_VIDEO = "/assets/vid1-.mp4";
 
 const Hero = () => {
   const navigate = useNavigate();
@@ -35,7 +35,7 @@ const Hero = () => {
   return (
     <section className="relative min-h-[100svh] flex items-center justify-center overflow-hidden">
       <div className="absolute inset-0">
-        <video src={vid1} autoPlay muted loop playsInline className="w-full h-full object-cover" />
+        <video src={HERO_VIDEO} autoPlay muted loop playsInline className="w-full h-full object-cover" />
         <div className="absolute inset-0 bg-gradient-hero" />
       </div>
       <div className="relative z-10 container mx-auto px-4 pt-16 md:pt-20 pb-8">
