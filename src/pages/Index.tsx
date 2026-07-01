@@ -213,7 +213,7 @@ const Index = () => {
             >
               {/* <p className="text-accent text-xs font-medium tracking-[0.25em] uppercase mb-3">Our philosophy</p> */}
               <h2 className="font-heading text-4xl md:text-5xl font-bold text-foreground mb-10 leading-tight">
-                Why Peaks?
+                Why Peaks Hotel?
               </h2>
               <div className="space-y-6">
                 {values.map(({ icon: Icon, title, description }, i) => (
