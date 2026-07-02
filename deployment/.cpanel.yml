@@ -1,14 +1,25 @@
 ---
 deployment:
   tasks:
+    # Exit on any error
+    - /bin/bash -c 'set -e'
+
     # 1. Copy built frontend to public_html
     - export DEPLOYPATH=/home/$USER/public_html
+    - /bin/mkdir -p $DEPLOYPATH
     - /bin/cp -r deployment/public_html/. $DEPLOYPATH/
+    - echo "Frontend deployed to $DEPLOYPATH"
 
     # 2. Copy server to nodeapp directory (outside public_html)
     - export SERVERPATH=/home/$USER/nodeapp
     - /bin/mkdir -p $SERVERPATH
     - /bin/cp -r deployment/server/. $SERVERPATH/
+    - echo "Server deployed to $SERVERPATH"
 
     # 3. Install server Node.js dependencies
     - cd $SERVERPATH && npm install --omit=dev
+    - echo "Server dependencies installed"
+
+    # 4. Restart Node.js app (cPanel Passenger/Node.js restart trigger)
+    - /bin/touch $SERVERPATH/tmp/restart.txt 2>/dev/null || true
+    - echo "Node.js app restart triggered"

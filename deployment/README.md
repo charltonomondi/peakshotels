@@ -28,7 +28,7 @@ deployment/
 - cPanel → Git Version Control → Create
 - Clone URL: your GitHub repo
 - Repository Path: `/home/$USER/peakshotel` (outside public_html)
-- Branch: `main`
+- Branch: **`main`** (must match the branch you push to!)
 
 ### 2. Node.js App
 - cPanel → Setup Node.js App → Create Application
@@ -59,12 +59,20 @@ In the Node.js App panel, add each key from `.env.example` with real values:
 bash deployment/build-and-copy.sh
 ```
 
+This script will:
+1. Build the React app (`npm run build`)
+2. Copy the build output to `deployment/public_html/`
+3. Copy server files to `deployment/server/`
+4. Verify everything is in place
+
 ### Step 2 — Commit and push
 ```bash
 git add deployment/
 git commit -m "Deploy: describe what changed"
 git push origin main
 ```
+
+**CRITICAL:** You MUST run `build-and-copy.sh` before committing. The `deployment/public_html/` folder contains the pre-built frontend. Without rebuilding, cPanel will deploy the old build and your changes won't appear.
 
 ### Step 3 — Pull in cPanel
 - cPanel → Git Version Control → your repo → **Pull or Deploy**
@@ -73,6 +81,34 @@ The `.cpanel.yml` script will automatically:
 1. Copy `deployment/public_html/` → `~/public_html/`
 2. Copy `deployment/server/` → `~/nodeapp/`
 3. Run `npm install` in `~/nodeapp/`
+4. Restart the Node.js app
+
+---
+
+## Troubleshooting: "Changes not showing up"
+
+If you push changes but the live site doesn't update:
+
+### 1. Did you run `build-and-copy.sh`?
+The most common mistake. The `deployment/public_html/` folder in git contains the **built** frontend, not the source code. You must rebuild before committing:
+```bash
+bash deployment/build-and-copy.sh
+git add deployment/
+git commit -m "Deploy: ..."
+git push origin main
+```
+
+### 2. Is cPanel tracking the correct branch?
+Check cPanel → Git Version Control → your repo. The "Deploy Branch" must be `main` (or whatever branch you push to). If you push to `production` but cPanel tracks `main`, it will never pull your changes.
+
+### 3. Did the cPanel deployment succeed?
+After clicking "Pull or Deploy" in cPanel, check for a success message. If it fails, check the deployment log in cPanel.
+
+### 4. Browser cache?
+Static assets are cached for 1 month. Force-refresh with `Ctrl+Shift+R` (Windows) or `Cmd+Shift+R` (Mac). Vite uses content hashes in filenames, so new builds should have different filenames.
+
+### 5. Node.js app not restarting?
+After deployment, go to cPanel → Setup Node.js App and click "Restart" for your app.
 
 ---
 
