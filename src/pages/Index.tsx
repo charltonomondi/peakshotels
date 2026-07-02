@@ -258,7 +258,7 @@ const Index = () => {
             transition={{ duration: 0.8 }}
             className="max-w-2xl"
           >
-            <p className="text-accent text-xs font-medium tracking-[0.3em] uppercase mb-6">A message from our team</p>
+            <p className="text-accent text-xs font-medium tracking-[0.3em] uppercase mb-6">A message from our team...</p>
             <blockquote className="font-heading text-2xl md:text-3xl font-light text-white leading-relaxed mb-8 italic">
               "Peaks Hotel is a place where beauty and nature meet taste and genuine hospitality. We are proud to welcome guests from Nanyuki, from Kenya and around the world. This is your home away from home."
             </blockquote>

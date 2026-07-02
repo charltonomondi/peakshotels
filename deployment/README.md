@@ -28,7 +28,7 @@ deployment/
 - cPanel → Git Version Control → Create
 - Clone URL: your GitHub repo
 - Repository Path: `/home/$USER/peakshotel` (outside public_html)
-- Branch: **`main`** (must match the branch you push to!)
+- Branch: **`production`** (must match the branch you push to!)
 
 ### 2. Node.js App
 - cPanel → Setup Node.js App → Create Application
@@ -69,13 +69,14 @@ This script will:
 ```bash
 git add deployment/
 git commit -m "Deploy: describe what changed"
-git push origin main
+git push origin production
 ```
 
 **CRITICAL:** You MUST run `build-and-copy.sh` before committing. The `deployment/public_html/` folder contains the pre-built frontend. Without rebuilding, cPanel will deploy the old build and your changes won't appear.
 
 ### Step 3 — Pull in cPanel
 - cPanel → Git Version Control → your repo → **Pull or Deploy**
+  (Make sure the "Deploy Branch" is set to `production`)
 
 The `.cpanel.yml` script will automatically:
 1. Copy `deployment/public_html/` → `~/public_html/`
@@ -95,11 +96,11 @@ The most common mistake. The `deployment/public_html/` folder in git contains th
 bash deployment/build-and-copy.sh
 git add deployment/
 git commit -m "Deploy: ..."
-git push origin main
+git push origin production
 ```
 
 ### 2. Is cPanel tracking the correct branch?
-Check cPanel → Git Version Control → your repo. The "Deploy Branch" must be `main` (or whatever branch you push to). If you push to `production` but cPanel tracks `main`, it will never pull your changes.
+Check cPanel → Git Version Control → your repo. The "Deploy Branch" must match the branch you push to. In your case, it should be `production`. If you push to `main` but cPanel tracks `production`, it will never pull your changes.
 
 ### 3. Did the cPanel deployment succeed?
 After clicking "Pull or Deploy" in cPanel, check for a success message. If it fails, check the deployment log in cPanel.
