@@ -1,6 +1,6 @@
 import { Link, useLocation } from "react-router-dom";
 import { useState, useRef } from "react";
-import { Menu, X, Phone, Mail, ChevronDown, Star, CreditCard, Waves, Dumbbell, Flame, Wind, Sparkles, Scissors, Newspaper, Images, MessageSquare, Info, ArrowRight } from "lucide-react";
+import { Menu, X, Phone, Mail, ChevronDown, Star, CreditCard, Waves, Dumbbell, Flame, Wind, Sparkles, Scissors, Newspaper, Images, MessageSquare, Info, ArrowRight, Shield } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -10,6 +10,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { motion, AnimatePresence } from "framer-motion";
 import { useLoyaltyAuth } from "@/lib/loyaltyAuth";
+import { useStaffAuth } from "@/lib/staffAuth";
 import { openLipaModal } from "@/components/LipaMdogoMdogoPopup";
 import logo from "/logo.jpeg";
 import wellnessBanner from "@/assets/swimming/swim1.jpg";
@@ -74,6 +75,7 @@ const Navbar = () => {
   const [logoLoading, setLogoLoading] = useState(true);
   const location = useLocation();
   const { member } = useLoyaltyAuth();
+  const { staff } = useStaffAuth();
   const wellnessTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
   const moreTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -349,6 +351,25 @@ const Navbar = () => {
               <Button variant="gold" size="sm" className="hidden sm:inline-flex" asChild>
                 <Link to="/booking">Book Now</Link>
               </Button>
+
+              {/* Staff portal link */}
+              {staff?.status === "active" ? (
+                <Link
+                  to="/staff/dashboard"
+                  className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 bg-primary/10 hover:bg-primary/20 rounded-full text-xs font-semibold text-primary transition-colors"
+                >
+                  <Shield className="h-3.5 w-3.5" />
+                  Dashboard
+                </Link>
+              ) : (
+                <Link
+                  to="/staff/login"
+                  className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 bg-primary/10 hover:bg-primary/20 rounded-full text-xs font-semibold text-primary transition-colors"
+                >
+                  <Shield className="h-3.5 w-3.5" />
+                  Staff Login
+                </Link>
+              )}
 
               <button
                 onClick={() => setIsOpen(!isOpen)}
