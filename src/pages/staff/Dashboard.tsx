@@ -9,9 +9,10 @@ import {
   LogOut, CalendarDays, FileText, Clock, BedDouble,
   Users, CheckCircle2, Circle, Plus, Loader2, Shield,
   UserCheck, UserX, Phone, Mail, Upload, Download, Trash2,
-  FileSpreadsheet, FileType2, File,
+  FileSpreadsheet, FileType2, File, ClipboardList,
 } from "lucide-react";
 import Navbar from "@/components/Navbar";
+import DailyReportForm from "@/components/DailyReportForm";
 
 interface StaffRequest {
   id: string;
@@ -82,6 +83,7 @@ export default function StaffDashboard() {
   const [selectedDocDate, setSelectedDocDate] = useState<string>(today);
 
   const isAdmin = staff?.role === "manager" || staff?.role === "super_admin";
+  const [activeTab, setActiveTab] = useState<"dashboard" | "report">("dashboard");
 
   const filteredDocs = documents.filter(d =>
     d.uploaded_at.startsWith(selectedDocDate)
@@ -317,6 +319,43 @@ export default function StaffDashboard() {
             </Button>
           </div>
 
+          {/* Tabs */}
+          <div className="flex gap-1 mb-6 border-b border-border">
+            <button
+              onClick={() => setActiveTab("dashboard")}
+              className={`flex items-center gap-2 px-4 py-2.5 text-sm font-medium border-b-2 transition-colors ${
+                activeTab === "dashboard"
+                  ? "border-accent text-accent"
+                  : "border-transparent text-muted-foreground hover:text-foreground"
+              }`}
+            >
+              <BedDouble className="h-4 w-4" /> Dashboard
+            </button>
+            <button
+              onClick={() => setActiveTab("report")}
+              className={`flex items-center gap-2 px-4 py-2.5 text-sm font-medium border-b-2 transition-colors ${
+                activeTab === "report"
+                  ? "border-accent text-accent"
+                  : "border-transparent text-muted-foreground hover:text-foreground"
+              }`}
+            >
+              <ClipboardList className="h-4 w-4" /> Daily Report
+            </button>
+          </div>
+
+          {activeTab === "report" ? (
+            <Card>
+              <CardHeader className="pb-3">
+                <CardTitle className="text-base flex items-center gap-2">
+                  <ClipboardList className="h-4 w-4 text-accent" /> Daily Operations Report
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <DailyReportForm staff={staff} />
+              </CardContent>
+            </Card>
+          ) : (
+          <>
           {/* Stats row */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
             {[
@@ -608,6 +647,9 @@ export default function StaffDashboard() {
                 )}
               </CardContent>
             </Card>
+          )}
+
+          </>
           )}
 
         </div>
