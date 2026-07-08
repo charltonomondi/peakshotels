@@ -49,6 +49,9 @@ interface Document {
   storage_path: string | null;
   category: string;
   uploaded_at: string;
+  uploaded_by_name: string | null;
+  uploader_department: string | null;
+}
 }
 
 const PRIORITY_COLORS = {
@@ -71,8 +74,13 @@ export default function StaffDashboard() {
   const [approvingId, setApprovingId] = useState<string | null>(null);
   const [uploading, setUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [selectedDocDate, setSelectedDocDate] = useState<string>(today);
 
   const isAdmin = staff?.role === "manager" || staff?.role === "super_admin";
+
+  const filteredDocs = documents.filter(d =>
+    d.uploaded_at.startsWith(selectedDocDate)
+  );
 
   useEffect(() => {
     if (!loading && !staff) {
@@ -180,6 +188,7 @@ export default function StaffDashboard() {
       category,
       uploaded_by: staff.user_id,
       uploaded_by_name: staff.full_name,
+      uploader_department: staff.department ?? staff.role,
     }).select().single();
 
     if (doc) setDocuments(ds => [{ ...doc, storage_path: storagePath }, ...ds]);
@@ -437,23 +446,59 @@ export default function StaffDashboard() {
                     </Button>
                   </div>
                 </div>
+                {/* Date filter */}
+                <div className="flex items-center gap-2 mt-2">
+                  <CalendarDays className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
+                  <input
+                    type="date"
+                    value={selectedDocDate}
+                    max={today}
+                    onChange={e => setSelectedDocDate(e.target.value)}
+                    className="text-xs px-2 py-1 border border-border rounded-md bg-background focus:outline-none focus:ring-1 focus:ring-accent w-full"
+                  />
+                  {selectedDocDate !== today && (
+                    <button
+                      onClick={() => setSelectedDocDate(today)}
+                      className="text-xs text-accent hover:underline whitespace-nowrap"
+                    >
+                      Today
+                    </button>
+                  )}
+                </div>
               </CardHeader>
               <CardContent className="space-y-2">
                 {dataLoading ? (
                   <div className="text-center py-4"><Loader2 className="h-5 w-5 animate-spin mx-auto text-muted-foreground" /></div>
-                ) : documents.length === 0 ? (
-                  <p className="text-sm text-muted-foreground text-center py-3">No documents yet — upload one</p>
+                ) : filteredDocs.length === 0 ? (
+                  <p className="text-sm text-muted-foreground text-center py-3">
+                    No documents for {selectedDocDate === today ? "today" : selectedDocDate}
+                  </p>
                 ) : (
-                  documents.map(doc => (
-                    <div key={doc.id} className="flex items-center gap-3 p-2.5 rounded-lg hover:bg-secondary transition-colors group">
-                      <div className="h-8 w-8 bg-secondary rounded-lg flex items-center justify-center shrink-0">
+                  filteredDocs.map(doc => (
+                    <div key={doc.id} className="flex items-start gap-3 p-2.5 rounded-lg hover:bg-secondary transition-colors group border border-border/50">
+                      <div className="h-8 w-8 bg-secondary rounded-lg flex items-center justify-center shrink-0 mt-0.5">
                         {getFileIcon(doc.name)}
                       </div>
                       <div className="flex-1 min-w-0 cursor-pointer" onClick={() => handleOpen(doc)}>
                         <p className="text-sm font-medium truncate hover:text-accent transition-colors">{doc.name}</p>
-                        <p className="text-xs text-muted-foreground">
-                          {doc.category} · {new Date(doc.uploaded_at).toLocaleDateString("en-KE")}
+                        <p className="text-xs text-muted-foreground mt-0.5">
+                          {doc.category}
                         </p>
+                        <div className="flex items-center gap-1.5 mt-1 flex-wrap">
+                          {doc.uploaded_by_name && (
+                            <span className="text-xs bg-primary/10 text-primary px-1.5 py-0.5 rounded-full font-medium">
+                              {doc.uploaded_by_name}
+                            </span>
+                          )}
+                          {doc.uploader_department && (
+                            <span className="text-xs bg-accent/10 text-accent px-1.5 py-0.5 rounded-full">
+                              {doc.uploader_department}
+                            </span>
+                          )}
+                          <span className="text-xs text-muted-foreground">
+                            {new Date(doc.uploaded_at).toLocaleTimeString("en-KE", { hour: "2-digit", minute: "2-digit" })}
+                          </span>
+                        </div>
                       </div>
                       <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity shrink-0">
                         <Button size="icon" variant="ghost" className="h-7 w-7" title="Open"
