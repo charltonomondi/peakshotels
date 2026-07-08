@@ -52,7 +52,6 @@ interface Document {
   uploaded_by_name: string | null;
   uploader_department: string | null;
 }
-}
 
 const PRIORITY_COLORS = {
   low: "bg-blue-100 text-blue-700",
