@@ -63,6 +63,12 @@ const PRIORITY_COLORS = {
 export default function StaffDashboard() {
   const { staff, loading, isApproved, signOut } = useStaffAuth();
   const navigate = useNavigate();
+
+  const today = new Date().toISOString().split("T")[0];
+  const todayFormatted = new Date().toLocaleDateString("en-KE", {
+    weekday: "long", year: "numeric", month: "long", day: "numeric",
+  });
+
   const [tasks, setTasks] = useState<Task[]>([]);
   const [meetings, setMeetings] = useState<Meeting[]>([]);
   const [documents, setDocuments] = useState<Document[]>([]);
