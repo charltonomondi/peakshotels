@@ -1,6 +1,6 @@
 import { Link, useLocation } from "react-router-dom";
 import { useState, useRef } from "react";
-import { Menu, X, Phone, Mail, ChevronDown, Star, CreditCard, Waves, Dumbbell, Flame, Wind, Sparkles, Scissors, Newspaper, Images, MessageSquare, Info, ArrowRight } from "lucide-react";
+import { Menu, X, Phone, Mail, ChevronDown, Star, CreditCard, Waves, Dumbbell, Flame, Wind, Sparkles, Scissors, Newspaper, Images, MessageSquare, Info, ArrowRight, Shield } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -10,6 +10,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { motion, AnimatePresence } from "framer-motion";
 import { useLoyaltyAuth } from "@/lib/loyaltyAuth";
+import { useStaffAuth } from "@/lib/staffAuth";
 import { openLipaModal } from "@/components/LipaMdogoMdogoPopup";
 import logo from "/logo.jpeg";
 import wellnessBanner from "@/assets/swimming/swim1.jpg";
@@ -74,6 +75,7 @@ const Navbar = () => {
   const [logoLoading, setLogoLoading] = useState(true);
   const location = useLocation();
   const { member } = useLoyaltyAuth();
+  const { staff } = useStaffAuth();
   const wellnessTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
   const moreTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -110,7 +112,7 @@ const Navbar = () => {
     <Link
       key={index}
       to={item.path}
-      className={`text-sm font-bold tracking-wide transition-colors hover:text-accent ${location.pathname === item.path ? "text-accent" : "text-foreground"}`}
+      className={`text-sm font-bold tracking-wide transition-colors hover:text-accent whitespace-nowrap ${location.pathname === item.path ? "text-accent" : "text-foreground"}`}
     >
       {item.name}
     </Link>
@@ -208,7 +210,7 @@ const Navbar = () => {
                 onMouseEnter={openWellness}
                 onMouseLeave={closeWellness}
               >
-                <button className={`flex items-center gap-1 text-sm font-bold tracking-wide transition-colors hover:text-accent ${isWellnessActive ? "text-accent" : "text-foreground"}`}>
+                <button className={`flex items-center gap-1 text-sm font-bold tracking-wide transition-colors hover:text-accent whitespace-nowrap ${isWellnessActive ? "text-accent" : "text-foreground"}`}>
                   Wellness Centre <ChevronDown className={`h-3.5 w-3.5 opacity-60 transition-transform duration-200 ${wellnessOpen ? "rotate-180" : ""}`} />
                 </button>
 
@@ -322,7 +324,7 @@ const Navbar = () => {
             <div className="flex items-center gap-2">
               <button
                 onClick={() => openLipaModal?.()}
-                className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 bg-amber-500/10 hover:bg-amber-500/20 rounded-full text-xs font-semibold text-amber-600 transition-colors border border-amber-400/30"
+                className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 bg-amber-500/10 hover:bg-amber-500/20 rounded-full text-xs font-semibold text-amber-600 transition-colors border border-amber-400/30 whitespace-nowrap"
               >
                 <CreditCard className="h-3.5 w-3.5" />
                 Payment Plan
@@ -331,7 +333,7 @@ const Navbar = () => {
               {member ? (
                 <Link
                   to="/loyalty/dashboard"
-                  className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 bg-accent/10 hover:bg-accent/20 rounded-full text-xs font-semibold text-accent transition-colors"
+                  className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 bg-accent/10 hover:bg-accent/20 rounded-full text-xs font-semibold text-accent transition-colors whitespace-nowrap"
                 >
                   <Star className="h-3.5 w-3.5" />
                   {member.points.toLocaleString()} pts
@@ -339,7 +341,7 @@ const Navbar = () => {
               ) : (
                 <Link
                   to="/loyalty/signup"
-                  className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 bg-accent/10 hover:bg-accent/20 rounded-full text-xs font-semibold text-accent transition-colors"
+                  className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 bg-accent/10 hover:bg-accent/20 rounded-full text-xs font-semibold text-accent transition-colors whitespace-nowrap"
                 >
                   <Star className="h-3.5 w-3.5" />
                   Loyalty
@@ -349,6 +351,25 @@ const Navbar = () => {
               <Button variant="gold" size="sm" className="hidden sm:inline-flex" asChild>
                 <Link to="/booking">Book Now</Link>
               </Button>
+
+              {/* Staff portal link */}
+              {staff?.status === "active" ? (
+                <Link
+                  to="/staff/dashboard"
+                  className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 bg-primary/10 hover:bg-primary/20 rounded-full text-xs font-semibold text-primary transition-colors whitespace-nowrap"
+                >
+                  <Shield className="h-3.5 w-3.5" />
+                  Dashboard
+                </Link>
+              ) : (
+                <Link
+                  to="/staff/login"
+                  className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 bg-primary/10 hover:bg-primary/20 rounded-full text-xs font-semibold text-primary transition-colors whitespace-nowrap"
+                >
+                  <Shield className="h-3.5 w-3.5" />
+                  Staff Login
+                </Link>
+              )}
 
               <button
                 onClick={() => setIsOpen(!isOpen)}

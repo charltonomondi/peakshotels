@@ -1,0 +1,6 @@
+---
+deployment:
+  tasks:
+    - export DEPLOYPATH=/home/peakshote/x7q9v2m4r8k1.peakshotels.co.ke
+    - /bin/mkdir -p $DEPLOYPATH
+    - /bin/cp -r deployment/public_html/. $DEPLOYPATH/
