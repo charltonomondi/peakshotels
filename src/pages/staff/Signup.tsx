@@ -40,7 +40,20 @@ export default function StaffSignup() {
       return;
     }
 
-    // 2. Insert staff record with pending status
+    // 2. If signUp didn't return a session (email confirmation required),
+    //    sign in immediately so auth.uid() is available for RLS
+    if (!authData.session) {
+      const { error: signInErr } = await supabase.auth.signInWithPassword({
+        email: form.email,
+        password: form.password,
+      });
+      if (signInErr) {
+        // Email confirmation may be required — insert via upsert with user id from signup
+        // Fall through and try insert anyway; if it fails tell user to confirm email first
+      }
+    }
+
+    // 3. Insert staff record with pending status
     const { error: staffErr } = await supabase.from("staff_members").insert({
       user_id: authData.user.id,
       full_name: form.full_name,
@@ -54,10 +67,20 @@ export default function StaffSignup() {
     setSubmitting(false);
 
     if (staffErr) {
-      toast({ title: "Profile creation failed", description: staffErr.message, variant: "destructive" });
+      if (staffErr.message.includes("row level security") || staffErr.code === "42501") {
+        toast({
+          title: "Email confirmation required",
+          description: "Please check your email and confirm your account, then sign in again to complete registration.",
+          variant: "destructive",
+        });
+      } else {
+        toast({ title: "Profile creation failed", description: staffErr.message, variant: "destructive" });
+      }
       return;
     }
 
+    // Sign out after registration — they need admin approval before logging in
+    await supabase.auth.signOut();
     setDone(true);
   }
 
@@ -94,7 +117,7 @@ export default function StaffSignup() {
               <Shield className="h-7 w-7 text-primary" />
             </div>
             <CardTitle className="text-2xl">Request Staff Access</CardTitle>
-            <CardDescription>Submit your details — an admin will approve your account</CardDescription>
+            <CardDescription></CardDescription>
           </CardHeader>
           <CardContent>
             <form onSubmit={handleSubmit} className="space-y-4">

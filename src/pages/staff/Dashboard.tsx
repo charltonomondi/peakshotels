@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { useStaffAuth, ROLE_LABELS, STATUS_COLORS } from "@/lib/staffAuth";
 import { supabase } from "@/lib/supabase";
@@ -8,8 +8,21 @@ import { Badge } from "@/components/ui/badge";
 import {
   LogOut, CalendarDays, FileText, Clock, BedDouble,
   Users, CheckCircle2, Circle, Plus, Loader2, Shield,
+  UserCheck, UserX, Phone, Mail, Upload, Download, Trash2,
+  FileSpreadsheet, FileType2, File,
 } from "lucide-react";
 import Navbar from "@/components/Navbar";
+
+interface StaffRequest {
+  id: string;
+  full_name: string;
+  email: string;
+  phone: string | null;
+  role: string;
+  department: string | null;
+  status: string;
+  created_at: string;
+}
 
 interface Task {
   id: string;
@@ -33,6 +46,7 @@ interface Document {
   id: string;
   name: string;
   file_url: string;
+  storage_path: string | null;
   category: string;
   uploaded_at: string;
 }
@@ -53,11 +67,26 @@ export default function StaffDashboard() {
   const [todayBookings, setTodayBookings] = useState(0);
   const [newTask, setNewTask] = useState("");
   const [addingTask, setAddingTask] = useState(false);
+  const [staffRequests, setStaffRequests] = useState<StaffRequest[]>([]);
+  const [approvingId, setApprovingId] = useState<string | null>(null);
+  const [uploading, setUploading] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const isAdmin = staff?.role === "manager" || staff?.role === "super_admin";
 
   useEffect(() => {
-    if (!loading && !staff) navigate("/staff/login");
-    if (!loading && staff && !isApproved) return; // show pending screen
-    if (!loading && isApproved) loadData();
+    if (!loading && !staff) {
+      // Give it a moment — staffAuth may still be fetching
+      const timer = setTimeout(() => {
+        navigate("/staff/login");
+      }, 2000);
+      return () => clearTimeout(timer);
+    }
+    if (!loading && staff && !isApproved) return;
+    if (!loading && isApproved) {
+      loadData();
+      if (isAdmin) loadStaffRequests();
+    }
   }, [loading, staff, isApproved]);
 
   const today = new Date().toISOString().split("T")[0];
@@ -83,6 +112,108 @@ export default function StaffDashboard() {
     setDocuments(docsRes.data ?? []);
     setTodayBookings(bookingsRes.count ?? 0);
     setDataLoading(false);
+  }
+
+  async function loadStaffRequests() {
+    const { data } = await supabase
+      .from("staff_members")
+      .select("id, full_name, email, phone, role, department, status, created_at")
+      .neq("user_id", staff!.user_id)
+      .order("created_at", { ascending: false });
+    setStaffRequests(data ?? []);
+  }
+
+  async function handleApprove(id: string) {
+    setApprovingId(id);
+    await supabase.from("staff_members").update({
+      status: "active",
+      approved_at: new Date().toISOString(),
+    }).eq("id", id);
+    setStaffRequests(rs => rs.map(r => r.id === id ? { ...r, status: "active" } : r));
+    setApprovingId(null);
+  }
+
+  async function handleSuspend(id: string) {
+    setApprovingId(id);
+    await supabase.from("staff_members").update({ status: "suspended" }).eq("id", id);
+    setStaffRequests(rs => rs.map(r => r.id === id ? { ...r, status: "suspended" } : r));
+    setApprovingId(null);
+  }
+
+  function getFileIcon(name: string) {
+    const ext = name.split(".").pop()?.toLowerCase();
+    if (["xls", "xlsx", "csv"].includes(ext ?? "")) return <FileSpreadsheet className="h-4 w-4 text-green-600" />;
+    if (["doc", "docx"].includes(ext ?? "")) return <FileType2 className="h-4 w-4 text-blue-600" />;
+    if (ext === "pdf") return <FileText className="h-4 w-4 text-red-600" />;
+    return <File className="h-4 w-4 text-muted-foreground" />;
+  }
+
+  async function handleUpload(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file || !staff) return;
+    setUploading(true);
+
+    const ext = (file.name.split(".").pop() ?? "").toLowerCase();
+    const storagePath = `${staff.user_id}/${Date.now()}_${file.name}`;
+
+    const { error: uploadErr } = await supabase.storage
+      .from("staff-documents")
+      .upload(storagePath, file, { upsert: false });
+
+    if (uploadErr) {
+      alert("Upload failed: " + uploadErr.message);
+      setUploading(false);
+      return;
+    }
+
+    const category =
+      ["xls", "xlsx", "csv"].includes(ext) ? "spreadsheet" :
+      ["doc", "docx"].includes(ext) ? "document" :
+      ext === "pdf" ? "pdf" :
+      ["ppt", "pptx"].includes(ext) ? "presentation" : "general";
+
+    const { data: doc } = await supabase.from("staff_documents").insert({
+      name: file.name,
+      file_url: storagePath,        // store path, not public URL
+      category,
+      uploaded_by: staff.user_id,
+      uploaded_by_name: staff.full_name,
+    }).select().single();
+
+    if (doc) setDocuments(ds => [{ ...doc, storage_path: storagePath }, ...ds]);
+    setUploading(false);
+    if (fileInputRef.current) fileInputRef.current.value = "";
+  }
+
+  async function getSignedUrl(doc: Document, download = false): Promise<string | null> {
+    const path = doc.storage_path ?? doc.file_url;
+    const { data, error } = await supabase.storage
+      .from("staff-documents")
+      .createSignedUrl(path, 300, { download: download ? doc.name : undefined }); // 5 min expiry
+    if (error) { alert("Could not generate link: " + error.message); return null; }
+    return data.signedUrl;
+  }
+
+  async function handleOpen(doc: Document) {
+    const url = await getSignedUrl(doc, false);
+    if (url) window.open(url, "_blank");
+  }
+
+  async function handleDownload(doc: Document) {
+    const url = await getSignedUrl(doc, true);
+    if (!url) return;
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = doc.name;
+    a.click();
+  }
+
+  async function handleDelete(doc: Document) {
+    if (!confirm(`Delete "${doc.name}"?`)) return;
+    const path = doc.storage_path ?? doc.file_url;
+    await supabase.storage.from("staff-documents").remove([path]);
+    await supabase.from("staff_documents").delete().eq("id", doc.id);
+    setDocuments(ds => ds.filter(d => d.id !== doc.id));
   }
 
   async function toggleTask(id: string, completed: boolean) {
@@ -281,38 +412,152 @@ export default function StaffDashboard() {
             {/* Documents */}
             <Card className="lg:col-span-1">
               <CardHeader className="pb-3">
-                <CardTitle className="text-base flex items-center gap-2">
-                  <FileText className="h-4 w-4 text-blue-600" /> Documents
-                </CardTitle>
+                <div className="flex items-center justify-between">
+                  <CardTitle className="text-base flex items-center gap-2">
+                    <FileText className="h-4 w-4 text-blue-600" /> Documents
+                  </CardTitle>
+                  <div>
+                    <input
+                      ref={fileInputRef}
+                      type="file"
+                      className="hidden"
+                      accept=".pdf,.doc,.docx,.xls,.xlsx,.csv,.ppt,.pptx,.txt,.jpg,.jpeg,.png"
+                      onChange={handleUpload}
+                    />
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      disabled={uploading}
+                      onClick={() => fileInputRef.current?.click()}
+                    >
+                      {uploading ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Upload className="h-3.5 w-3.5" />}
+                      <span className="ml-1.5">{uploading ? "Uploading…" : "Upload"}</span>
+                    </Button>
+                  </div>
+                </div>
               </CardHeader>
               <CardContent className="space-y-2">
                 {dataLoading ? (
                   <div className="text-center py-4"><Loader2 className="h-5 w-5 animate-spin mx-auto text-muted-foreground" /></div>
                 ) : documents.length === 0 ? (
-                  <p className="text-sm text-muted-foreground text-center py-3">No documents available</p>
+                  <p className="text-sm text-muted-foreground text-center py-3">No documents yet — upload one</p>
                 ) : (
                   documents.map(doc => (
-                    <a
-                      key={doc.id}
-                      href={doc.file_url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="flex items-center gap-3 p-2.5 rounded-lg hover:bg-secondary transition-colors group"
-                    >
-                      <div className="h-8 w-8 bg-blue-100 rounded-lg flex items-center justify-center shrink-0">
-                        <FileText className="h-4 w-4 text-blue-600" />
+                    <div key={doc.id} className="flex items-center gap-3 p-2.5 rounded-lg hover:bg-secondary transition-colors group">
+                      <div className="h-8 w-8 bg-secondary rounded-lg flex items-center justify-center shrink-0">
+                        {getFileIcon(doc.name)}
                       </div>
-                      <div className="flex-1 min-w-0">
-                        <p className="text-sm font-medium truncate group-hover:text-accent">{doc.name}</p>
-                        <p className="text-xs text-muted-foreground">{doc.category} · {new Date(doc.uploaded_at).toLocaleDateString("en-KE")}</p>
+                      <div className="flex-1 min-w-0 cursor-pointer" onClick={() => handleOpen(doc)}>
+                        <p className="text-sm font-medium truncate hover:text-accent transition-colors">{doc.name}</p>
+                        <p className="text-xs text-muted-foreground">
+                          {doc.category} · {new Date(doc.uploaded_at).toLocaleDateString("en-KE")}
+                        </p>
                       </div>
-                    </a>
+                      <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity shrink-0">
+                        <Button size="icon" variant="ghost" className="h-7 w-7" title="Open"
+                          onClick={() => handleOpen(doc)}>
+                          <FileText className="h-3.5 w-3.5" />
+                        </Button>
+                        <Button size="icon" variant="ghost" className="h-7 w-7" title="Download"
+                          onClick={() => handleDownload(doc)}>
+                          <Download className="h-3.5 w-3.5" />
+                        </Button>
+                        <Button size="icon" variant="ghost" className="h-7 w-7 text-red-500 hover:text-red-600" title="Delete"
+                          onClick={() => handleDelete(doc)}>
+                          <Trash2 className="h-3.5 w-3.5" />
+                        </Button>
+                      </div>
+                    </div>
                   ))
                 )}
               </CardContent>
             </Card>
 
           </div>
+
+          {/* Admin: Staff Access Requests */}
+          {isAdmin && (
+            <Card className="mt-6">
+              <CardHeader className="pb-3">
+                <CardTitle className="text-base flex items-center gap-2">
+                  <Users className="h-4 w-4 text-primary" /> Staff Access Requests
+                  {staffRequests.filter(r => r.status === "pending").length > 0 && (
+                    <Badge className="bg-red-100 text-red-700 ml-1">
+                      {staffRequests.filter(r => r.status === "pending").length} pending
+                    </Badge>
+                  )}
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                {staffRequests.length === 0 ? (
+                  <p className="text-sm text-muted-foreground text-center py-4">No staff requests yet</p>
+                ) : (
+                  <div className="space-y-3">
+                    {staffRequests.map(req => (
+                      <div key={req.id} className="flex items-center justify-between p-4 rounded-xl border border-border bg-card gap-4">
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2 flex-wrap">
+                            <p className="text-sm font-semibold">{req.full_name}</p>
+                            <Badge className={
+                              req.status === "active" ? "bg-green-100 text-green-700" :
+                              req.status === "suspended" ? "bg-red-100 text-red-700" :
+                              "bg-amber-100 text-amber-700"
+                            }>
+                              {req.status}
+                            </Badge>
+                            <Badge variant="outline" className="text-xs">{ROLE_LABELS[req.role as keyof typeof ROLE_LABELS] ?? req.role}</Badge>
+                          </div>
+                          <div className="flex items-center gap-3 mt-1 flex-wrap">
+                            <span className="text-xs text-muted-foreground flex items-center gap-1">
+                              <Mail className="h-3 w-3" />{req.email}
+                            </span>
+                            {req.phone && (
+                              <span className="text-xs text-muted-foreground flex items-center gap-1">
+                                <Phone className="h-3 w-3" />{req.phone}
+                              </span>
+                            )}
+                            {req.department && (
+                              <span className="text-xs text-muted-foreground">{req.department}</span>
+                            )}
+                          </div>
+                          <p className="text-xs text-muted-foreground mt-1">
+                            Requested {new Date(req.created_at).toLocaleDateString("en-KE", { day: "numeric", month: "short", year: "numeric" })}
+                          </p>
+                        </div>
+                        <div className="flex gap-2 shrink-0">
+                          {req.status !== "active" && (
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              className="text-green-700 border-green-300 hover:bg-green-50"
+                              disabled={approvingId === req.id}
+                              onClick={() => handleApprove(req.id)}
+                            >
+                              {approvingId === req.id ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <UserCheck className="h-3.5 w-3.5" />}
+                              <span className="ml-1.5">Approve</span>
+                            </Button>
+                          )}
+                          {req.status === "active" && (
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              className="text-red-700 border-red-300 hover:bg-red-50"
+                              disabled={approvingId === req.id}
+                              onClick={() => handleSuspend(req.id)}
+                            >
+                              {approvingId === req.id ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <UserX className="h-3.5 w-3.5" />}
+                              <span className="ml-1.5">Suspend</span>
+                            </Button>
+                          )}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          )}
+
         </div>
       </div>
     </>
