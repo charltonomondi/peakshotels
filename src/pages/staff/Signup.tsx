@@ -11,7 +11,12 @@ import { Shield, Loader2, CheckCircle } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 
-const ROLES: StaffRole[] = ["receptionist", "housekeeping", "restaurant", "maintenance", "manager"];
+const ROLES: StaffRole[] = [
+  "receptionist", "housekeeping", "restaurant", "maintenance",
+  "ict", "food_beverage", "administration", "ceo",
+  "wellness_centre", "kitchen", "security", "accounts",
+  "outdoor_centre", "marketing", "manager",
+];
 
 export default function StaffSignup() {
   const navigate = useNavigate();

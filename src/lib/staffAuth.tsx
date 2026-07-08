@@ -2,7 +2,7 @@ import { createContext, useContext, useEffect, useState, ReactNode } from "react
 import type { User, Session } from "@supabase/supabase-js";
 import { supabase } from "./supabase";
 
-export type StaffRole = "super_admin" | "manager" | "receptionist" | "housekeeping" | "restaurant" | "maintenance";
+export type StaffRole = "super_admin" | "manager" | "receptionist" | "housekeeping" | "restaurant" | "maintenance" | "ict" | "food_beverage" | "administration" | "ceo" | "wellness_centre" | "kitchen" | "security" | "accounts" | "outdoor_centre" | "marketing";
 
 export interface StaffMember {
   id: string;
@@ -91,6 +91,16 @@ export const ROLE_LABELS: Record<StaffRole, string> = {
   housekeeping: "Housekeeping",
   restaurant: "Restaurant",
   maintenance: "Maintenance",
+  ict: "ICT",
+  food_beverage: "Food & Beverage",
+  administration: "Administration",
+  ceo: "C.E.O",
+  wellness_centre: "Wellness Centre",
+  kitchen: "Kitchen",
+  security: "Security",
+  accounts: "Accounts",
+  outdoor_centre: "Outdoor Centre",
+  marketing: "Marketing",
 };
 
 export const STATUS_COLORS = {
