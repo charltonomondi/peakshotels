@@ -102,10 +102,10 @@ export default function StaffDashboard() {
     }
   }, [loading, staff, isApproved]);
 
-  const today = new Date().toISOString().split("T")[0];
-  const todayFormatted = new Date().toLocaleDateString("en-KE", {
-    weekday: "long", year: "numeric", month: "long", day: "numeric",
-  });
+  // const today = new Date().toISOString().split("T")[0];
+  // const todayFormatted = new Date().toLocaleDateString("en-KE", {
+  //   weekday: "long", year: "numeric", month: "long", day: "numeric",
+  // });
 
   async function loadData() {
     setDataLoading(true);

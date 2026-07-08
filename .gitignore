@@ -30,15 +30,10 @@ dist-ssr
 server/.env
 peaks-admin-console-main/.env
 deployment/public_html/assets/vid1*
-<<<<<<< Updated upstream
 
 # Large video files
-src/assets/vid1-.mp4
-src/assets/conferences/Conference new.mp4
-*.mp4
-src/assets/video/
-src/assets/facilities/*.mp4
-=======
 src/assets/vid1*
 src/assets/*.mp4
->>>>>>> Stashed changes
+src/assets/conferences/Conference new.mp4
+src/assets/video/
+src/assets/facilities/*.mp4
