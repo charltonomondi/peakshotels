@@ -41,7 +41,7 @@ const rooms = [
 
 const FeaturedRooms = () => {
   return (
-    <section className="py-24 bg-gradient-warm">
+    <section className="py-14 sm:py-20 md:py-24 bg-gradient-warm">
       <div className="container mx-auto px-4">
         {/* Section Header */}
         <motion.div
@@ -54,7 +54,7 @@ const FeaturedRooms = () => {
           <p className="text-accent font-medium tracking-[0.2em] uppercase mb-4">
             Accommodation
           </p>
-          <h2 className="font-heading text-4xl md:text-5xl font-bold text-foreground mb-4">
+          <h2 className="font-heading text-3xl sm:text-4xl md:text-5xl font-bold text-foreground mb-4">
             Rest, Relax and Recharge
           </h2>
           <div className="w-20 h-0.5 bg-accent mx-auto mb-6" />

@@ -57,7 +57,7 @@ const Gym = () => {
       <Navbar />
 
       {/* Hero Section */}
-      <section className="relative h-[70vh] md:h-[80vh] overflow-hidden">
+      <section className="relative h-[50vh] sm:h-[60vh] md:h-[70vh] lg:h-[80vh] overflow-hidden">
         <motion.div
           initial={{ scale: 1.2 }}
           animate={{ scale: 1 }}
@@ -162,7 +162,7 @@ const Gym = () => {
               <img
                 src={gym1}
                 alt="Gym Facilities"
-                className="w-full h-[400px] object-cover"
+                className="w-full h-64 sm:h-80 md:h-[400px] object-cover"
               />
             </motion.div>
           </div>

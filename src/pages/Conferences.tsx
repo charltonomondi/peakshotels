@@ -114,7 +114,7 @@ const Conferences = () => {
       <Navbar />
 
       {/* ── HERO ── */}
-      <section ref={heroRef} className="relative h-screen overflow-hidden">
+      <section ref={heroRef} className="relative min-h-[70vh] md:h-screen overflow-hidden">
         <motion.div style={{ y: heroY }} className="absolute inset-0 scale-110">
           <img src={conf1} alt="Conferences at Peaks Hotel" className="w-full h-full object-cover" />
           <div className="absolute inset-0 bg-gradient-to-b from-black/65 via-black/40 to-background" />
@@ -129,7 +129,7 @@ const Conferences = () => {
             Peaks Hotel Nanyuki
           </motion.p> */}
           <motion.h1 initial={{ opacity: 0, y: 40 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.5, duration: 0.9 }}
-            className="font-heading text-5xl md:text-7xl lg:text-8xl font-bold text-white leading-none mb-5">
+            className="font-heading text-4xl sm:text-5xl md:text-7xl lg:text-8xl font-bold text-white leading-none mb-5">
             Conferences<br />
             <span className="italic font-light text-accent">& Events</span>
           </motion.h1>
@@ -181,7 +181,7 @@ const Conferences = () => {
 
             {/* Photo grid */}
             <motion.div initial={{ opacity: 0, x: 40 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: true }} transition={{ duration: 0.7 }}
-              className="grid grid-cols-2 gap-3 h-[480px]">
+              className="grid grid-cols-2 gap-3 h-64 sm:h-80 md:h-[480px]">
               {[conf10, conf2, conf3, conf4].map((img, i) => (
                 <div key={i} className="overflow-hidden rounded-2xl cursor-pointer group" onClick={() => setLightbox(img)}>
                   <img src={img} alt={`Conference ${i + 1}`}
@@ -196,7 +196,7 @@ const Conferences = () => {
       {/* ── AMENITIES STRIP ── */}
       <section className="py-12 bg-primary">
         <div className="container mx-auto px-4">
-          <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-4">
+          <div className="grid grid-cols-4 sm:grid-cols-4 md:grid-cols-8 gap-3 sm:gap-4">
             {amenities.map(({ icon: Icon, label }, i) => (
               <motion.div key={label} initial={{ opacity: 0, y: 15 }} whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }} transition={{ delay: i * 0.05 }}
@@ -302,7 +302,7 @@ const Conferences = () => {
       {/* ── GALLERY STRIP ── */}
       <section className="py-10 bg-background">
         <div className="container mx-auto px-4">
-          <div className="grid grid-cols-2 md:grid-cols-3 gap-3 h-56 md:h-72">
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-3 h-48 sm:h-56 md:h-72">
             {[conf1, conf6, conf10, conf2, conf3, conf4].map((img, i) => (
               <motion.div key={i} initial={{ opacity: 0, scale: 0.95 }} whileInView={{ opacity: 1, scale: 1 }}
                 viewport={{ once: true }} transition={{ delay: i * 0.07 }}

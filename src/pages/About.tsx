@@ -39,7 +39,7 @@ const About = () => {
       <Navbar />
       
       {/* Hero Section */}
-      <section className="relative pt-32 pb-20 bg-primary">
+      <section className="relative pt-24 sm:pt-32 pb-14 sm:pb-20 bg-primary">
         <div className="container mx-auto px-4">
           <motion.div
             initial={{ opacity: 0, y: 20 }}

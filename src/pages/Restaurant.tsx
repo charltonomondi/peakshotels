@@ -66,7 +66,7 @@ const Restaurant = () => {
       <Navbar />
 
       {/* Hero Section with Parallax Effect */}
-      <section className="relative h-[70vh] md:h-[80vh] overflow-hidden">
+      <section className="relative h-[50vh] sm:h-[60vh] md:h-[70vh] lg:h-[80vh] overflow-hidden">
         <motion.div
           initial={{ scale: 1.2 }}
           animate={{ scale: 1 }}
@@ -91,7 +91,7 @@ const Restaurant = () => {
               {/* <p className="text-accent font-medium tracking-[0.3em] uppercase mb-4 text-sm md:text-base">
                 Mbaruk Restaurant & Spillover
               </p> */}
-              <h1 className="font-heading text-5xl md:text-6xl lg:text-7xl font-bold text-white mb-6">
+              <h1 className="font-heading text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-bold text-white mb-6">
                 Taste in Every Choice
               </h1>
               <div className="w-24 h-1 bg-accent mx-auto mb-6" />

@@ -9,10 +9,15 @@ import {
   LogOut, CalendarDays, FileText, Clock, BedDouble,
   Users, CheckCircle2, Circle, Plus, Loader2, Shield,
   UserCheck, UserX, Phone, Mail, Upload, Download, Trash2,
-  FileSpreadsheet, FileType2, File, ClipboardList,
+  FileSpreadsheet, FileType2, File, ClipboardList, BarChart2, ChevronDown, ChevronUp,
 } from "lucide-react";
+import {
+  PieChart, Pie, Cell, Tooltip, ResponsiveContainer,
+  BarChart, Bar, XAxis, YAxis, CartesianGrid, Legend,
+} from "recharts";
 import Navbar from "@/components/Navbar";
 import DailyReportForm from "@/components/DailyReportForm";
+import { REPORT_TEMPLATES } from "@/lib/reportTemplates";
 
 interface StaffRequest {
   id: string;
@@ -37,6 +42,7 @@ interface Task {
 interface Meeting {
   id: string;
   title: string;
+  event_type: string | null;
   start_time: string;
   end_time: string | null;
   location: string | null;
@@ -52,6 +58,18 @@ interface Document {
   uploaded_at: string;
   uploaded_by_name: string | null;
   uploader_department: string | null;
+}
+
+interface DailyReport {
+  id: string;
+  staff_id: string;
+  department: string;
+  report_date: string;
+  entries: Record<string, string>;
+  submitted: boolean;
+  submitted_at: string | null;
+  updated_at: string | null;
+  staff_name?: string;
 }
 
 const PRIORITY_COLORS = {
@@ -82,8 +100,25 @@ export default function StaffDashboard() {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [selectedDocDate, setSelectedDocDate] = useState<string>(today);
 
-  const isAdmin = staff?.role === "manager" || staff?.role === "super_admin";
-  const [activeTab, setActiveTab] = useState<"dashboard" | "report">("dashboard");
+  const isAdmin = staff?.role === "manager" || staff?.role === "super_admin" || staff?.role === "ceo";
+  const isSuperAdmin = staff?.role === "super_admin";
+  const canManageCalendar = staff?.role === "receptionist" || isAdmin;
+  const [activeTab, setActiveTab] = useState<"dashboard" | "report" | "reports_view" | "my_reports">("dashboard");
+
+  // Reports viewer state
+  const [reportViewDate, setReportViewDate] = useState(today);
+  const [reportViewDept, setReportViewDept] = useState<string>("all");
+  const [dailyReports, setDailyReports] = useState<DailyReport[]>([]);
+  const [reportsLoading, setReportsLoading] = useState(false);
+  const [expandedReport, setExpandedReport] = useState<string | null>(null);
+
+  // Calendar state
+  const [calendarDate, setCalendarDate] = useState(today);
+  const [showAddEvent, setShowAddEvent] = useState(false);
+  const [addingEvent, setAddingEvent] = useState(false);
+  const [newEvent, setNewEvent] = useState({
+    title: "", event_type: "meeting", start_time: "", end_time: "", location: "", notes: "",
+  });
 
   const filteredDocs = documents.filter(d =>
     d.uploaded_at.startsWith(selectedDocDate)
@@ -104,31 +139,45 @@ export default function StaffDashboard() {
     }
   }, [loading, staff, isApproved]);
 
-  // const today = new Date().toISOString().split("T")[0];
+  useEffect(() => {
+    if (activeTab === "reports_view" && isAdmin) {
+      loadDailyReports(reportViewDate, reportViewDept);
+    }
+  }, [activeTab, reportViewDate, reportViewDept]);
+
+  useEffect(() => {
+    if (isApproved) loadMeetingsForDate(calendarDate);
+  }, [calendarDate]);
+
   // const todayFormatted = new Date().toLocaleDateString("en-KE", {
   //   weekday: "long", year: "numeric", month: "long", day: "numeric",
   // });
 
   async function loadData() {
     setDataLoading(true);
-
-    const [tasksRes, meetingsRes, docsRes, bookingsRes] = await Promise.all([
+    const [tasksRes, docsRes, bookingsRes] = await Promise.all([
       supabase.from("staff_tasks").select("*").eq("staff_id", staff!.id)
         .gte("created_at", today).order("due_time"),
-      supabase.from("staff_meetings").select("*").gte("start_time", today + "T00:00:00")
-        .lte("start_time", today + "T23:59:59").order("start_time"),
       supabase.from("staff_documents").select("*").order("uploaded_at", { ascending: false }).limit(20),
       supabase.from("bookings").select("id", { count: "exact" })
         .eq("check_in", today).in("status", ["confirmed", "pending"]),
     ]);
-
     if (docsRes.error) console.error("Docs fetch error:", docsRes.error.message);
-
     setTasks(tasksRes.data ?? []);
-    setMeetings(meetingsRes.data ?? []);
     setDocuments((docsRes.data ?? []).map(d => ({ ...d, storage_path: d.storage_path ?? d.file_url })));
     setTodayBookings(bookingsRes.count ?? 0);
     setDataLoading(false);
+    await loadMeetingsForDate(calendarDate);
+  }
+
+  async function loadMeetingsForDate(date: string) {
+    const { data } = await supabase
+      .from("staff_meetings")
+      .select("*")
+      .gte("start_time", date + "T00:00:00")
+      .lte("start_time", date + "T23:59:59")
+      .order("start_time");
+    setMeetings(data ?? []);
   }
 
   async function loadStaffRequests() {
@@ -138,6 +187,73 @@ export default function StaffDashboard() {
       .neq("user_id", staff!.user_id)
       .order("created_at", { ascending: false });
     setStaffRequests(data ?? []);
+  }
+
+  async function loadDailyReports(date?: string, dept?: string) {
+    setReportsLoading(true);
+    const targetDate = date ?? reportViewDate;
+    const targetDept = dept ?? reportViewDept;
+
+    let query = supabase
+      .from("daily_reports")
+      .select("*")
+      .eq("report_date", targetDate);
+
+    if (targetDept !== "all") {
+      query = query.eq("department", targetDept);
+    }
+
+    const { data: reports, error } = await query;
+    if (error) console.error("loadDailyReports error:", error.message);
+    if (!reports || reports.length === 0) { setDailyReports([]); setReportsLoading(false); return; }
+
+    // fetch staff names
+    const staffIds = [...new Set(reports.map(r => r.staff_id))];
+    const { data: members } = await supabase
+      .from("staff_members")
+      .select("id, full_name")
+      .in("id", staffIds);
+    const nameMap: Record<string, string> = {};
+    (members ?? []).forEach(m => { nameMap[m.id] = m.full_name; });
+
+    const mapped = reports.map(r => ({
+      ...r,
+      // normalise submitted — DB may return boolean or 0/1
+      submitted: r.submitted === true || r.submitted === 1 || r.submitted === "true",
+      staff_name: nameMap[r.staff_id] ?? "Unknown",
+    }));
+    // sort: submitted first, then by submitted_at desc
+    mapped.sort((a, b) => {
+      if (a.submitted !== b.submitted) return a.submitted ? -1 : 1;
+      return (b.submitted_at ?? "").localeCompare(a.submitted_at ?? "");
+    });
+    setDailyReports(mapped);
+    setReportsLoading(false);
+  }
+
+  async function handleAddEvent() {
+    if (!newEvent.title.trim() || !newEvent.start_time) return;
+    setAddingEvent(true);
+    const datePrefix = calendarDate + "T";
+    const { data, error } = await supabase.from("staff_meetings").insert({
+      title: newEvent.title.trim(),
+      event_type: newEvent.event_type,
+      start_time: datePrefix + newEvent.start_time + ":00",
+      end_time: newEvent.end_time ? datePrefix + newEvent.end_time + ":00" : null,
+      location: newEvent.location || null,
+      notes: newEvent.notes || null,
+    }).select().single();
+    if (error) { alert("Failed to add event: " + error.message); setAddingEvent(false); return; }
+    if (data) setMeetings(ms => [...ms, data].sort((a, b) => a.start_time.localeCompare(b.start_time)));
+    setNewEvent({ title: "", event_type: "meeting", start_time: "", end_time: "", location: "", notes: "" });
+    setShowAddEvent(false);
+    setAddingEvent(false);
+  }
+
+  async function handleDeleteEvent(id: string) {
+    if (!confirm("Remove this event?")) return;
+    await supabase.from("staff_meetings").delete().eq("id", id);
+    setMeetings(ms => ms.filter(m => m.id !== id));
   }
 
   async function handleApprove(id: string) {
@@ -155,6 +271,22 @@ export default function StaffDashboard() {
     await supabase.from("staff_members").update({ status: "suspended" }).eq("id", id);
     setStaffRequests(rs => rs.map(r => r.id === id ? { ...r, status: "suspended" } : r));
     setApprovingId(null);
+  }
+
+  async function handleDeleteUser(id: string, name: string) {
+    if (!confirm(`Permanently delete user "${name}"? This cannot be undone.`)) return;
+    setApprovingId(id);
+    const { error } = await supabase.from("staff_members").delete().eq("id", id);
+    if (error) { alert("Delete failed: " + error.message); setApprovingId(null); return; }
+    setStaffRequests(rs => rs.filter(r => r.id !== id));
+    setApprovingId(null);
+  }
+
+  async function handleDeleteReport(reportId: string, deptLabel: string) {
+    if (!confirm(`Delete the "${deptLabel}" report? This cannot be undone.`)) return;
+    const { error } = await supabase.from("daily_reports").delete().eq("id", reportId);
+    if (error) { alert("Delete failed: " + error.message); return; }
+    setDailyReports(rs => rs.filter(r => r.id !== reportId));
   }
 
   function getFileIcon(name: string) {
@@ -300,12 +432,12 @@ export default function StaffDashboard() {
     <>
       <Navbar />
       <div className="min-h-screen bg-background pt-24 pb-12">
-        <div className="container mx-auto px-4 max-w-6xl">
+        <div className="container mx-auto px-4 sm:px-6 md:px-8 lg:px-10 max-w-screen-2xl">
 
           {/* Header */}
-          <div className="flex items-start justify-between mb-8">
+          <div className="flex flex-wrap items-start justify-between gap-3 mb-6 sm:mb-8">
             <div>
-              <h1 className="text-2xl font-bold text-foreground">
+              <h1 className="text-xl sm:text-2xl font-bold text-foreground">
                 Good {new Date().getHours() < 12 ? "morning" : new Date().getHours() < 17 ? "afternoon" : "evening"}, {staff.full_name.split(" ")[0]} 👋
               </h1>
               <p className="text-muted-foreground text-sm mt-1">{todayFormatted}</p>
@@ -320,27 +452,48 @@ export default function StaffDashboard() {
           </div>
 
           {/* Tabs */}
-          <div className="flex gap-1 mb-6 border-b border-border">
+          <div className="flex gap-0.5 sm:gap-1 mb-4 sm:mb-6 border-b border-border overflow-x-auto">
             <button
               onClick={() => setActiveTab("dashboard")}
-              className={`flex items-center gap-2 px-4 py-2.5 text-sm font-medium border-b-2 transition-colors ${
-                activeTab === "dashboard"
-                  ? "border-accent text-accent"
-                  : "border-transparent text-muted-foreground hover:text-foreground"
+              className={`flex items-center gap-2 px-4 py-2.5 text-sm font-medium border-b-2 transition-colors whitespace-nowrap ${
+                activeTab === "dashboard" ? "border-accent text-accent" : "border-transparent text-muted-foreground hover:text-foreground"
               }`}
             >
               <BedDouble className="h-4 w-4" /> Dashboard
             </button>
-            <button
-              onClick={() => setActiveTab("report")}
-              className={`flex items-center gap-2 px-4 py-2.5 text-sm font-medium border-b-2 transition-colors ${
-                activeTab === "report"
-                  ? "border-accent text-accent"
-                  : "border-transparent text-muted-foreground hover:text-foreground"
-              }`}
-            >
-              <ClipboardList className="h-4 w-4" /> Daily Report
-            </button>
+            {/* CEO only gets Reports Dashboard — no fill-in tab */}
+            {staff.role !== "ceo" && (
+              <button
+                onClick={() => setActiveTab("report")}
+                className={`flex items-center gap-2 px-4 py-2.5 text-sm font-medium border-b-2 transition-colors whitespace-nowrap ${
+                  activeTab === "report" ? "border-accent text-accent" : "border-transparent text-muted-foreground hover:text-foreground"
+                }`}
+              >
+                <ClipboardList className="h-4 w-4" /> Daily Report
+              </button>
+            )}
+            {/* Non-admin staff can view their own submitted reports */}
+            {!isAdmin && (
+              <button
+                onClick={() => setActiveTab("my_reports")}
+                className={`flex items-center gap-2 px-4 py-2.5 text-sm font-medium border-b-2 transition-colors whitespace-nowrap ${
+                  activeTab === "my_reports" ? "border-accent text-accent" : "border-transparent text-muted-foreground hover:text-foreground"
+                }`}
+              >
+                <FileText className="h-4 w-4" /> My Reports
+              </button>
+            )}
+            {/* Admins get the full reports dashboard */}
+            {isAdmin && (
+              <button
+                onClick={() => setActiveTab("reports_view")}
+                className={`flex items-center gap-2 px-4 py-2.5 text-sm font-medium border-b-2 transition-colors whitespace-nowrap ${
+                  activeTab === "reports_view" ? "border-accent text-accent" : "border-transparent text-muted-foreground hover:text-foreground"
+                }`}
+              >
+                <BarChart2 className="h-4 w-4" /> Reports Dashboard
+              </button>
+            )}
           </div>
 
           {activeTab === "report" ? (
@@ -354,10 +507,27 @@ export default function StaffDashboard() {
                 <DailyReportForm staff={staff} />
               </CardContent>
             </Card>
+          ) : activeTab === "my_reports" && !isAdmin ? (
+            <MyReports staffId={staff.id} today={today} />
+          ) : activeTab === "reports_view" && isAdmin ? (
+            <ReportsDashboard
+              today={today}
+              reportViewDate={reportViewDate}
+              setReportViewDate={(d) => { setReportViewDate(d); }}
+              reportViewDept={reportViewDept}
+              setReportViewDept={(d) => { setReportViewDept(d); setExpandedReport(null); }}
+              dailyReports={dailyReports}
+              reportsLoading={reportsLoading}
+              expandedReport={expandedReport}
+              setExpandedReport={setExpandedReport}
+              onRefresh={() => loadDailyReports(reportViewDate, reportViewDept)}
+              isSuperAdmin={isSuperAdmin}
+              onDeleteReport={handleDeleteReport}
+            />
           ) : (
           <>
           {/* Stats row */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+          <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-4 xl:grid-cols-4 gap-3 sm:gap-4 mb-6 sm:mb-8">
             {[
               { label: "Today's Check-ins", value: todayBookings, icon: BedDouble, color: "text-blue-600" },
               { label: "Tasks Today", value: tasks.length, icon: CheckCircle2, color: "text-green-600" },
@@ -378,7 +548,7 @@ export default function StaffDashboard() {
             ))}
           </div>
 
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 sm:gap-6">
 
             {/* Tasks */}
             <Card className="lg:col-span-1">
@@ -435,31 +605,158 @@ export default function StaffDashboard() {
               </CardContent>
             </Card>
 
-            {/* Meetings */}
+            {/* Schedule / Calendar */}
             <Card className="lg:col-span-1">
               <CardHeader className="pb-3">
-                <CardTitle className="text-base flex items-center gap-2">
-                  <CalendarDays className="h-4 w-4 text-purple-600" /> Today's Schedule
-                </CardTitle>
+                <div className="flex items-center justify-between">
+                  <CardTitle className="text-base flex items-center gap-2">
+                    <CalendarDays className="h-4 w-4 text-purple-600" /> Schedule
+                  </CardTitle>
+                  {canManageCalendar && (
+                    <Button size="sm" variant="outline" onClick={() => setShowAddEvent(v => !v)}>
+                      <Plus className="h-3.5 w-3.5 mr-1" />
+                      Add Event
+                    </Button>
+                  )}
+                </div>
+                {/* Date picker */}
+                <div className="flex items-center gap-2 mt-2">
+                  <input
+                    type="date"
+                    value={calendarDate}
+                    onChange={e => setCalendarDate(e.target.value)}
+                    className="text-xs px-2 py-1.5 border border-border rounded-md bg-background focus:outline-none focus:ring-1 focus:ring-accent w-full"
+                  />
+                  {calendarDate !== today && (
+                    <button onClick={() => setCalendarDate(today)} className="text-xs text-accent hover:underline whitespace-nowrap">
+                      Today
+                    </button>
+                  )}
+                </div>
               </CardHeader>
-              <CardContent className="space-y-3">
+              <CardContent className="space-y-3 pt-0">
+                {/* Add event form — Front Office & admins only */}
+                {canManageCalendar && showAddEvent && (
+                  <div className="border border-border rounded-xl p-3 space-y-2 bg-secondary/30">
+                    <p className="text-xs font-semibold text-foreground">New Event / Meeting</p>
+                    <input
+                      value={newEvent.title}
+                      onChange={e => setNewEvent(v => ({ ...v, title: e.target.value }))}
+                      placeholder="Title *"
+                      className="w-full text-sm px-2.5 py-1.5 border border-border rounded-lg bg-background focus:outline-none focus:ring-1 focus:ring-accent"
+                    />
+                    <select
+                      value={newEvent.event_type}
+                      onChange={e => setNewEvent(v => ({ ...v, event_type: e.target.value }))}
+                      className="w-full text-sm px-2.5 py-1.5 border border-border rounded-lg bg-background focus:outline-none focus:ring-1 focus:ring-accent"
+                    >
+                      <option value="meeting">Meeting</option>
+                      <option value="event">Event</option>
+                      <option value="conference">Conference</option>
+                      <option value="training">Training</option>
+                      <option value="inspection">Inspection</option>
+                      <option value="vip">Team building</option>
+                      <option value="other">Other</option>
+                    </select>
+                    <div className="grid grid-cols-2 gap-2">
+                      <div>
+                        <p className="text-xs text-muted-foreground mb-1">Start time *</p>
+                        <input
+                          type="time"
+                          value={newEvent.start_time}
+                          onChange={e => setNewEvent(v => ({ ...v, start_time: e.target.value }))}
+                          className="w-full text-sm px-2.5 py-1.5 border border-border rounded-lg bg-background focus:outline-none focus:ring-1 focus:ring-accent"
+                        />
+                      </div>
+                      <div>
+                        <p className="text-xs text-muted-foreground mb-1">End time</p>
+                        <input
+                          type="time"
+                          value={newEvent.end_time}
+                          onChange={e => setNewEvent(v => ({ ...v, end_time: e.target.value }))}
+                          className="w-full text-sm px-2.5 py-1.5 border border-border rounded-lg bg-background focus:outline-none focus:ring-1 focus:ring-accent"
+                        />
+                      </div>
+                    </div>
+                    <input
+                      value={newEvent.location}
+                      onChange={e => setNewEvent(v => ({ ...v, location: e.target.value }))}
+                      placeholder="Location (optional)"
+                      className="w-full text-sm px-2.5 py-1.5 border border-border rounded-lg bg-background focus:outline-none focus:ring-1 focus:ring-accent"
+                    />
+                    <textarea
+                      value={newEvent.notes}
+                      onChange={e => setNewEvent(v => ({ ...v, notes: e.target.value }))}
+                      placeholder="Notes (optional)"
+                      rows={2}
+                      className="w-full text-sm px-2.5 py-1.5 border border-border rounded-lg bg-background focus:outline-none focus:ring-1 focus:ring-accent resize-none"
+                    />
+                    <div className="flex gap-2 justify-end">
+                      <Button size="sm" variant="outline" onClick={() => setShowAddEvent(false)}>Cancel</Button>
+                      <Button
+                        size="sm"
+                        disabled={addingEvent || !newEvent.title.trim() || !newEvent.start_time}
+                        onClick={handleAddEvent}
+                      >
+                        {addingEvent ? <Loader2 className="h-3.5 w-3.5 animate-spin mr-1" /> : <Plus className="h-3.5 w-3.5 mr-1" />}
+                        Save
+                      </Button>
+                    </div>
+                  </div>
+                )}
+
+                {/* Events list */}
                 {dataLoading ? (
                   <div className="text-center py-4"><Loader2 className="h-5 w-5 animate-spin mx-auto text-muted-foreground" /></div>
                 ) : meetings.length === 0 ? (
-                  <p className="text-sm text-muted-foreground text-center py-3">No meetings scheduled today</p>
+                  <p className="text-sm text-muted-foreground text-center py-4">
+                    No events for {calendarDate === today ? "today" : calendarDate}
+                  </p>
                 ) : (
-                  meetings.map(m => (
-                    <div key={m.id} className="p-3 bg-secondary rounded-lg border-l-4 border-purple-400">
-                      <p className="text-sm font-semibold">{m.title}</p>
-                      <p className="text-xs text-muted-foreground mt-1 flex items-center gap-1">
-                        <Clock className="h-3 w-3" />
-                        {new Date(m.start_time).toLocaleTimeString("en-KE", { hour: "2-digit", minute: "2-digit" })}
-                        {m.end_time && ` – ${new Date(m.end_time).toLocaleTimeString("en-KE", { hour: "2-digit", minute: "2-digit" })}`}
-                      </p>
-                      {m.location && <p className="text-xs text-muted-foreground">{m.location}</p>}
-                      {m.notes && <p className="text-xs text-foreground/70 mt-1 italic">{m.notes}</p>}
-                    </div>
-                  ))
+                  meetings.map(m => {
+                    const typeColors: Record<string, string> = {
+                      meeting: "border-purple-400 bg-purple-50/50",
+                      event: "border-blue-400 bg-blue-50/50",
+                      conference: "border-amber-400 bg-amber-50/50",
+                      training: "border-green-400 bg-green-50/50",
+                      inspection: "border-orange-400 bg-orange-50/50",
+                      vip: "border-rose-400 bg-rose-50/50",
+                      other: "border-gray-400 bg-gray-50/50",
+                    };
+                    const color = typeColors[m.event_type ?? "meeting"] ?? typeColors.other;
+                    return (
+                      <div key={m.id} className={`p-3 rounded-lg border-l-4 ${color} group relative`}>
+                        <div className="flex items-start justify-between gap-2">
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center gap-1.5 flex-wrap">
+                              <p className="text-sm font-semibold leading-tight">{m.title}</p>
+                              {m.event_type && (
+                                <span className="text-xs px-1.5 py-0.5 rounded-full bg-white/70 border border-border/50 capitalize">
+                                  {m.event_type}
+                                </span>
+                              )}
+                            </div>
+                            <p className="text-xs text-muted-foreground mt-1 flex items-center gap-1">
+                              <Clock className="h-3 w-3" />
+                              {new Date(m.start_time).toLocaleTimeString("en-KE", { hour: "2-digit", minute: "2-digit" })}
+                              {m.end_time && ` – ${new Date(m.end_time).toLocaleTimeString("en-KE", { hour: "2-digit", minute: "2-digit" })}`}
+                            </p>
+                            {m.location && <p className="text-xs text-muted-foreground mt-0.5">📍 {m.location}</p>}
+                            {m.notes && <p className="text-xs text-foreground/60 mt-1 italic">{m.notes}</p>}
+                          </div>
+                          {canManageCalendar && (
+                            <button
+                              onClick={() => handleDeleteEvent(m.id)}
+                              className="opacity-0 group-hover:opacity-100 transition-opacity text-red-400 hover:text-red-600 shrink-0 mt-0.5"
+                              title="Remove event"
+                            >
+                              <Trash2 className="h-3.5 w-3.5" />
+                            </button>
+                          )}
+                        </div>
+                      </div>
+                    );
+                  })
                 )}
               </CardContent>
             </Card>
@@ -566,8 +863,8 @@ export default function StaffDashboard() {
 
           </div>
 
-          {/* Admin: Staff Access Requests */}
-          {isAdmin && (
+          {/* Staff Access Requests — super_admin and manager only */}
+          {(isSuperAdmin || staff.role === "manager") && (
             <Card className="mt-6">
               <CardHeader className="pb-3">
                 <CardTitle className="text-base flex items-center gap-2">
@@ -618,8 +915,7 @@ export default function StaffDashboard() {
                         <div className="flex gap-2 shrink-0">
                           {req.status !== "active" && (
                             <Button
-                              size="sm"
-                              variant="outline"
+                              size="sm" variant="outline"
                               className="text-green-700 border-green-300 hover:bg-green-50"
                               disabled={approvingId === req.id}
                               onClick={() => handleApprove(req.id)}
@@ -630,14 +926,24 @@ export default function StaffDashboard() {
                           )}
                           {req.status === "active" && (
                             <Button
-                              size="sm"
-                              variant="outline"
+                              size="sm" variant="outline"
                               className="text-red-700 border-red-300 hover:bg-red-50"
                               disabled={approvingId === req.id}
                               onClick={() => handleSuspend(req.id)}
                             >
                               {approvingId === req.id ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <UserX className="h-3.5 w-3.5" />}
                               <span className="ml-1.5">Suspend</span>
+                            </Button>
+                          )}
+                          {isSuperAdmin && (
+                            <Button
+                              size="sm" variant="outline"
+                              className="text-red-700 border-red-300 hover:bg-red-50"
+                              disabled={approvingId === req.id}
+                              onClick={() => handleDeleteUser(req.id, req.full_name)}
+                            >
+                              {approvingId === req.id ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Trash2 className="h-3.5 w-3.5" />}
+                              <span className="ml-1.5">Delete</span>
                             </Button>
                           )}
                         </div>
@@ -655,5 +961,727 @@ export default function StaffDashboard() {
         </div>
       </div>
     </>
+  );
+}
+
+// ── Reports Dashboard Component ──────────────────────────────────────────────
+
+interface ReportsDashboardProps {
+  today: string;
+  reportViewDate: string;
+  setReportViewDate: (d: string) => void;
+  reportViewDept: string;
+  setReportViewDept: (d: string) => void;
+  dailyReports: DailyReport[];
+  reportsLoading: boolean;
+  expandedReport: string | null;
+  setExpandedReport: (id: string | null) => void;
+  onRefresh: () => void;
+  isSuperAdmin: boolean;
+  onDeleteReport: (id: string, label: string) => void;
+}
+
+function ReportsDashboard({
+  today, reportViewDate, setReportViewDate,
+  reportViewDept, setReportViewDept,
+  dailyReports, reportsLoading,
+  expandedReport, setExpandedReport,
+  onRefresh, isSuperAdmin, onDeleteReport,
+}: ReportsDashboardProps) {
+
+  // Build summary rows — one per template, merged with all fetched data (submitted or draft)
+  const summaryRows = REPORT_TEMPLATES.map(t => {
+    // prefer submitted, fall back to draft
+    const allForDept = dailyReports.filter(r => r.department === t.role);
+    const latest = allForDept.find(r => r.submitted) ?? allForDept[0] ?? null;
+    const kpi = latest?.entries?.["Key KPI figures"] ?? latest?.entries?.["Key KPI Figures"] ?? "";
+    const mgmtAction = latest?.entries?.["Management Action Required"] ?? "";
+    return { template: t, latest, kpi, mgmtAction };
+  });
+
+  // Submitted reports for the detail section
+  const submittedReports = reportViewDept === "all"
+    ? dailyReports.filter(r => r.submitted)
+    : dailyReports.filter(r => r.submitted && r.department === reportViewDept);
+
+  const submittedCount = dailyReports.filter(r => r.submitted).length;
+
+  const REPORTS_PER_PAGE = 5;
+  const [reportPage, setReportPage] = useState(1);
+  const totalPages = Math.max(1, Math.ceil(submittedReports.length / REPORTS_PER_PAGE));
+  const pagedReports = submittedReports.slice(
+    (reportPage - 1) * REPORTS_PER_PAGE,
+    reportPage * REPORTS_PER_PAGE,
+  );
+
+  // Reset to page 1 whenever filters or data changes
+  useEffect(() => { setReportPage(1); }, [reportViewDate, reportViewDept, submittedReports.length]);
+
+  function scrollToReport(reportId: string) {
+    // expand it first
+    setExpandedReport(`collapsed_${reportId}`);
+    // then scroll after a tick
+    setTimeout(() => {
+      document.getElementById(`report-${reportId}`)?.scrollIntoView({ behavior: "smooth", block: "start" });
+    }, 50);
+  }
+
+  return (
+    <div className="space-y-6">
+      {/* Filters */}
+      <div className="flex flex-wrap items-center gap-3">
+        <div className="flex items-center gap-2">
+          <CalendarDays className="h-4 w-4 text-muted-foreground" />
+          <input
+            type="date"
+            value={reportViewDate}
+            max={today}
+            onChange={e => setReportViewDate(e.target.value)}
+            className="text-sm px-3 py-1.5 border border-border rounded-md bg-background focus:outline-none focus:ring-1 focus:ring-accent"
+          />
+          {reportViewDate !== today && (
+            <button onClick={() => setReportViewDate(today)} className="text-xs text-accent hover:underline">
+              Today
+            </button>
+          )}
+        </div>
+        <select
+          value={reportViewDept}
+          onChange={e => setReportViewDept(e.target.value)}
+          className="text-sm px-3 py-1.5 border border-border rounded-md bg-background focus:outline-none focus:ring-1 focus:ring-accent"
+        >
+          <option value="all">All Departments</option>
+          {REPORT_TEMPLATES.map(t => (
+            <option key={t.role} value={t.role}>{t.label}</option>
+          ))}
+        </select>
+        <Button size="sm" variant="outline" onClick={onRefresh} disabled={reportsLoading}>
+          {reportsLoading ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <CheckCircle2 className="h-3.5 w-3.5" />}
+          <span className="ml-1.5">Refresh</span>
+        </Button>
+        <span className="text-xs text-muted-foreground">
+          {reportsLoading ? "Loading…" : `${submittedCount} / ${REPORT_TEMPLATES.length} submitted`}
+        </span>
+      </div>
+
+      {/* ── Charts row ── */}
+      {!reportsLoading && (
+        <div className="grid xl:grid-cols-2 gap-4">
+
+          {/* Donut — submitted vs pending */}
+          <Card>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm font-semibold flex items-center gap-2">
+                <BarChart2 className="h-4 w-4 text-accent" /> Submission Status
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="flex items-center gap-6 pb-4">
+              <ResponsiveContainer width="50%" height={160}>
+                <PieChart>
+                  <Pie
+                    data={[
+                      { name: "Submitted", value: submittedCount },
+                      { name: "Pending",   value: Math.max(0, REPORT_TEMPLATES.length - submittedCount) },
+                    ]}
+                    cx="50%" cy="50%"
+                    innerRadius={45} outerRadius={70}
+                    paddingAngle={3}
+                    dataKey="value"
+                  >
+                    <Cell fill="#22c55e" />
+                    <Cell fill="#e5e7eb" />
+                  </Pie>
+                  <Tooltip
+                    formatter={(v: number, n: string) => [`${v} dept${v !== 1 ? "s" : ""}`, n]}
+                    contentStyle={{ fontSize: 12, borderRadius: 8 }}
+                  />
+                </PieChart>
+              </ResponsiveContainer>
+              <div className="space-y-3 flex-1">
+                <div className="flex items-center gap-2">
+                  <span className="h-3 w-3 rounded-full bg-green-500 shrink-0" />
+                  <div>
+                    <p className="text-xs text-muted-foreground">Submitted</p>
+                    <p className="text-lg font-bold text-green-600">{submittedCount}</p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="h-3 w-3 rounded-full bg-gray-200 shrink-0" />
+                  <div>
+                    <p className="text-xs text-muted-foreground">Pending</p>
+                    <p className="text-lg font-bold text-muted-foreground">
+                      {Math.max(0, REPORT_TEMPLATES.length - submittedCount)}
+                    </p>
+                  </div>
+                </div>
+                <div className="pt-1">
+                  <div className="flex justify-between text-xs text-muted-foreground mb-1">
+                    <span>Completion</span>
+                    <span>{Math.round((submittedCount / REPORT_TEMPLATES.length) * 100)}%</span>
+                  </div>
+                  <div className="h-2 rounded-full bg-gray-100 overflow-hidden">
+                    <div
+                      className="h-full rounded-full bg-green-500 transition-all duration-500"
+                      style={{ width: `${Math.round((submittedCount / REPORT_TEMPLATES.length) * 100)}%` }}
+                    />
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Bar chart — per-department status */}
+          <Card>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm font-semibold flex items-center gap-2">
+                <ClipboardList className="h-4 w-4 text-blue-600" /> Department Report Status
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="pb-4">
+              <ResponsiveContainer width="100%" height={160}>
+                <BarChart
+                  data={REPORT_TEMPLATES.map(t => {
+                    const found = dailyReports.find(r => r.department === t.role);
+                    return {
+                      name: t.label.split(" ")[0], // short label
+                      submitted: found?.submitted ? 1 : 0,
+                      draft:     (found && !found.submitted) ? 1 : 0,
+                      pending:   !found ? 1 : 0,
+                    };
+                  })}
+                  barSize={10}
+                  margin={{ top: 4, right: 4, left: -28, bottom: 0 }}
+                >
+                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f0f0f0" />
+                  <XAxis dataKey="name" tick={{ fontSize: 9 }} interval={0} angle={-35} textAnchor="end" height={40} />
+                  <YAxis tick={{ fontSize: 10 }} domain={[0, 1]} ticks={[0, 1]} />
+                  <Tooltip
+                    formatter={(v: number, n: string) => [v ? "Yes" : "No", n.charAt(0).toUpperCase() + n.slice(1)]}
+                    contentStyle={{ fontSize: 11, borderRadius: 8 }}
+                  />
+                  <Legend iconSize={10} wrapperStyle={{ fontSize: 11 }} />
+                  <Bar dataKey="submitted" name="Submitted" fill="#22c55e" radius={[3, 3, 0, 0]} />
+                  <Bar dataKey="draft"     name="Draft"     fill="#f59e0b" radius={[3, 3, 0, 0]} />
+                  <Bar dataKey="pending"   name="Pending"   fill="#e5e7eb" radius={[3, 3, 0, 0]} />
+                </BarChart>
+              </ResponsiveContainer>
+            </CardContent>
+          </Card>
+
+        </div>
+      )}
+
+      {/* Revenue vs Expenses charts */}
+      {!reportsLoading && (() => {
+        const finData = REPORT_TEMPLATES
+          .map(t => {
+            const r = dailyReports.find(d => d.department === t.role && d.submitted);
+            const revenue  = parseFloat(r?.entries?.["__revenue"]  ?? "0") || 0;
+            const expenses = parseFloat(r?.entries?.["__expenses"] ?? "0") || 0;
+            return revenue || expenses
+              ? { name: t.label.split(" ")[0], revenue, expenses, net: revenue - expenses }
+              : null;
+          })
+          .filter(Boolean) as { name: string; revenue: number; expenses: number; net: number }[];
+
+        if (finData.length === 0) return null;
+
+        const totalRevenue  = finData.reduce((s, d) => s + d.revenue, 0);
+        const totalExpenses = finData.reduce((s, d) => s + d.expenses, 0);
+        const totalNet      = totalRevenue - totalExpenses;
+
+        const fmt = (v: number) => `KES ${v.toLocaleString("en-KE", { minimumFractionDigits: 2 })}`;
+        const fmtShort = (v: number) =>
+          v >= 1_000_000 ? `${(v / 1_000_000).toFixed(1)}M`
+          : v >= 1_000 ? `${(v / 1_000).toFixed(0)}K`
+          : `${v}`;
+
+        const pieData = [
+          { name: "Total Revenue",  value: totalRevenue,  fill: "#22c55e" },
+          { name: "Total Expenses", value: totalExpenses, fill: "#ef4444" },
+        ];
+
+        return (
+          <div className="grid xl:grid-cols-2 gap-4">
+            {/* Bar chart — per department */}
+            <Card>
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm font-semibold flex items-center gap-2">
+                  <BarChart2 className="h-4 w-4 text-green-600" /> Revenue vs Expenses by Department
+                </CardTitle>
+                <p className="text-xs text-muted-foreground">{reportViewDate}</p>
+              </CardHeader>
+              <CardContent className="pb-4">
+                <ResponsiveContainer width="100%" height={240}>
+                  <BarChart data={finData} margin={{ top: 4, right: 8, left: 0, bottom: 0 }}>
+                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f0f0f0" />
+                    <XAxis dataKey="name" tick={{ fontSize: 10 }} />
+                    <YAxis tick={{ fontSize: 10 }} tickFormatter={fmtShort} />
+                    <Tooltip
+                      formatter={(v: number, n: string) => [fmt(v), n.charAt(0).toUpperCase() + n.slice(1)]}
+                      contentStyle={{ fontSize: 12, borderRadius: 8 }}
+                    />
+                    <Legend iconSize={10} wrapperStyle={{ fontSize: 11 }} />
+                    <Bar dataKey="revenue"  name="Revenue"  fill="#22c55e" radius={[4, 4, 0, 0]} />
+                    <Bar dataKey="expenses" name="Expenses" fill="#ef4444" radius={[4, 4, 0, 0]} />
+                  </BarChart>
+                </ResponsiveContainer>
+              </CardContent>
+            </Card>
+
+            {/* Pie chart — total revenue vs expenses */}
+            <Card>
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm font-semibold flex items-center gap-2">
+                  <BarChart2 className="h-4 w-4 text-blue-600" /> Overall Revenue vs Expenses
+                </CardTitle>
+                <p className="text-xs text-muted-foreground">{reportViewDate} · All Departments</p>
+              </CardHeader>
+              <CardContent className="pb-4">
+                <div className="flex items-center gap-6">
+                  <ResponsiveContainer width="55%" height={220}>
+                    <PieChart>
+                      <Pie
+                        data={pieData}
+                        cx="50%" cy="50%"
+                        innerRadius={55} outerRadius={85}
+                        paddingAngle={3}
+                        dataKey="value"
+                      >
+                        {pieData.map((entry, i) => (
+                          <Cell key={i} fill={entry.fill} />
+                        ))}
+                      </Pie>
+                      <Tooltip
+                        formatter={(v: number) => [fmt(v)]}
+                        contentStyle={{ fontSize: 12, borderRadius: 8 }}
+                      />
+                    </PieChart>
+                  </ResponsiveContainer>
+                  <div className="flex-1 space-y-4">
+                    <div>
+                      <div className="flex items-center gap-2 mb-1">
+                        <span className="h-3 w-3 rounded-full bg-green-500 shrink-0" />
+                        <span className="text-xs text-muted-foreground">Total Revenue</span>
+                      </div>
+                      <p className="text-lg font-bold text-green-700">{fmt(totalRevenue)}</p>
+                    </div>
+                    <div>
+                      <div className="flex items-center gap-2 mb-1">
+                        <span className="h-3 w-3 rounded-full bg-red-500 shrink-0" />
+                        <span className="text-xs text-muted-foreground">Total Expenses</span>
+                      </div>
+                      <p className="text-lg font-bold text-red-700">{fmt(totalExpenses)}</p>
+                    </div>
+                    <div className="pt-2 border-t border-border">
+                      <p className="text-xs text-muted-foreground mb-1">Net</p>
+                      <p className={`text-xl font-bold ${totalNet >= 0 ? "text-green-700" : "text-red-700"}`}>
+                        {fmt(totalNet)}
+                      </p>
+                      {totalRevenue > 0 && (
+                        <div className="mt-2">
+                          <div className="flex justify-between text-xs text-muted-foreground mb-1">
+                            <span>Profit margin</span>
+                            <span>{Math.round((totalNet / totalRevenue) * 100)}%</span>
+                          </div>
+                          <div className="h-2 rounded-full bg-gray-100 overflow-hidden">
+                            <div
+                              className={`h-full rounded-full transition-all duration-500 ${totalNet >= 0 ? "bg-green-500" : "bg-red-500"}`}
+                              style={{ width: `${Math.min(100, Math.abs(Math.round((totalNet / totalRevenue) * 100)))}%` }}
+                            />
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        );
+      })()}
+
+      {/* Summary table */}
+      <Card>
+        <CardHeader className="pb-3">
+          <CardTitle className="text-base flex items-center gap-2">
+            <BarChart2 className="h-4 w-4 text-accent" /> Daily Summary — {reportViewDate}
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="p-0">
+          {reportsLoading ? (
+            <div className="flex justify-center py-10">
+              <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+            </div>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="bg-secondary border-b border-border">
+                    <th className="text-left px-4 py-3 font-semibold text-foreground w-1/4">Department</th>
+                    <th className="text-left px-4 py-3 font-semibold text-foreground w-5/12">Critical Daily Indicators</th>
+                    <th className="text-left px-4 py-3 font-semibold text-red-700 w-5/12">CEO Attention Required</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {summaryRows.map(({ template, latest, kpi, mgmtAction }, i) => {
+                    const isSubmitted = latest?.submitted === true;
+                    const clickable = latest !== null;
+                    return (
+                      <tr
+                        key={template.role}
+                        className={`border-b border-border/50 transition-colors ${i % 2 === 0 ? "bg-background" : "bg-secondary/30"} ${clickable ? "cursor-pointer hover:bg-accent/5" : ""}`}
+                        onClick={() => {
+                          if (latest && isSubmitted) scrollToReport(latest.id);
+                        }}
+                      >
+                        <td className="px-4 py-3 align-top">
+                          <p className="font-medium text-sm">{template.label}</p>
+                          {latest ? (
+                            <div className="mt-1 space-y-0.5">
+                              <Badge className={isSubmitted ? "bg-green-100 text-green-700 text-xs" : "bg-amber-100 text-amber-700 text-xs"}>
+                                {isSubmitted ? "✓ Submitted" : "Draft"}
+                              </Badge>
+                              {latest.staff_name && (
+                                <p className="text-xs text-muted-foreground">by {latest.staff_name}</p>
+                              )}
+                              {latest.submitted_at && isSubmitted && (
+                                <p className="text-xs text-muted-foreground flex items-center gap-1">
+                                  <Clock className="h-3 w-3" />
+                                  {new Date(latest.submitted_at).toLocaleTimeString("en-KE", { hour: "2-digit", minute: "2-digit" })}
+                                </p>
+                              )}
+                              {isSubmitted && (
+                                <p className="text-xs text-accent mt-1">↓ click to view report</p>
+                              )}
+                            </div>
+                          ) : (
+                            <Badge variant="outline" className="text-xs mt-1">Not submitted</Badge>
+                          )}
+                        </td>
+                        <td className="px-4 py-3 align-top">
+                          {kpi
+                            ? <p className="text-sm text-foreground/80 whitespace-pre-wrap leading-relaxed">{kpi}</p>
+                            : <p className="text-xs text-muted-foreground italic">{latest ? "—" : `Expected: ${template.kpiLabel}`}</p>
+                          }
+                        </td>
+                        <td className="px-4 py-3 align-top">
+                          {mgmtAction
+                            ? <p className="text-sm text-red-700 font-medium whitespace-pre-wrap leading-relaxed">{mgmtAction}</p>
+                            : <p className="text-xs text-muted-foreground italic">—</p>
+                          }
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* Full submitted reports */}
+      {!reportsLoading && submittedReports.length === 0 ? (
+        <div className="text-center py-10 text-sm text-muted-foreground">
+          No submitted reports for {reportViewDate}
+          {reportViewDept !== "all" ? ` · ${REPORT_TEMPLATES.find(t => t.role === reportViewDept)?.label}` : ""}.
+        </div>
+      ) : !reportsLoading && (
+        <div className="space-y-4">
+          <div className="flex items-center justify-between flex-wrap gap-2">
+            <p className="text-sm font-semibold text-foreground flex items-center gap-2">
+              <ClipboardList className="h-4 w-4 text-blue-600" />
+              Submitted Reports — {reportViewDate}
+              {reportViewDept !== "all" && ` · ${REPORT_TEMPLATES.find(t => t.role === reportViewDept)?.label}`}
+            </p>
+            <span className="text-xs text-muted-foreground">
+              {submittedReports.length} report{submittedReports.length !== 1 ? "s" : ""} · page {reportPage} of {totalPages}
+            </span>
+          </div>
+
+          {pagedReports.map(report => {
+            const tmpl = REPORT_TEMPLATES.find(t => t.role === report.department);
+            const isCollapsed = expandedReport === `collapsed_${report.id}`;
+
+            return (
+              <Card key={report.id} id={`report-${report.id}`} className="overflow-hidden scroll-mt-24">
+                {/* Report header */}
+                <div className="flex items-center justify-between px-4 py-3 bg-secondary/50 border-b border-border">
+                  <button
+                    className="flex-1 flex items-center gap-3 flex-wrap text-left hover:opacity-80 transition-opacity"
+                    onClick={() => setExpandedReport(isCollapsed ? null : `collapsed_${report.id}`)}
+                  >
+                    <span className="font-semibold text-sm">{tmpl?.label ?? report.department}</span>
+                    <Badge className="bg-green-100 text-green-700 text-xs">Submitted</Badge>
+                    {report.staff_name && (
+                      <span className="text-xs text-muted-foreground flex items-center gap-1">
+                        <Users className="h-3 w-3" /> {report.staff_name}
+                      </span>
+                    )}
+                    {report.submitted_at && (
+                      <span className="text-xs text-muted-foreground flex items-center gap-1">
+                        <Clock className="h-3 w-3" />
+                        {new Date(report.submitted_at).toLocaleString("en-KE", {
+                          day: "numeric", month: "short", year: "numeric",
+                          hour: "2-digit", minute: "2-digit",
+                        })}
+                      </span>
+                    )}
+                  </button>
+                  <div className="flex items-center gap-2 shrink-0 ml-2">
+                    <span
+                      className="text-xs text-muted-foreground flex items-center gap-1 cursor-pointer hover:text-foreground"
+                      onClick={() => setExpandedReport(isCollapsed ? null : `collapsed_${report.id}`)}
+                    >
+                      {isCollapsed ? <><ChevronDown className="h-4 w-4" /> Show</> : <><ChevronUp className="h-4 w-4" /> Hide</>}
+                    </span>
+                    {isSuperAdmin && (
+                      <Button
+                        size="sm" variant="outline"
+                        className="text-red-600 border-red-300 hover:bg-red-50 h-7 px-2"
+                        onClick={() => onDeleteReport(report.id, tmpl?.label ?? report.department)}
+                      >
+                        <Trash2 className="h-3.5 w-3.5" />
+                        <span className="ml-1 text-xs">Delete</span>
+                      </Button>
+                    )}
+                  </div>
+                </div>
+
+                {/* Report fields — shown by default */}
+                {!isCollapsed && (
+                  <>
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-sm">
+                      <thead>
+                        <tr className="bg-secondary/30 border-b border-border">
+                          <th className="text-left px-4 py-2 w-8 text-xs font-medium text-muted-foreground">Ser</th>
+                          <th className="text-left px-4 py-2 w-1/3 text-xs font-medium text-muted-foreground">Reporting Field</th>
+                          <th className="text-left px-4 py-2 text-xs font-medium text-muted-foreground">Details / Figures / Comments</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {(tmpl?.fields ?? []).map((f, idx) => {
+                          const value = report.entries?.[f.field];
+                          const isCeoField = f.field === "Management Action Required";
+                          return (
+                            <tr key={`${f.ser}-${f.field}`} className={`border-b border-border/40 ${idx % 2 === 0 ? "bg-background" : "bg-secondary/20"}`}>
+                              <td className="px-4 py-2.5 text-xs text-muted-foreground align-top">{f.ser}</td>
+                              <td className="px-4 py-2.5 align-top">
+                                <p className={`text-sm font-medium ${isCeoField ? "text-red-700" : ""}`}>{f.field}</p>
+                              </td>
+                              <td className="px-4 py-2.5 align-top">
+                                {value
+                                  ? <p className={`text-sm whitespace-pre-wrap leading-relaxed ${isCeoField ? "text-red-700 font-medium" : "text-foreground/80"}`}>{value}</p>
+                                  : <span className="text-xs text-muted-foreground italic">—</span>
+                                }
+                              </td>
+                            </tr>
+                          );
+                        })}
+                      </tbody>
+                    </table>
+                  </div>
+                  {/* Financials row */}
+                  {(report.entries?.["__revenue"] || report.entries?.["__expenses"]) && (
+                    <div className="grid grid-cols-3 divide-x divide-border border-t border-border text-sm">
+                      <div className="px-4 py-3">
+                        <p className="text-xs text-muted-foreground">Revenue</p>
+                        <p className="font-semibold text-green-700">
+                          KES {parseFloat(report.entries["__revenue"] ?? "0").toLocaleString("en-KE", { minimumFractionDigits: 2 })}
+                        </p>
+                      </div>
+                      <div className="px-4 py-3">
+                        <p className="text-xs text-muted-foreground">Expenses</p>
+                        <p className="font-semibold text-red-700">
+                          KES {parseFloat(report.entries["__expenses"] ?? "0").toLocaleString("en-KE", { minimumFractionDigits: 2 })}
+                        </p>
+                      </div>
+                      <div className="px-4 py-3">
+                        <p className="text-xs text-muted-foreground">Net</p>
+                        <p className={`font-semibold ${
+                          (parseFloat(report.entries["__revenue"] ?? "0") - parseFloat(report.entries["__expenses"] ?? "0")) >= 0
+                            ? "text-green-700" : "text-red-700"
+                        }`}>
+                          KES {(parseFloat(report.entries["__revenue"] ?? "0") - parseFloat(report.entries["__expenses"] ?? "0")).toLocaleString("en-KE", { minimumFractionDigits: 2 })}
+                        </p>
+                      </div>
+                    </div>
+                  )}
+                  </>
+                )}
+              </Card>
+            );
+          })}
+
+          {/* Pagination controls */}
+          {totalPages > 1 && (
+            <div className="flex items-center justify-between pt-2 border-t border-border">
+              <span className="text-xs text-muted-foreground">
+                Showing {(reportPage - 1) * REPORTS_PER_PAGE + 1}–{Math.min(reportPage * REPORTS_PER_PAGE, submittedReports.length)} of {submittedReports.length}
+              </span>
+              <div className="flex items-center gap-1">
+                <Button
+                  size="sm" variant="outline"
+                  disabled={reportPage === 1}
+                  onClick={() => setReportPage(p => Math.max(1, p - 1))}
+                  className="h-7 px-2 text-xs"
+                >
+                  ← Prev
+                </Button>
+                {Array.from({ length: totalPages }, (_, i) => i + 1).map(p => (
+                  <button
+                    key={p}
+                    onClick={() => setReportPage(p)}
+                    className={`h-7 w-7 text-xs rounded-md border transition-colors ${
+                      p === reportPage
+                        ? "bg-accent text-accent-foreground border-accent"
+                        : "border-border hover:bg-secondary"
+                    }`}
+                  >
+                    {p}
+                  </button>
+                ))}
+                <Button
+                  size="sm" variant="outline"
+                  disabled={reportPage === totalPages}
+                  onClick={() => setReportPage(p => Math.min(totalPages, p + 1))}
+                  className="h-7 px-2 text-xs"
+                >
+                  Next →
+                </Button>
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
+
+// ── My Reports Component (non-admin staff) ───────────────────────────────────
+
+function MyReports({ staffId, today }: { staffId: string; today: string }) {
+  const [reports, setReports] = useState<DailyReport[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [filterDate, setFilterDate] = useState(today);
+  const [expandedId, setExpandedId] = useState<string | null>(null);
+
+  useEffect(() => {
+    async function load() {
+      setLoading(true);
+      const { data, error } = await supabase
+        .from("daily_reports")
+        .select("*")
+        .eq("staff_id", staffId)
+        .eq("report_date", filterDate)
+        .order("created_at", { ascending: false });
+
+      if (error) console.error("MyReports error:", error.message);
+      setReports(
+        (data ?? []).map(r => ({
+          ...r,
+          submitted: r.submitted === true || r.submitted === 1 || r.submitted === "true",
+        }))
+      );
+      setLoading(false);
+    }
+    load();
+  }, [staffId, filterDate]);
+
+  return (
+    <div className="space-y-4">
+      <div className="flex flex-wrap items-center gap-3">
+        <div className="flex items-center gap-2">
+          <CalendarDays className="h-4 w-4 text-muted-foreground" />
+          <input
+            type="date"
+            value={filterDate}
+            max={today}
+            onChange={e => setFilterDate(e.target.value)}
+            className="text-sm px-3 py-1.5 border border-border rounded-md bg-background focus:outline-none focus:ring-1 focus:ring-accent"
+          />
+          {filterDate !== today && (
+            <button onClick={() => setFilterDate(today)} className="text-xs text-accent hover:underline">Today</button>
+          )}
+        </div>
+        <span className="text-xs text-muted-foreground">
+          {loading ? "Loading…" : `${reports.filter(r => r.submitted).length} submitted · ${reports.filter(r => !r.submitted).length} draft`}
+        </span>
+      </div>
+
+      {loading ? (
+        <div className="flex justify-center py-12"><Loader2 className="h-6 w-6 animate-spin text-muted-foreground" /></div>
+      ) : reports.length === 0 ? (
+        <div className="text-center py-12 text-sm text-muted-foreground">
+          No reports for {filterDate === today ? "today" : filterDate}.
+        </div>
+      ) : (
+        reports.map(report => {
+          const tmpl = REPORT_TEMPLATES.find(t => t.role === report.department);
+          const isOpen = expandedId === report.id;
+          return (
+            <Card key={report.id} className="overflow-hidden">
+              <button
+                className="w-full flex items-center justify-between px-4 py-3 bg-secondary/50 border-b border-border hover:bg-secondary/80 transition-colors text-left"
+                onClick={() => setExpandedId(isOpen ? null : report.id)}
+              >
+                <div className="flex items-center gap-3 flex-wrap">
+                  <span className="font-semibold text-sm">{tmpl?.label ?? report.department}</span>
+                  <Badge className={report.submitted ? "bg-green-100 text-green-700 text-xs" : "bg-amber-100 text-amber-700 text-xs"}>
+                    {report.submitted ? "✓ Submitted" : "Draft"}
+                  </Badge>
+                  {report.submitted_at && report.submitted && (
+                    <span className="text-xs text-muted-foreground flex items-center gap-1">
+                      <Clock className="h-3 w-3" />
+                      {new Date(report.submitted_at).toLocaleString("en-KE", {
+                        day: "numeric", month: "short", year: "numeric",
+                        hour: "2-digit", minute: "2-digit",
+                      })}
+                    </span>
+                  )}
+                </div>
+                <span className="text-xs text-muted-foreground flex items-center gap-1 shrink-0">
+                  {isOpen ? <><ChevronUp className="h-4 w-4" /> Hide</> : <><ChevronDown className="h-4 w-4" /> View</>}
+                </span>
+              </button>
+
+              {isOpen && (
+                <div className="overflow-x-auto">
+                  <table className="w-full text-sm">
+                    <thead>
+                      <tr className="bg-secondary/30 border-b border-border">
+                        <th className="text-left px-4 py-2 w-8 text-xs font-medium text-muted-foreground">Ser</th>
+                        <th className="text-left px-4 py-2 w-1/3 text-xs font-medium text-muted-foreground">Reporting Field</th>
+                        <th className="text-left px-4 py-2 text-xs font-medium text-muted-foreground">Details / Figures / Comments</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {(tmpl?.fields ?? []).map((f, idx) => {
+                        const value = report.entries?.[f.field];
+                        return (
+                          <tr key={`${f.ser}-${f.field}`} className={`border-b border-border/40 ${idx % 2 === 0 ? "bg-background" : "bg-secondary/20"}`}>
+                            <td className="px-4 py-2.5 text-xs text-muted-foreground align-top">{f.ser}</td>
+                            <td className="px-4 py-2.5 text-sm font-medium align-top">{f.field}</td>
+                            <td className="px-4 py-2.5 align-top">
+                              {value
+                                ? <p className="text-sm whitespace-pre-wrap leading-relaxed text-foreground/80">{value}</p>
+                                : <span className="text-xs text-muted-foreground italic">—</span>
+                              }
+                            </td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </Card>
+          );
+        })
+      )}
+    </div>
   );
 }

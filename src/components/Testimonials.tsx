@@ -51,7 +51,7 @@ const Testimonials = () => {
           className="text-center mb-16"
         >
           {/* <p className="text-accent font-medium tracking-[0.2em] uppercase mb-4">Guest Reviews</p> */}
-          <h2 className="font-heading text-4xl md:text-5xl font-bold text-primary-foreground mb-4">
+          <h2 className="font-heading text-3xl sm:text-4xl md:text-5xl font-bold text-primary-foreground mb-4">
             What Our Guests Say
           </h2>
           <div className="w-20 h-0.5 bg-accent mx-auto" />

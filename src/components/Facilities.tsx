@@ -55,7 +55,7 @@ const facilities = [
 
 const Facilities = () => {
   return (
-    <section className="py-24 bg-secondary">
+    <section className="py-14 sm:py-20 md:py-24 bg-secondary">
       <div className="container mx-auto px-4">
         {/* Section Header */}
         <motion.div
@@ -78,7 +78,7 @@ const Facilities = () => {
         </motion.div>
 
         {/* Facilities Grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-3 gap-4 md:gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 md:gap-6">
           {facilities.map((facility, index) => (
             <motion.div
               key={facility.name}

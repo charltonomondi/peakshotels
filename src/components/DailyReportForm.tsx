@@ -43,7 +43,7 @@ export default function DailyReportForm({ staff }: Props) {
 
   const loadReport = useCallback(async () => {
     setLoading(true);
-    const { data } = await supabase
+    const { data, error } = await supabase
       .from("daily_reports")
       .select("*")
       .eq("staff_id", staff.id)
@@ -51,9 +51,11 @@ export default function DailyReportForm({ staff }: Props) {
       .eq("department", selectedRole)
       .maybeSingle();
 
+    if (error) console.error("loadReport error:", error.message, error.details);
+
     if (data) {
       setEntries(data.entries ?? {});
-      setSubmitted(data.submitted ?? false);
+      setSubmitted(data.submitted === true || data.submitted === 1 || data.submitted === "true");
       setReportId(data.id);
     } else {
       setEntries({});
@@ -80,8 +82,12 @@ export default function DailyReportForm({ staff }: Props) {
       (members ?? []).forEach(m => { nameMap[m.id] = m.full_name; });
       setAllReports(data.map(r => ({
         ...r,
+        // normalise submitted
+        submitted: r.submitted === true || r.submitted === 1,
         staff_name: nameMap[r.staff_id] ?? "Unknown",
       })));
+    } else {
+      setAllReports([]);
     }
   }, [isAdmin, reportDate]);
 
@@ -103,9 +109,14 @@ export default function DailyReportForm({ staff }: Props) {
       submitted: false,
     };
     if (reportId) {
-      await supabase.from("daily_reports").update({ entries, updated_at: new Date().toISOString() }).eq("id", reportId);
+      const { error } = await supabase
+        .from("daily_reports")
+        .update({ entries, updated_at: new Date().toISOString() })
+        .eq("id", reportId);
+      if (error) { alert("Save failed: " + error.message); setSaving(false); return; }
     } else {
-      const { data } = await supabase.from("daily_reports").insert(payload).select().single();
+      const { data, error } = await supabase.from("daily_reports").insert(payload).select().single();
+      if (error) { alert("Save failed: " + error.message); setSaving(false); return; }
       if (data) setReportId(data.id);
     }
     setSaving(false);
@@ -114,23 +125,35 @@ export default function DailyReportForm({ staff }: Props) {
   async function handleSubmit() {
     if (!template) return;
     setSubmitting(true);
-    const payload = {
-      staff_id: staff.id,
-      department: selectedRole,
-      report_date: reportDate,
-      entries,
-      submitted: true,
-      submitted_at: new Date().toISOString(),
-    };
+    const now = new Date().toISOString();
+
     if (reportId) {
-      await supabase.from("daily_reports").update({
-        entries, submitted: true, submitted_at: new Date().toISOString(), updated_at: new Date().toISOString(),
-      }).eq("id", reportId);
+      // update existing draft → submitted
+      const { error } = await supabase
+        .from("daily_reports")
+        .update({ entries, submitted: true, submitted_at: now, updated_at: now })
+        .eq("id", reportId);
+      if (error) { alert("Submit failed: " + error.message); setSubmitting(false); return; }
     } else {
-      const { data } = await supabase.from("daily_reports").insert(payload).select().single();
+      // insert directly as submitted
+      const { data, error } = await supabase
+        .from("daily_reports")
+        .insert({
+          staff_id: staff.id,
+          department: selectedRole,
+          report_date: reportDate,
+          entries,
+          submitted: true,
+          submitted_at: now,
+        })
+        .select()
+        .single();
+      if (error) { alert("Submit failed: " + error.message); setSubmitting(false); return; }
       if (data) setReportId(data.id);
     }
-    setSubmitted(true);
+
+    // Re-fetch from DB to confirm actual saved state
+    await loadReport();
     setSubmitting(false);
     if (isAdmin) loadAllReports();
   }
@@ -154,11 +177,17 @@ export default function DailyReportForm({ staff }: Props) {
             onChange={e => setReportDate(e.target.value)}
             className="text-sm px-3 py-1.5 border border-border rounded-md bg-background focus:outline-none focus:ring-1 focus:ring-accent"
           />
+          <span className="text-xs text-muted-foreground">
+            {allReports.filter(r => r.submitted).length} / {REPORT_TEMPLATES.length} submitted
+          </span>
         </div>
 
         <div className="grid gap-3">
           {REPORT_TEMPLATES.map(t => {
-            const report = allReports.find(r => r.department === t.role);
+            // pick the submitted one first, fall back to draft
+            const submitted = allReports.find(r => r.department === t.role && r.submitted);
+            const draft = allReports.find(r => r.department === t.role && !r.submitted);
+            const report = submitted ?? draft;
             return (
               <div key={t.role} className="flex items-center justify-between p-3 border border-border rounded-xl bg-card">
                 <div>
@@ -193,7 +222,7 @@ export default function DailyReportForm({ staff }: Props) {
     );
   }
 
-  // Admin viewing a submitted report (read-only)
+  // Admin viewing a report (read-only)
   if (isAdmin && viewingReport && viewingReport !== "own") {
     const report = allReports.find(r => r.id === viewingReport);
     const reportTemplate = REPORT_TEMPLATES.find(t => t.role === report?.department);
@@ -202,7 +231,9 @@ export default function DailyReportForm({ staff }: Props) {
         <div className="flex items-center gap-3">
           <Button variant="outline" size="sm" onClick={() => setViewingReport(null)}>← Back</Button>
           <h3 className="font-semibold">{reportTemplate?.label} — {reportDate}</h3>
-          <Badge className="bg-green-100 text-green-700">Submitted</Badge>
+          <Badge className={report?.submitted ? "bg-green-100 text-green-700" : "bg-amber-100 text-amber-700"}>
+            {report?.submitted ? "Submitted" : "Draft"}
+          </Badge>
         </div>
         <div className="border border-border rounded-xl overflow-hidden">
           <table className="w-full text-sm">
@@ -226,6 +257,41 @@ export default function DailyReportForm({ staff }: Props) {
             </tbody>
           </table>
         </div>
+        {/* Financials */}
+        {(report?.entries["__revenue"] || report?.entries["__expenses"]) && (
+          <div className="border border-border rounded-xl overflow-hidden">
+            <div className="bg-secondary px-4 py-2.5 border-b border-border">
+              <p className="text-xs font-semibold text-foreground">Financials (KES)</p>
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 divide-y sm:divide-y-0 sm:divide-x divide-border text-sm">
+              <div className="px-4 py-3">
+                <p className="text-xs text-muted-foreground mb-1">Revenue</p>
+                <p className="font-semibold text-green-700">
+                  {report?.entries["__revenue"]
+                    ? `KES ${parseFloat(report.entries["__revenue"]).toLocaleString("en-KE", { minimumFractionDigits: 2 })}`
+                    : "—"}
+                </p>
+              </div>
+              <div className="px-4 py-3">
+                <p className="text-xs text-muted-foreground mb-1">Expenses</p>
+                <p className="font-semibold text-red-700">
+                  {report?.entries["__expenses"]
+                    ? `KES ${parseFloat(report.entries["__expenses"]).toLocaleString("en-KE", { minimumFractionDigits: 2 })}`
+                    : "—"}
+                </p>
+              </div>
+              <div className="px-4 py-3">
+                <p className="text-xs text-muted-foreground mb-1">Net</p>
+                <p className={`font-semibold ${
+                  (parseFloat(report?.entries["__revenue"] ?? "0") - parseFloat(report?.entries["__expenses"] ?? "0")) >= 0
+                    ? "text-green-700" : "text-red-700"
+                }`}>
+                  KES {(parseFloat(report?.entries["__revenue"] ?? "0") - parseFloat(report?.entries["__expenses"] ?? "0")).toLocaleString("en-KE", { minimumFractionDigits: 2 })}
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     );
   }
@@ -275,7 +341,7 @@ export default function DailyReportForm({ staff }: Props) {
       ) : (
         <>
           {/* Report table */}
-          <div className="border border-border rounded-xl overflow-hidden">
+          <div className="border border-border rounded-xl overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
                 <tr className="bg-secondary">
@@ -319,6 +385,53 @@ export default function DailyReportForm({ staff }: Props) {
                 ))}
               </tbody>
             </table>
+          </div>
+
+          {/* Revenue & Expenses — numeric fields */}
+          <div className="border border-border rounded-xl overflow-hidden">
+            <div className="bg-secondary px-4 py-2.5 border-b border-border">
+              <p className="text-xs font-semibold text-foreground">Financials (KES)</p>
+            </div>
+            <div className="grid grid-cols-2 divide-x divide-border">
+              <div className="px-4 py-3">
+                <label className="text-xs font-medium text-green-700 block mb-1">Revenue Generated</label>
+                <input
+                  type="number"
+                  min="0"
+                  step="0.01"
+                  disabled={submitted}
+                  value={entries["__revenue"] ?? ""}
+                  onChange={e => setField("__revenue", e.target.value)}
+                  placeholder="0.00"
+                  className="w-full text-sm px-2.5 py-2 border border-border rounded-lg bg-background focus:outline-none focus:ring-1 focus:ring-green-500 disabled:bg-secondary/40 disabled:text-muted-foreground disabled:cursor-not-allowed"
+                />
+              </div>
+              <div className="px-4 py-3">
+                <label className="text-xs font-medium text-red-700 block mb-1">Expenses</label>
+                <input
+                  type="number"
+                  min="0"
+                  step="0.01"
+                  disabled={submitted}
+                  value={entries["__expenses"] ?? ""}
+                  onChange={e => setField("__expenses", e.target.value)}
+                  placeholder="0.00"
+                  className="w-full text-sm px-2.5 py-2 border border-border rounded-lg bg-background focus:outline-none focus:ring-1 focus:ring-red-500 disabled:bg-secondary/40 disabled:text-muted-foreground disabled:cursor-not-allowed"
+                />
+              </div>
+            </div>
+            {/* Show net when both are filled */}
+            {(entries["__revenue"] || entries["__expenses"]) && (
+              <div className="px-4 py-2 bg-secondary/30 border-t border-border flex items-center gap-4 text-xs">
+                <span className="text-muted-foreground">Net:</span>
+                <span className={`font-semibold ${
+                  (parseFloat(entries["__revenue"] ?? "0") - parseFloat(entries["__expenses"] ?? "0")) >= 0
+                    ? "text-green-700" : "text-red-700"
+                }`}>
+                  KES {(parseFloat(entries["__revenue"] ?? "0") - parseFloat(entries["__expenses"] ?? "0")).toLocaleString("en-KE", { minimumFractionDigits: 2 })}
+                </span>
+              </div>
+            )}
           </div>
 
           {/* Actions */}

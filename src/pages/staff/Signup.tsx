@@ -11,11 +11,13 @@ import { Shield, Loader2, CheckCircle } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 
+// super_admin and manager are not self-registerable
 const ROLES: StaffRole[] = [
-  "receptionist", "housekeeping", "restaurant", "maintenance",
+  "receptionist", "housekeeping", "maintenance",
   "ict", "food_beverage", "administration", "ceo",
   "wellness_centre", "kitchen", "security", "accounts",
-  "outdoor_centre", "marketing", "manager",
+  "outdoor_centre", "marketing", "procurement", "stock_control",
+  "hr", "kcau", "mothers_choice",
 ];
 
 export default function StaffSignup() {

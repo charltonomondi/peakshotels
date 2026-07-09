@@ -136,7 +136,7 @@ const Rooms = () => {
       <Navbar />
       
       {/* Hero Section */}
-      <section className="relative h-[70vh] md:h-[80vh] overflow-hidden">
+      <section className="relative h-[50vh] sm:h-[60vh] md:h-[70vh] lg:h-[80vh] overflow-hidden">
         <motion.div
           initial={{ scale: 1.2 }}
           animate={{ scale: 1 }}
@@ -194,7 +194,7 @@ const Rooms = () => {
                   <img
                     src={room.image}
                     alt={room.name}
-                    className="w-full h-[400px] object-cover"
+                    className="w-full h-56 sm:h-72 md:h-[400px] object-cover"
                   />
                   <div className="absolute top-4 right-4 bg-accent text-accent-foreground px-6 py-3 rounded-full font-bold">
                     {room.priceRange}<span className="text-sm font-normal">/night</span>
@@ -203,7 +203,7 @@ const Rooms = () => {
 
                 {/* Content */}
                 <div className={`${index % 2 === 1 ? 'lg:order-1' : ''}`}>
-                  <h2 className="font-heading text-3xl md:text-4xl font-bold text-foreground mb-4">
+                  <h2 className="font-heading text-2xl sm:text-3xl md:text-4xl font-bold text-foreground mb-4">
                     {room.name}
                   </h2>
                   <p className="text-muted-foreground mb-6">
@@ -227,9 +227,27 @@ const Rooms = () => {
                   </div>
 
                   {/* Pricing Table */}
-                  <div className="bg-accent/10 rounded-lg p-4 mb-6">
+                  <div className="bg-accent/10 rounded-lg p-3 sm:p-4 mb-6 overflow-x-auto">
                     <h3 className="font-semibold text-foreground mb-3 text-sm">Room Rates (per night)</h3>
-                    <div className="space-y-2 text-sm">
+                    {/* Mobile: stacked cards */}
+                    <div className="sm:hidden space-y-3 text-sm">
+                      {[
+                        { label: "Single", d: room.priceDetails.single },
+                        { label: "Double", d: room.priceDetails.double },
+                        ...(room.priceDetails.twin ? [{ label: "Twin (pp)", d: room.priceDetails.twin }] : []),
+                      ].map(({ label, d }) => (
+                        <div key={label} className="bg-background rounded-lg p-3 border border-border/50">
+                          <p className="font-semibold text-foreground mb-2">{label}</p>
+                          <div className="grid grid-cols-3 gap-2 text-xs">
+                            <div><p className="text-muted-foreground">B&B</p><p className="font-medium">KES {d.bb.toLocaleString()}</p></div>
+                            <div><p className="text-muted-foreground">Half Board</p><p className="font-medium">KES {d.hb.toLocaleString()}</p></div>
+                            <div><p className="text-muted-foreground">Full Board</p><p className="font-medium">KES {d.fb.toLocaleString()}</p></div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                    {/* Desktop: table */}
+                    <div className="hidden sm:block space-y-2 text-sm">
                       <div className="grid grid-cols-4 gap-2 font-semibold text-foreground border-b border-border pb-2">
                         <div>Configuration</div>
                         <div className="text-right">B&B</div>

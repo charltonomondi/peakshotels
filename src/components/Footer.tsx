@@ -109,13 +109,13 @@ const Footer = () => {
               <li className="flex items-center gap-3">
                 <Phone className="h-5 w-5 text-accent shrink-0" />
                 <a href="tel:+254700000000" className="text-primary-foreground/80 hover:text-accent transition-colors text-sm">
-                  +254 711 969 690
+                  +254 711 969 690 | +254 782 426 689
                 </a>
               </li>
               <li className="flex items-center gap-3">
                 <Mail className="h-5 w-5 text-accent shrink-0" />
                 <a href="mailto:info@peakshotel.co.ke" className="text-primary-foreground/80 hover:text-accent transition-colors text-sm">
-                  info@peakshotel.co.ke
+                  info@peakshotels.co.ke
                 </a>
               </li>
               <li className="flex items-start gap-3">

@@ -2,7 +2,7 @@ import { createContext, useContext, useEffect, useState, ReactNode } from "react
 import type { User, Session } from "@supabase/supabase-js";
 import { supabase } from "./supabase";
 
-export type StaffRole = "super_admin" | "manager" | "receptionist" | "housekeeping" | "restaurant" | "maintenance" | "ict" | "food_beverage" | "administration" | "ceo" | "wellness_centre" | "kitchen" | "security" | "accounts" | "outdoor_centre" | "marketing";
+export type StaffRole = "super_admin" | "manager" | "receptionist" | "housekeeping" | "restaurant" | "maintenance" | "ict" | "food_beverage" | "administration" | "ceo" | "wellness_centre" | "kitchen" | "security" | "accounts" | "outdoor_centre" | "marketing" | "procurement" | "stock_control" | "hr" | "kcau" | "mothers_choice";
 
 export interface StaffMember {
   id: string;
@@ -87,7 +87,7 @@ export const useStaffAuth = () => useContext(Ctx);
 export const ROLE_LABELS: Record<StaffRole, string> = {
   super_admin: "Super Admin",
   manager: "Manager",
-  receptionist: "Receptionist",
+  receptionist: "Front Office",
   housekeeping: "Housekeeping",
   restaurant: "Restaurant",
   maintenance: "Maintenance",
@@ -101,6 +101,11 @@ export const ROLE_LABELS: Record<StaffRole, string> = {
   accounts: "Accounts",
   outdoor_centre: "Outdoor Centre",
   marketing: "Marketing",
+  procurement: "Procurement & Stores",
+  stock_control: "Stock & Cost Control",
+  hr: "Human Resource",
+  kcau: "KCAU",
+  mothers_choice: "Mother's Choice",
 };
 
 export const STATUS_COLORS = {

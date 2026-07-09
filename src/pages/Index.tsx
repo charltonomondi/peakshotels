@@ -48,7 +48,7 @@ const Index = () => {
       {/* ── STATS STRIP ── */}
       <section className="bg-primary py-10">
         <div className="container mx-auto px-4">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-6 md:gap-0 md:divide-x divide-primary-foreground/20">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 sm:gap-6 md:gap-0 md:divide-x divide-primary-foreground/20">
             {stats.map(({ value, label }, i) => (
               <motion.div
                 key={label}
@@ -56,10 +56,10 @@ const Index = () => {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ delay: i * 0.1 }}
-                className="text-center px-4"
+                className="text-center px-2 sm:px-4"
               >
-                <p className="font-heading text-4xl md:text-5xl font-bold text-accent mb-1">{value}</p>
-                <p className="text-primary-foreground/60 text-sm uppercase tracking-wider">{label}</p>
+                <p className="font-heading text-3xl sm:text-4xl md:text-5xl font-bold text-accent mb-1">{value}</p>
+                <p className="text-primary-foreground/60 text-xs sm:text-sm uppercase tracking-wider">{label}</p>
               </motion.div>
             ))}
           </div>
@@ -67,7 +67,7 @@ const Index = () => {
       </section>
 
       {/* ── ABOUT ── cinematic split with photo mosaic */}
-      <section ref={aboutRef} className="py-28 bg-background overflow-hidden">
+      <section ref={aboutRef} className="py-14 sm:py-20 md:py-28 bg-background overflow-hidden">
         <div className="container mx-auto px-4">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
 
@@ -82,7 +82,7 @@ const Index = () => {
                 <MapPin className="h-4 w-4 text-accent" />
                 <span className="text-accent text-xs font-medium tracking-[0.25em] uppercase">Nanyuki, Kenya</span>
               </div> */}
-              <h2 className="font-heading text-5xl md:text-6xl font-bold text-foreground leading-tight mb-6">
+              <h2 className="font-heading text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold text-foreground leading-tight mb-6">
                 Welcome to<br />
                 <span className="text-accent italic font-light">Peaks Hotel Nanyuki</span>
               </h2>

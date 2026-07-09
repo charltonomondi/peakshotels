@@ -321,53 +321,54 @@ const Navbar = () => {
             </div>
 
             {/* Right side actions */}
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-1.5">
               <button
                 onClick={() => openLipaModal?.()}
-                className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 bg-amber-500/10 hover:bg-amber-500/20 rounded-full text-xs font-semibold text-amber-600 transition-colors border border-amber-400/30 whitespace-nowrap"
+                className="hidden md:flex items-center gap-1.5 px-2.5 py-1.5 bg-amber-500/10 hover:bg-amber-500/20 rounded-full text-xs font-semibold text-amber-600 transition-colors border border-amber-400/30 whitespace-nowrap"
               >
                 <CreditCard className="h-3.5 w-3.5" />
-                Payment Plan
+                <span className="hidden xl:inline">Payment Plan</span>
               </button>
 
               {member ? (
                 <Link
                   to="/loyalty/dashboard"
-                  className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 bg-accent/10 hover:bg-accent/20 rounded-full text-xs font-semibold text-accent transition-colors whitespace-nowrap"
+                  className="hidden md:flex items-center gap-1.5 px-2.5 py-1.5 bg-accent/10 hover:bg-accent/20 rounded-full text-xs font-semibold text-accent transition-colors whitespace-nowrap"
                 >
                   <Star className="h-3.5 w-3.5" />
-                  {member.points.toLocaleString()} pts
+                  <span className="hidden xl:inline">{member.points.toLocaleString()} pts</span>
+                  <span className="xl:hidden">Loyalty</span>
                 </Link>
               ) : (
                 <Link
                   to="/loyalty/signup"
-                  className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 bg-accent/10 hover:bg-accent/20 rounded-full text-xs font-semibold text-accent transition-colors whitespace-nowrap"
+                  className="hidden md:flex items-center gap-1.5 px-2.5 py-1.5 bg-accent/10 hover:bg-accent/20 rounded-full text-xs font-semibold text-accent transition-colors whitespace-nowrap"
                 >
                   <Star className="h-3.5 w-3.5" />
-                  Loyalty
+                  <span className="hidden xl:inline">Loyalty</span>
                 </Link>
               )}
 
-              <Button variant="gold" size="sm" className="hidden sm:inline-flex" asChild>
+              <Button variant="gold" size="sm" className="hidden sm:inline-flex text-xs px-3" asChild>
                 <Link to="/booking">Book Now</Link>
               </Button>
 
-              {/* Staff portal link */}
+              {/* Staff portal — always visible on sm+ */}
               {staff?.status === "active" ? (
                 <Link
                   to="/staff/dashboard"
-                  className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 bg-primary/10 hover:bg-primary/20 rounded-full text-xs font-semibold text-primary transition-colors whitespace-nowrap"
+                  className="flex items-center gap-1.5 px-2.5 py-1.5 bg-primary/10 hover:bg-primary/20 rounded-full text-xs font-semibold text-primary transition-colors border border-primary/20 whitespace-nowrap"
                 >
                   <Shield className="h-3.5 w-3.5" />
-                  Dashboard
+                  <span className="hidden xs:inline">Dashboard</span>
                 </Link>
               ) : (
                 <Link
                   to="/staff/login"
-                  className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 bg-primary/10 hover:bg-primary/20 rounded-full text-xs font-semibold text-primary transition-colors whitespace-nowrap"
+                  className="flex items-center gap-1.5 px-2.5 py-1.5 bg-primary/10 hover:bg-primary/20 rounded-full text-xs font-semibold text-primary transition-colors border border-primary/20 whitespace-nowrap"
                 >
                   <Shield className="h-3.5 w-3.5" />
-                  Staff Login
+                  <span>Staff Login</span>
                 </Link>
               )}
 
@@ -434,9 +435,46 @@ const Navbar = () => {
                     >
                       <CreditCard className="h-4 w-4" /> Payment Plan
                     </button>
+
+                    {member ? (
+                      <Link
+                        to="/loyalty/dashboard"
+                        onClick={() => setIsOpen(false)}
+                        className="w-full flex items-center justify-center gap-2 py-2.5 rounded-full bg-accent/10 text-accent font-semibold text-sm border border-accent/20"
+                      >
+                        <Star className="h-4 w-4" /> {member.points.toLocaleString()} pts
+                      </Link>
+                    ) : (
+                      <Link
+                        to="/loyalty/signup"
+                        onClick={() => setIsOpen(false)}
+                        className="w-full flex items-center justify-center gap-2 py-2.5 rounded-full bg-accent/10 text-accent font-semibold text-sm border border-accent/20"
+                      >
+                        <Star className="h-4 w-4" /> Loyalty Programme
+                      </Link>
+                    )}
+
                     <Button variant="gold" size="lg" className="w-full" asChild>
                       <Link to="/booking" onClick={() => setIsOpen(false)}>Book Now</Link>
                     </Button>
+
+                    {staff?.status === "active" ? (
+                      <Link
+                        to="/staff/dashboard"
+                        onClick={() => setIsOpen(false)}
+                        className="w-full flex items-center justify-center gap-2 py-2.5 rounded-full bg-primary/10 text-primary font-semibold text-sm border border-primary/20"
+                      >
+                        <Shield className="h-4 w-4" /> Staff Dashboard
+                      </Link>
+                    ) : (
+                      <Link
+                        to="/staff/login"
+                        onClick={() => setIsOpen(false)}
+                        className="w-full flex items-center justify-center gap-2 py-2.5 rounded-full bg-primary/10 text-primary font-semibold text-sm border border-primary/20"
+                      >
+                        <Shield className="h-4 w-4" /> Staff Login
+                      </Link>
+                    )}
                   </div>
 
                   <div className="mt-3 pt-3 border-t border-border flex flex-col gap-1 text-xs text-muted-foreground">
