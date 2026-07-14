@@ -21,6 +21,17 @@ CREATE POLICY "daily_reports_superadmin_delete" ON public.daily_reports
     )
   );
 
+-- Allow ALL active staff to read submitted reports (read-only dashboard view)
+DROP POLICY IF EXISTS "daily_reports_all_staff_read_submitted" ON public.daily_reports;
+CREATE POLICY "daily_reports_all_staff_read_submitted" ON public.daily_reports
+  FOR SELECT USING (
+    submitted = true
+    AND EXISTS (
+      SELECT 1 FROM public.staff_members
+      WHERE user_id = auth.uid() AND status = 'active'
+    )
+  );
+
 -- Allow super_admin to delete staff members
 DROP POLICY IF EXISTS "staff_superadmin_delete" ON public.staff_members;
 CREATE POLICY "staff_superadmin_delete" ON public.staff_members

@@ -1,11 +1,11 @@
 import { useState, useEffect, useCallback } from "react";
 import { supabase } from "@/lib/supabase";
-import { REPORT_TEMPLATES, ADMIN_ROLES, type DepartmentTemplate } from "@/lib/reportTemplates";
+import { REPORT_TEMPLATES, ADMIN_ROLES, REVENUE_CONFIG, COMPLIMENTARY_ROLES, EXPENSES_ROLE, EXPENSE_DEPARTMENTS, type DepartmentTemplate } from "@/lib/reportTemplates";
 import type { StaffMember } from "@/lib/staffAuth";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Loader2, Save, Send, CheckCircle2, ChevronDown, ChevronUp } from "lucide-react";
+import { Loader2, Save, Send, CheckCircle2, ChevronDown, ChevronUp, CalendarDays } from "lucide-react";
 
 interface Props {
   staff: StaffMember;
@@ -34,6 +34,13 @@ export default function DailyReportForm({ staff }: Props) {
   const [reportId, setReportId] = useState<string | undefined>();
   const [loading, setLoading] = useState(true);
   const [expandedHint, setExpandedHint] = useState<string | null>(null);
+
+  // CEO action for this dept's report
+  const [ceoAction, setCeoAction] = useState<{
+    action_type: string; comment: string | null;
+    scheduled_date: string | null; scheduled_time: string | null;
+    signed_off: boolean; actioned_by_name: string | null; created_at: string;
+  } | null>(null);
 
   // Admin: list of all submitted reports for the selected date
   const [allReports, setAllReports] = useState<{ department: string; staff_name: string; submitted: boolean; entries: Record<string, string>; id: string }[]>([]);
@@ -93,6 +100,17 @@ export default function DailyReportForm({ staff }: Props) {
 
   useEffect(() => { loadReport(); }, [loadReport]);
   useEffect(() => { loadAllReports(); }, [loadAllReports]);
+
+  // Load CEO action for this dept's report
+  useEffect(() => {
+    if (!reportId || !submitted) { setCeoAction(null); return; }
+    supabase
+      .from("report_actions")
+      .select("action_type, comment, scheduled_date, scheduled_time, signed_off, actioned_by_name, created_at")
+      .eq("report_id", reportId)
+      .maybeSingle()
+      .then(({ data }) => setCeoAction(data ?? null));
+  }, [reportId, submitted]);
 
   function setField(fieldName: string, value: string) {
     setEntries(prev => ({ ...prev, [fieldName]: value }));
@@ -258,40 +276,67 @@ export default function DailyReportForm({ staff }: Props) {
           </table>
         </div>
         {/* Financials */}
-        {(report?.entries["__revenue"] || report?.entries["__expenses"]) && (
-          <div className="border border-border rounded-xl overflow-hidden">
-            <div className="bg-secondary px-4 py-2.5 border-b border-border">
-              <p className="text-xs font-semibold text-foreground">Financials (KES)</p>
+        {(() => {
+          const revenueFields = REVENUE_CONFIG[report?.department ?? ""];
+          const hasRevSubs = revenueFields?.some(f => report?.entries?.[`__rev_${f}`]);
+          const hasOldRev  = !!report?.entries?.["__revenue"];
+          const isProc     = report?.department === "procurement";
+          const hasExpSubs = isProc && EXPENSE_DEPARTMENTS.some(d => report?.entries?.[`__exp_${d}`]);
+          const hasComp    = !!report?.entries?.["__complimentary"];
+          if (!hasRevSubs && !hasOldRev && !hasExpSubs && !hasComp) return null;
+          const fmtKes = (v: number) => `KES ${v.toLocaleString("en-KE", { minimumFractionDigits: 2 })}`;
+          return (
+            <div className="border border-border rounded-xl overflow-hidden">
+              <div className="bg-secondary px-4 py-2.5 border-b border-border">
+                <p className="text-xs font-semibold text-foreground">Financials (KES)</p>
+              </div>
+              {(hasRevSubs || hasOldRev) && (
+                <div className="px-4 py-3 bg-green-50/40">
+                  <p className="text-xs font-semibold text-green-800 mb-2">Revenue Generated</p>
+                  {hasRevSubs ? (
+                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 text-sm">
+                      {revenueFields.map(f => {
+                        const val = parseFloat(report?.entries?.[`__rev_${f}`] ?? "0") || 0;
+                        if (!val) return null;
+                        return <div key={f}><p className="text-xs text-muted-foreground">{f}</p><p className="font-semibold text-green-700">{fmtKes(val)}</p></div>;
+                      })}
+                      {(() => {
+                        const t = revenueFields.reduce((s, f) => s + (parseFloat(report?.entries?.[`__rev_${f}`] ?? "0") || 0), 0);
+                        return t > 0 ? <div className="col-span-full border-t border-green-200 pt-1"><p className="text-xs font-bold text-green-900">Total: {fmtKes(t)}</p></div> : null;
+                      })()}
+                    </div>
+                  ) : (
+                    <p className="text-sm font-semibold text-green-700">{fmtKes(parseFloat(report?.entries?.["__revenue"] ?? "0"))}</p>
+                  )}
+                </div>
+              )}
+              {hasComp && (
+                <div className="px-4 py-3 bg-amber-50/40 border-t border-border">
+                  <p className="text-xs font-semibold text-amber-800 mb-1">Complimentary (Non-Sale)</p>
+                  <p className="text-sm font-bold text-amber-700">
+                    KES {parseFloat(report?.entries?.["__complimentary"] ?? "0").toLocaleString("en-KE", { minimumFractionDigits: 2 })}
+                  </p>
+                </div>
+              )}
+              {hasExpSubs && (
+                <div className="px-4 py-3 bg-red-50/40 border-t border-border">
+                  <p className="text-xs font-semibold text-red-800 mb-2">Expenses by Department</p>
+                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 text-sm">
+                    {EXPENSE_DEPARTMENTS.map(d => {
+                      const val = parseFloat(report?.entries?.[`__exp_${d}`] ?? "0") || 0;
+                      if (!val) return null;
+                      return <div key={d}><p className="text-xs text-muted-foreground">{d}</p><p className="font-semibold text-red-700">{fmtKes(val)}</p></div>;
+                    })}
+                    {(() => {
+                      const t = EXPENSE_DEPARTMENTS.reduce((s, d) => s + (parseFloat(report?.entries?.[`__exp_${d}`] ?? "0") || 0), 0);
+                      return t > 0 ? <div className="col-span-full border-t border-red-200 pt-1"><p className="text-xs font-bold text-red-900">Total: {fmtKes(t)}</p></div> : null;
+                    })()}
+                  </div>
+                </div>
+              )}
             </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 divide-y sm:divide-y-0 sm:divide-x divide-border text-sm">
-              <div className="px-4 py-3">
-                <p className="text-xs text-muted-foreground mb-1">Revenue</p>
-                <p className="font-semibold text-green-700">
-                  {report?.entries["__revenue"]
-                    ? `KES ${parseFloat(report.entries["__revenue"]).toLocaleString("en-KE", { minimumFractionDigits: 2 })}`
-                    : "—"}
-                </p>
-              </div>
-              <div className="px-4 py-3">
-                <p className="text-xs text-muted-foreground mb-1">Expenses</p>
-                <p className="font-semibold text-red-700">
-                  {report?.entries["__expenses"]
-                    ? `KES ${parseFloat(report.entries["__expenses"]).toLocaleString("en-KE", { minimumFractionDigits: 2 })}`
-                    : "—"}
-                </p>
-              </div>
-              <div className="px-4 py-3">
-                <p className="text-xs text-muted-foreground mb-1">Net</p>
-                <p className={`font-semibold ${
-                  (parseFloat(report?.entries["__revenue"] ?? "0") - parseFloat(report?.entries["__expenses"] ?? "0")) >= 0
-                    ? "text-green-700" : "text-red-700"
-                }`}>
-                  KES {(parseFloat(report?.entries["__revenue"] ?? "0") - parseFloat(report?.entries["__expenses"] ?? "0")).toLocaleString("en-KE", { minimumFractionDigits: 2 })}
-                </p>
-              </div>
-            </div>
-          </div>
-        )}
+          );
+        })()}
       </div>
     );
   }
@@ -387,52 +432,115 @@ export default function DailyReportForm({ staff }: Props) {
             </table>
           </div>
 
-          {/* Revenue & Expenses — numeric fields */}
-          <div className="border border-border rounded-xl overflow-hidden">
-            <div className="bg-secondary px-4 py-2.5 border-b border-border">
-              <p className="text-xs font-semibold text-foreground">Financials (KES)</p>
-            </div>
-            <div className="grid grid-cols-2 divide-x divide-border">
-              <div className="px-4 py-3">
-                <label className="text-xs font-medium text-green-700 block mb-1">Revenue Generated</label>
-                <input
-                  type="number"
-                  min="0"
-                  step="0.01"
-                  disabled={submitted}
-                  value={entries["__revenue"] ?? ""}
-                  onChange={e => setField("__revenue", e.target.value)}
-                  placeholder="0.00"
-                  className="w-full text-sm px-2.5 py-2 border border-border rounded-lg bg-background focus:outline-none focus:ring-1 focus:ring-green-500 disabled:bg-secondary/40 disabled:text-muted-foreground disabled:cursor-not-allowed"
-                />
+          {/* ── FINANCIALS SECTION ── role-aware ───────────────── */}
+          {(() => {
+            const revenueFields = REVENUE_CONFIG[selectedRole];
+            const hasRevenue    = !!revenueFields;
+            const hasComplimentary = COMPLIMENTARY_ROLES.includes(selectedRole);
+            const isProcurement = selectedRole === EXPENSES_ROLE;
+
+            if (!hasRevenue && !hasComplimentary && !isProcurement) return null;
+
+            const fmt = (v: string) =>
+              v ? parseFloat(v).toLocaleString("en-KE", { minimumFractionDigits: 2 }) : "";
+
+            // Revenue sub-total
+            const revTotal = hasRevenue
+              ? revenueFields.reduce((s, f) => s + (parseFloat(entries[`__rev_${f}`] ?? "0") || 0), 0)
+              : 0;
+
+            return (
+              <div className="border border-border rounded-xl overflow-hidden space-y-0">
+                {/* ── Revenue ── */}
+                {hasRevenue && (
+                  <div>
+                    <div className="bg-green-50 border-b border-border px-4 py-2.5 flex items-center justify-between">
+                      <p className="text-xs font-semibold text-green-800">Revenue Generated (KES)</p>
+                      {revTotal > 0 && (
+                        <span className="text-xs font-bold text-green-700">
+                          Total: KES {revTotal.toLocaleString("en-KE", { minimumFractionDigits: 2 })}
+                        </span>
+                      )}
+                    </div>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-0 divide-y sm:divide-y-0 sm:divide-x divide-border">
+                      {revenueFields.map(f => (
+                        <div key={f} className="px-4 py-3">
+                          <label className="text-xs font-medium text-green-700 block mb-1">{f}</label>
+                          <input
+                            type="number" min="0" step="0.01"
+                            disabled={submitted}
+                            value={entries[`__rev_${f}`] ?? ""}
+                            onChange={e => setField(`__rev_${f}`, e.target.value)}
+                            placeholder="0.00"
+                            className="w-full text-sm px-2.5 py-2 border border-border rounded-lg bg-background focus:outline-none focus:ring-1 focus:ring-green-500 disabled:bg-secondary/40 disabled:cursor-not-allowed"
+                          />
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* ── Complimentary ── */}
+                {hasComplimentary && (
+                  <div className="border-t border-border">
+                    <div className="bg-amber-50 px-4 py-2.5 border-b border-border">
+                      <p className="text-xs font-semibold text-amber-800">Complimentary (Non-Sale) (KES)</p>
+                      <p className="text-xs text-amber-600 mt-0.5">Value of items given out free — not counted as revenue</p>
+                    </div>
+                    <div className="px-4 py-3">
+                      <input
+                        type="number"
+                        min="0"
+                        step="0.01"
+                        disabled={submitted}
+                        value={entries["__complimentary"] ?? ""}
+                        onChange={e => setField("__complimentary", e.target.value)}
+                        placeholder="0.00"
+                        className="w-full text-sm px-2.5 py-2 border border-border rounded-lg bg-background focus:outline-none focus:ring-1 focus:ring-amber-500 disabled:bg-secondary/40 disabled:cursor-not-allowed max-w-xs"
+                      />
+                      <p className="text-xs text-muted-foreground mt-1.5">Enter the total KES value of complimentary services/items given today</p>
+                    </div>
+                  </div>
+                )}
+
+                {/* ── Expenses — Procurement only ── */}
+                {isProcurement && (
+                  <div className="border-t border-border">
+                    <div className="bg-red-50 px-4 py-2.5 border-b border-border">
+                      <p className="text-xs font-semibold text-red-800">Expenses by Department (KES)</p>
+                      <p className="text-xs text-red-600 mt-0.5">Fill in expenses issued to each department today</p>
+                    </div>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-0 divide-y sm:divide-y-0 sm:divide-x divide-border">
+                      {EXPENSE_DEPARTMENTS.map(dept => (
+                        <div key={dept} className="px-4 py-3">
+                          <label className="text-xs font-medium text-red-700 block mb-1">{dept}</label>
+                          <input
+                            type="number" min="0" step="0.01"
+                            disabled={submitted}
+                            value={entries[`__exp_${dept}`] ?? ""}
+                            onChange={e => setField(`__exp_${dept}`, e.target.value)}
+                            placeholder="0.00"
+                            className="w-full text-sm px-2.5 py-2 border border-border rounded-lg bg-background focus:outline-none focus:ring-1 focus:ring-red-500 disabled:bg-secondary/40 disabled:cursor-not-allowed"
+                          />
+                        </div>
+                      ))}
+                    </div>
+                    {/* Total expenses */}
+                    {(() => {
+                      const total = EXPENSE_DEPARTMENTS.reduce(
+                        (s, d) => s + (parseFloat(entries[`__exp_${d}`] ?? "0") || 0), 0);
+                      return total > 0 ? (
+                        <div className="px-4 py-2 bg-red-50/60 border-t border-border text-xs flex items-center gap-3">
+                          <span className="text-muted-foreground">Total Expenses:</span>
+                          <span className="font-bold text-red-700">KES {total.toLocaleString("en-KE", { minimumFractionDigits: 2 })}</span>
+                        </div>
+                      ) : null;
+                    })()}
+                  </div>
+                )}
               </div>
-              <div className="px-4 py-3">
-                <label className="text-xs font-medium text-red-700 block mb-1">Expenses</label>
-                <input
-                  type="number"
-                  min="0"
-                  step="0.01"
-                  disabled={submitted}
-                  value={entries["__expenses"] ?? ""}
-                  onChange={e => setField("__expenses", e.target.value)}
-                  placeholder="0.00"
-                  className="w-full text-sm px-2.5 py-2 border border-border rounded-lg bg-background focus:outline-none focus:ring-1 focus:ring-red-500 disabled:bg-secondary/40 disabled:text-muted-foreground disabled:cursor-not-allowed"
-                />
-              </div>
-            </div>
-            {/* Show net when both are filled */}
-            {(entries["__revenue"] || entries["__expenses"]) && (
-              <div className="px-4 py-2 bg-secondary/30 border-t border-border flex items-center gap-4 text-xs">
-                <span className="text-muted-foreground">Net:</span>
-                <span className={`font-semibold ${
-                  (parseFloat(entries["__revenue"] ?? "0") - parseFloat(entries["__expenses"] ?? "0")) >= 0
-                    ? "text-green-700" : "text-red-700"
-                }`}>
-                  KES {(parseFloat(entries["__revenue"] ?? "0") - parseFloat(entries["__expenses"] ?? "0")).toLocaleString("en-KE", { minimumFractionDigits: 2 })}
-                </span>
-              </div>
-            )}
-          </div>
+            );
+          })()}
 
           {/* Actions */}
           {!submitted && (
@@ -450,9 +558,49 @@ export default function DailyReportForm({ staff }: Props) {
           )}
 
           {submitted && (
-            <p className="text-xs text-muted-foreground text-right">
-              Report submitted. Contact your manager if you need to make changes.
-            </p>
+            <>
+              <p className="text-xs text-muted-foreground text-right">
+                Report submitted. Contact your manager if you need to make changes.
+              </p>
+              {/* CEO Action notification */}
+              {ceoAction && (
+                <div className={`rounded-xl p-4 border mt-2 ${
+                  ceoAction.signed_off
+                    ? "bg-green-50 border-green-300"
+                    : ceoAction.action_type === "meeting"
+                    ? "bg-purple-50 border-purple-300"
+                    : "bg-blue-50 border-blue-300"
+                }`}>
+                  <div className="flex items-center gap-2 mb-2">
+                    <span className="text-sm font-semibold">
+                      {ceoAction.signed_off && "✅ CEO has signed this off"}
+                      {!ceoAction.signed_off && ceoAction.action_type === "meeting" && "📅 CEO scheduled a meeting"}
+                      {!ceoAction.signed_off && ceoAction.action_type === "comment" && "💬 CEO response"}
+                    </span>
+                  </div>
+                  {ceoAction.comment && (
+                    <p className="text-sm text-foreground/80 whitespace-pre-wrap mb-2">{ceoAction.comment}</p>
+                  )}
+                  {ceoAction.scheduled_date && (
+                    <p className="text-sm font-medium text-purple-700 flex items-center gap-1.5">
+                      <CalendarDays className="h-3.5 w-3.5" />
+                      {ceoAction.scheduled_date}
+                      {ceoAction.scheduled_time && ` at ${ceoAction.scheduled_time}`}
+                    </p>
+                  )}
+                  <p className="text-xs text-muted-foreground mt-2">
+                    — {ceoAction.actioned_by_name} · {new Date(ceoAction.created_at).toLocaleString("en-KE", {
+                      day: "numeric", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit"
+                    })}
+                  </p>
+                </div>
+              )}
+              {submitted && !ceoAction && entries["Management Action Required"]?.trim() && (
+                <p className="text-xs text-amber-600 text-right mt-1">
+                  ⏳ Awaiting CEO response on your Management Action Required.
+                </p>
+              )}
+            </>
           )}
         </>
       )}

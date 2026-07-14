@@ -1,4 +1,5 @@
 import { useEffect, useState, useRef } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import { useStaffAuth, ROLE_LABELS, STATUS_COLORS } from "@/lib/staffAuth";
 import { supabase } from "@/lib/supabase";
@@ -17,7 +18,7 @@ import {
 } from "recharts";
 import Navbar from "@/components/Navbar";
 import DailyReportForm from "@/components/DailyReportForm";
-import { REPORT_TEMPLATES } from "@/lib/reportTemplates";
+import { REPORT_TEMPLATES, REVENUE_CONFIG, EXPENSE_DEPARTMENTS } from "@/lib/reportTemplates";
 
 interface StaffRequest {
   id: string;
@@ -72,6 +73,20 @@ interface DailyReport {
   staff_name?: string;
 }
 
+interface ReportAction {
+  id: string;
+  report_id: string;
+  department: string;
+  report_date: string;
+  action_type: "comment" | "meeting" | "signed_off";
+  comment: string | null;
+  scheduled_date: string | null;
+  scheduled_time: string | null;
+  signed_off: boolean;
+  actioned_by_name: string | null;
+  created_at: string;
+}
+
 const PRIORITY_COLORS = {
   low: "bg-blue-100 text-blue-700",
   medium: "bg-amber-100 text-amber-700",
@@ -112,6 +127,14 @@ export default function StaffDashboard() {
   const [reportsLoading, setReportsLoading] = useState(false);
   const [expandedReport, setExpandedReport] = useState<string | null>(null);
 
+  // CEO actions state
+  const [reportActions, setReportActions] = useState<ReportAction[]>([]);
+  const isCeoOrSuperAdmin = staff?.role === "ceo" || staff?.role === "super_admin";
+
+  // CEO notification modal state (shown in Dashboard tab)
+  const [ceoNotification, setCeoNotification] = useState<ReportAction | null>(null);
+  const [notifDismissed, setNotifDismissed] = useState(false);
+
   // Calendar state
   const [calendarDate, setCalendarDate] = useState(today);
   const [showAddEvent, setShowAddEvent] = useState(false);
@@ -126,7 +149,6 @@ export default function StaffDashboard() {
 
   useEffect(() => {
     if (!loading && !staff) {
-      // Give it a moment — staffAuth may still be fetching
       const timer = setTimeout(() => {
         navigate("/staff/login");
       }, 2000);
@@ -136,11 +158,13 @@ export default function StaffDashboard() {
     if (!loading && isApproved) {
       loadData();
       if (isAdmin) loadStaffRequests();
+      // Load CEO notification for this staff's department
+      loadCeoNotification();
     }
   }, [loading, staff, isApproved]);
 
   useEffect(() => {
-    if (activeTab === "reports_view" && isAdmin) {
+    if (activeTab === "reports_view") {
       loadDailyReports(reportViewDate, reportViewDept);
     }
   }, [activeTab, reportViewDate, reportViewDept]);
@@ -189,6 +213,28 @@ export default function StaffDashboard() {
     setStaffRequests(data ?? []);
   }
 
+  async function loadCeoNotification() {
+    if (!staff) return;
+    // Find today's submitted report for this staff's department
+    const { data: report } = await supabase
+      .from("daily_reports")
+      .select("id")
+      .eq("department", staff.role)
+      .eq("report_date", today)
+      .eq("submitted", true)
+      .maybeSingle();
+    if (!report) return;
+    // Check if CEO has actioned it
+    const { data: action } = await supabase
+      .from("report_actions")
+      .select("*")
+      .eq("report_id", report.id)
+      .maybeSingle();
+    if (action) {
+      setCeoNotification(action as ReportAction);
+    }
+  }
+
   async function loadDailyReports(date?: string, dept?: string) {
     setReportsLoading(true);
     const targetDate = date ?? reportViewDate;
@@ -229,6 +275,17 @@ export default function StaffDashboard() {
     });
     setDailyReports(mapped);
     setReportsLoading(false);
+    // Also load CEO actions for this date
+    loadReportActions(targetDate);
+  }
+
+  async function loadReportActions(date: string) {
+    const { data } = await supabase
+      .from("report_actions")
+      .select("*")
+      .eq("report_date", date)
+      .order("created_at", { ascending: false });
+    setReportActions(data ?? []);
   }
 
   async function handleAddEvent() {
@@ -431,6 +488,122 @@ export default function StaffDashboard() {
   return (
     <>
       <Navbar />
+
+      {/* ── CEO Action Notification Modal ── */}
+      <AnimatePresence>
+        {ceoNotification && !notifDismissed && activeTab === "dashboard" && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm"
+            onClick={() => setNotifDismissed(true)}
+          >
+            <motion.div
+              initial={{ opacity: 0, scale: 0.9, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.9, y: 10 }}
+              transition={{ duration: 0.25 }}
+              className={`w-full max-w-md rounded-2xl shadow-2xl overflow-hidden ${
+                ceoNotification.signed_off
+                  ? "bg-green-50 border-2 border-green-400"
+                  : ceoNotification.action_type === "meeting"
+                  ? "bg-purple-50 border-2 border-purple-400"
+                  : "bg-blue-50 border-2 border-blue-400"
+              }`}
+              onClick={e => e.stopPropagation()}
+            >
+              {/* Header */}
+              <div className={`px-6 py-4 flex items-center justify-between ${
+                ceoNotification.signed_off ? "bg-green-600"
+                : ceoNotification.action_type === "meeting" ? "bg-purple-600"
+                : "bg-blue-600"
+              }`}>
+                <div className="flex items-center gap-3">
+                  <span className="text-2xl">
+                    {ceoNotification.signed_off ? "✅"
+                      : ceoNotification.action_type === "meeting" ? "📅"
+                      : "💬"}
+                  </span>
+                  <div>
+                    <p className="text-white font-bold text-sm">CEO Response</p>
+                    <p className="text-white/80 text-xs">
+                      {ceoNotification.signed_off
+                        ? "Your report has been signed off"
+                        : ceoNotification.action_type === "meeting"
+                        ? "A meeting has been scheduled"
+                        : "CEO has responded to your report"}
+                    </p>
+                  </div>
+                </div>
+                <button
+                  onClick={() => setNotifDismissed(true)}
+                  className="text-white/70 hover:text-white transition-colors text-xl leading-none"
+                >
+                  ×
+                </button>
+              </div>
+
+              {/* Body */}
+              <div className="px-6 py-5 space-y-4">
+                {/* Department badge */}
+                <div className="flex items-center gap-2">
+                  <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Department</span>
+                  <Badge variant="outline" className="text-xs capitalize">
+                    {ceoNotification.department.replace(/_/g, " ")}
+                  </Badge>
+                  <Badge variant="outline" className="text-xs">
+                    {ceoNotification.report_date}
+                  </Badge>
+                </div>
+
+                {/* Comment */}
+                {ceoNotification.comment && (
+                  <div>
+                    <p className="text-xs font-semibold text-muted-foreground mb-1">Response / Directive</p>
+                    <p className="text-sm text-foreground/90 whitespace-pre-wrap leading-relaxed bg-white/60 rounded-lg px-3 py-2.5 border border-border/40">
+                      {ceoNotification.comment}
+                    </p>
+                  </div>
+                )}
+
+                {/* Meeting schedule */}
+                {ceoNotification.scheduled_date && (
+                  <div className="flex items-center gap-3 bg-purple-100 rounded-xl px-4 py-3">
+                    <span className="text-2xl">📅</span>
+                    <div>
+                      <p className="text-xs font-semibold text-purple-800">Meeting Scheduled</p>
+                      <p className="text-sm font-bold text-purple-900">
+                        {new Date(ceoNotification.scheduled_date).toLocaleDateString("en-KE", {
+                          weekday: "long", day: "numeric", month: "long", year: "numeric"
+                        })}
+                        {ceoNotification.scheduled_time && ` · ${ceoNotification.scheduled_time}`}
+                      </p>
+                    </div>
+                  </div>
+                )}
+
+                {/* Actioned by + time */}
+                <div className="flex items-center justify-between text-xs text-muted-foreground pt-1 border-t border-border/40">
+                  <span>— {ceoNotification.actioned_by_name}</span>
+                  <span>{new Date(ceoNotification.created_at).toLocaleString("en-KE", {
+                    day: "numeric", month: "short", hour: "2-digit", minute: "2-digit"
+                  })}</span>
+                </div>
+
+                <Button
+                  className="w-full"
+                  onClick={() => setNotifDismissed(true)}
+                  variant={ceoNotification.signed_off ? "default" : "outline"}
+                >
+                  Acknowledged
+                </Button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       <div className="min-h-screen bg-background pt-24 pb-12">
         <div className="container mx-auto px-4 sm:px-6 md:px-8 lg:px-10 max-w-screen-2xl">
 
@@ -483,17 +656,15 @@ export default function StaffDashboard() {
                 <FileText className="h-4 w-4" /> My Reports
               </button>
             )}
-            {/* Admins get the full reports dashboard */}
-            {isAdmin && (
-              <button
-                onClick={() => setActiveTab("reports_view")}
-                className={`flex items-center gap-2 px-4 py-2.5 text-sm font-medium border-b-2 transition-colors whitespace-nowrap ${
-                  activeTab === "reports_view" ? "border-accent text-accent" : "border-transparent text-muted-foreground hover:text-foreground"
-                }`}
-              >
-                <BarChart2 className="h-4 w-4" /> Reports Dashboard
-              </button>
-            )}
+            {/* ALL staff get reports dashboard (admins get full control, others read-only) */}
+            <button
+              onClick={() => setActiveTab("reports_view")}
+              className={`flex items-center gap-2 px-4 py-2.5 text-sm font-medium border-b-2 transition-colors whitespace-nowrap ${
+                activeTab === "reports_view" ? "border-accent text-accent" : "border-transparent text-muted-foreground hover:text-foreground"
+              }`}
+            >
+              <BarChart2 className="h-4 w-4" /> Reports Dashboard
+            </button>
           </div>
 
           {activeTab === "report" ? (
@@ -509,7 +680,7 @@ export default function StaffDashboard() {
             </Card>
           ) : activeTab === "my_reports" && !isAdmin ? (
             <MyReports staffId={staff.id} today={today} />
-          ) : activeTab === "reports_view" && isAdmin ? (
+          ) : activeTab === "reports_view" ? (
             <ReportsDashboard
               today={today}
               reportViewDate={reportViewDate}
@@ -523,6 +694,13 @@ export default function StaffDashboard() {
               onRefresh={() => loadDailyReports(reportViewDate, reportViewDept)}
               isSuperAdmin={isSuperAdmin}
               onDeleteReport={handleDeleteReport}
+              isAdmin={isAdmin}
+              isCeoOrSuperAdmin={isCeoOrSuperAdmin}
+              reportActions={reportActions}
+              onActionSaved={(action: ReportAction) => setReportActions(prev => {
+                const idx = prev.findIndex(a => a.report_id === action.report_id);
+                return idx >= 0 ? prev.map((a, i) => i === idx ? action : a) : [action, ...prev];
+              })}
             />
           ) : (
           <>
@@ -978,7 +1156,11 @@ interface ReportsDashboardProps {
   setExpandedReport: (id: string | null) => void;
   onRefresh: () => void;
   isSuperAdmin: boolean;
+  isAdmin: boolean;
+  isCeoOrSuperAdmin: boolean;
   onDeleteReport: (id: string, label: string) => void;
+  reportActions: ReportAction[];
+  onActionSaved: (action: ReportAction) => void;
 }
 
 function ReportsDashboard({
@@ -986,7 +1168,8 @@ function ReportsDashboard({
   reportViewDept, setReportViewDept,
   dailyReports, reportsLoading,
   expandedReport, setExpandedReport,
-  onRefresh, isSuperAdmin, onDeleteReport,
+  onRefresh, isSuperAdmin, isAdmin, isCeoOrSuperAdmin,
+  onDeleteReport, reportActions, onActionSaved,
 }: ReportsDashboardProps) {
 
   // Build summary rows — one per template, merged with all fetched data (submitted or draft)
@@ -1028,41 +1211,59 @@ function ReportsDashboard({
 
   return (
     <div className="space-y-6">
-      {/* Filters */}
+      {/* Filters — admins get full controls, staff get read-only today view */}
       <div className="flex flex-wrap items-center gap-3">
-        <div className="flex items-center gap-2">
-          <CalendarDays className="h-4 w-4 text-muted-foreground" />
-          <input
-            type="date"
-            value={reportViewDate}
-            max={today}
-            onChange={e => setReportViewDate(e.target.value)}
-            className="text-sm px-3 py-1.5 border border-border rounded-md bg-background focus:outline-none focus:ring-1 focus:ring-accent"
-          />
-          {reportViewDate !== today && (
-            <button onClick={() => setReportViewDate(today)} className="text-xs text-accent hover:underline">
-              Today
-            </button>
-          )}
-        </div>
-        <select
-          value={reportViewDept}
-          onChange={e => setReportViewDept(e.target.value)}
-          className="text-sm px-3 py-1.5 border border-border rounded-md bg-background focus:outline-none focus:ring-1 focus:ring-accent"
-        >
-          <option value="all">All Departments</option>
-          {REPORT_TEMPLATES.map(t => (
-            <option key={t.role} value={t.role}>{t.label}</option>
-          ))}
-        </select>
-        <Button size="sm" variant="outline" onClick={onRefresh} disabled={reportsLoading}>
-          {reportsLoading ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <CheckCircle2 className="h-3.5 w-3.5" />}
-          <span className="ml-1.5">Refresh</span>
-        </Button>
+        {isAdmin ? (
+          <>
+            <div className="flex items-center gap-2">
+              <CalendarDays className="h-4 w-4 text-muted-foreground" />
+              <input
+                type="date"
+                value={reportViewDate}
+                max={today}
+                onChange={e => setReportViewDate(e.target.value)}
+                className="text-sm px-3 py-1.5 border border-border rounded-md bg-background focus:outline-none focus:ring-1 focus:ring-accent"
+              />
+              {reportViewDate !== today && (
+                <button onClick={() => setReportViewDate(today)} className="text-xs text-accent hover:underline">
+                  Today
+                </button>
+              )}
+            </div>
+            <select
+              value={reportViewDept}
+              onChange={e => setReportViewDept(e.target.value)}
+              className="text-sm px-3 py-1.5 border border-border rounded-md bg-background focus:outline-none focus:ring-1 focus:ring-accent"
+            >
+              <option value="all">All Departments</option>
+              {REPORT_TEMPLATES.map(t => (
+                <option key={t.role} value={t.role}>{t.label}</option>
+              ))}
+            </select>
+            <Button size="sm" variant="outline" onClick={onRefresh} disabled={reportsLoading}>
+              {reportsLoading ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <CheckCircle2 className="h-3.5 w-3.5" />}
+              <span className="ml-1.5">Refresh</span>
+            </Button>
+          </>
+        ) : (
+          <div className="flex items-center gap-2 text-sm text-muted-foreground">
+            <CalendarDays className="h-4 w-4" />
+            <span>{today}</span>
+            <span className="text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full ml-1">Read-only</span>
+          </div>
+        )}
         <span className="text-xs text-muted-foreground">
           {reportsLoading ? "Loading…" : `${submittedCount} / ${REPORT_TEMPLATES.length} submitted`}
         </span>
       </div>
+
+      {/* Non-admin notice */}
+      {!isAdmin && (
+        <div className="flex items-center gap-2 p-3 bg-blue-50 border border-blue-200 rounded-lg text-xs text-blue-700">
+          <CheckCircle2 className="h-3.5 w-3.5 shrink-0" />
+          Read-only view — today's submitted reports from all departments. Only your own report can be edited from the Daily Report tab.
+        </div>
+      )}
 
       {/* ── Charts row ── */}
       {!reportsLoading && (
@@ -1173,22 +1374,37 @@ function ReportsDashboard({
 
       {/* Revenue vs Expenses charts */}
       {!reportsLoading && (() => {
+        // Build revenue per department using new sub-category keys
+        const getRevenue = (entries: Record<string, string> | undefined, role: string): number => {
+          if (!entries) return 0;
+          const subFields = REVENUE_CONFIG[role];
+          if (subFields) {
+            return subFields.reduce((s, f) => s + (parseFloat(entries[`__rev_${f}`] ?? "0") || 0), 0);
+          }
+          // fallback for old __revenue key
+          return parseFloat(entries["__revenue"] ?? "0") || 0;
+        };
+
+        // Build expenses from procurement report keyed by dept label
+        const procReport = dailyReports.find(d => d.department === "procurement" && d.submitted);
+        const getExpenses = (deptLabel: string): number => {
+          if (!procReport?.entries) return 0;
+          return parseFloat(procReport.entries[`__exp_${deptLabel}`] ?? "0") || 0;
+        };
+
         const finData = REPORT_TEMPLATES
           .map(t => {
-            const r = dailyReports.find(d => d.department === t.role && d.submitted);
-            const revenue  = parseFloat(r?.entries?.["__revenue"]  ?? "0") || 0;
-            const expenses = parseFloat(r?.entries?.["__expenses"] ?? "0") || 0;
-            return revenue || expenses
-              ? { name: t.label.split(" ")[0], revenue, expenses, net: revenue - expenses }
+            const r        = dailyReports.find(d => d.department === t.role && d.submitted);
+            const revenue  = getRevenue(r?.entries, t.role);
+            const expenses = getExpenses(t.label);
+            const complimentary = parseFloat(r?.entries?.["__complimentary"] ?? "0") || 0;
+            return revenue || expenses || complimentary
+              ? { name: t.label.split(" ")[0], fullLabel: t.label, revenue, expenses, complimentary, net: revenue - expenses }
               : null;
           })
-          .filter(Boolean) as { name: string; revenue: number; expenses: number; net: number }[];
+          .filter(Boolean) as { name: string; fullLabel: string; revenue: number; expenses: number; complimentary: number; net: number }[];
 
-        if (finData.length === 0) return null;
-
-        const totalRevenue  = finData.reduce((s, d) => s + d.revenue, 0);
-        const totalExpenses = finData.reduce((s, d) => s + d.expenses, 0);
-        const totalNet      = totalRevenue - totalExpenses;
+        if (finData.length === 0 && !procReport) return null;
 
         const fmt = (v: number) => `KES ${v.toLocaleString("en-KE", { minimumFractionDigits: 2 })}`;
         const fmtShort = (v: number) =>
@@ -1196,107 +1412,200 @@ function ReportsDashboard({
           : v >= 1_000 ? `${(v / 1_000).toFixed(0)}K`
           : `${v}`;
 
+        // Sub-facility revenue breakdown
+        const FACILITY_COLORS = ["#22c55e","#3b82f6","#f59e0b","#8b5cf6","#ef4444","#06b6d4","#f97316","#ec4899"];
+        const facilityBreakdown: { name: string; amount: number; color: string }[] = [];
+        Object.entries(REVENUE_CONFIG).forEach(([role, fields]) => {
+          const r = dailyReports.find(d => d.department === role && d.submitted);
+          if (!r) return;
+          fields.forEach((f) => {
+            const val = parseFloat(r.entries?.[`__rev_${f}`] ?? "0") || 0;
+            if (val) facilityBreakdown.push({ name: f, amount: val, color: FACILITY_COLORS[facilityBreakdown.length % FACILITY_COLORS.length] });
+          });
+        });
+
+        // Expenses per department from procurement
+        const expenseBreakdown = procReport
+          ? EXPENSE_DEPARTMENTS
+              .map(d => ({ name: d.split(" ")[0], fullName: d, amount: parseFloat(procReport.entries?.[`__exp_${d}`] ?? "0") || 0 }))
+              .filter(d => d.amount > 0)
+          : [];
+
+        const totalRevenue      = finData.reduce((s, d) => s + d.revenue, 0);
+        const totalExpenses     = expenseBreakdown.reduce((s, d) => s + d.amount, 0);
+        const totalComplimentary = finData.reduce((s, d) => s + d.complimentary, 0);
+        const totalNet          = totalRevenue - totalExpenses;
+
         const pieData = [
-          { name: "Total Revenue",  value: totalRevenue,  fill: "#22c55e" },
-          { name: "Total Expenses", value: totalExpenses, fill: "#ef4444" },
-        ];
+          { name: "Revenue",       value: totalRevenue,       fill: "#22c55e" },
+          { name: "Expenses",      value: totalExpenses,      fill: "#ef4444" },
+          { name: "Complimentary", value: totalComplimentary, fill: "#f97316" },
+        ].filter(d => d.value > 0);
 
         return (
           <div className="grid xl:grid-cols-2 gap-4">
-            {/* Bar chart — per department */}
-            <Card>
-              <CardHeader className="pb-2">
-                <CardTitle className="text-sm font-semibold flex items-center gap-2">
-                  <BarChart2 className="h-4 w-4 text-green-600" /> Revenue vs Expenses by Department
-                </CardTitle>
-                <p className="text-xs text-muted-foreground">{reportViewDate}</p>
-              </CardHeader>
-              <CardContent className="pb-4">
-                <ResponsiveContainer width="100%" height={240}>
-                  <BarChart data={finData} margin={{ top: 4, right: 8, left: 0, bottom: 0 }}>
-                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f0f0f0" />
-                    <XAxis dataKey="name" tick={{ fontSize: 10 }} />
-                    <YAxis tick={{ fontSize: 10 }} tickFormatter={fmtShort} />
-                    <Tooltip
-                      formatter={(v: number, n: string) => [fmt(v), n.charAt(0).toUpperCase() + n.slice(1)]}
-                      contentStyle={{ fontSize: 12, borderRadius: 8 }}
-                    />
-                    <Legend iconSize={10} wrapperStyle={{ fontSize: 11 }} />
-                    <Bar dataKey="revenue"  name="Revenue"  fill="#22c55e" radius={[4, 4, 0, 0]} />
-                    <Bar dataKey="expenses" name="Expenses" fill="#ef4444" radius={[4, 4, 0, 0]} />
-                  </BarChart>
-                </ResponsiveContainer>
-              </CardContent>
-            </Card>
-
-            {/* Pie chart — total revenue vs expenses */}
-            <Card>
-              <CardHeader className="pb-2">
-                <CardTitle className="text-sm font-semibold flex items-center gap-2">
-                  <BarChart2 className="h-4 w-4 text-blue-600" /> Overall Revenue vs Expenses
-                </CardTitle>
-                <p className="text-xs text-muted-foreground">{reportViewDate} · All Departments</p>
-              </CardHeader>
-              <CardContent className="pb-4">
-                <div className="flex items-center gap-6">
-                  <ResponsiveContainer width="55%" height={220}>
-                    <PieChart>
-                      <Pie
-                        data={pieData}
-                        cx="50%" cy="50%"
-                        innerRadius={55} outerRadius={85}
-                        paddingAngle={3}
-                        dataKey="value"
-                      >
-                        {pieData.map((entry, i) => (
-                          <Cell key={i} fill={entry.fill} />
-                        ))}
-                      </Pie>
-                      <Tooltip
-                        formatter={(v: number) => [fmt(v)]}
-                        contentStyle={{ fontSize: 12, borderRadius: 8 }}
-                      />
-                    </PieChart>
+            {/* Revenue by department */}
+            {finData.length > 0 && (
+              <Card>
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-sm font-semibold flex items-center gap-2">
+                    <BarChart2 className="h-4 w-4 text-green-600" /> Revenue by Department
+                  </CardTitle>
+                  <p className="text-xs text-muted-foreground">{reportViewDate}</p>
+                </CardHeader>
+                <CardContent className="pb-4">
+                  <ResponsiveContainer width="100%" height={220}>
+                    <BarChart data={finData} margin={{ top: 4, right: 8, left: 0, bottom: 0 }}>
+                      <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f0f0f0" />
+                      <XAxis dataKey="name" tick={{ fontSize: 9 }} />
+                      <YAxis tick={{ fontSize: 10 }} tickFormatter={fmtShort} />
+                      <Tooltip formatter={(v: number) => [fmt(v), "Revenue"]} contentStyle={{ fontSize: 11, borderRadius: 8 }} />
+                      <Bar dataKey="revenue" name="Revenue" fill="#22c55e" radius={[4, 4, 0, 0]} />
+                    </BarChart>
                   </ResponsiveContainer>
-                  <div className="flex-1 space-y-4">
-                    <div>
-                      <div className="flex items-center gap-2 mb-1">
-                        <span className="h-3 w-3 rounded-full bg-green-500 shrink-0" />
-                        <span className="text-xs text-muted-foreground">Total Revenue</span>
+                </CardContent>
+              </Card>
+            )}
+
+            {/* Revenue by facility (Front Office + Wellness breakdown) */}
+            {facilityBreakdown.length > 0 && (
+              <Card>
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-sm font-semibold flex items-center gap-2">
+                    <BarChart2 className="h-4 w-4 text-blue-600" /> Revenue by Facility
+                  </CardTitle>
+                  <p className="text-xs text-muted-foreground">Front Office & Wellness Centre breakdown</p>
+                </CardHeader>
+                <CardContent className="pb-4">
+                  <ResponsiveContainer width="100%" height={220}>
+                    <BarChart data={facilityBreakdown} margin={{ top: 4, right: 8, left: 0, bottom: 0 }}>
+                      <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f0f0f0" />
+                      <XAxis dataKey="name" tick={{ fontSize: 9 }} interval={0} angle={-25} textAnchor="end" height={40} />
+                      <YAxis tick={{ fontSize: 10 }} tickFormatter={fmtShort} />
+                      <Tooltip formatter={(v: number) => [fmt(v), "Revenue"]} contentStyle={{ fontSize: 11, borderRadius: 8 }} />
+                      <Bar dataKey="amount" radius={[4, 4, 0, 0]}>
+                        {facilityBreakdown.map((_, i) => <Cell key={i} fill={FACILITY_COLORS[i % FACILITY_COLORS.length]} />)}
+                      </Bar>
+                    </BarChart>
+                  </ResponsiveContainer>
+                </CardContent>
+              </Card>
+            )}
+
+            {/* Expenses by department */}
+            {expenseBreakdown.length > 0 && (
+              <Card>
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-sm font-semibold flex items-center gap-2">
+                    <BarChart2 className="h-4 w-4 text-red-600" /> Expenses by Department
+                  </CardTitle>
+                  <p className="text-xs text-muted-foreground">Filled by Procurement & Stores</p>
+                </CardHeader>
+                <CardContent className="pb-4">
+                  <ResponsiveContainer width="100%" height={220}>
+                    <BarChart data={expenseBreakdown} margin={{ top: 4, right: 8, left: 0, bottom: 0 }}>
+                      <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f0f0f0" />
+                      <XAxis dataKey="name" tick={{ fontSize: 9 }} />
+                      <YAxis tick={{ fontSize: 10 }} tickFormatter={fmtShort} />
+                      <Tooltip
+                        formatter={(v: number, _n: string, props: any) => [fmt(v), props?.payload?.fullName ?? "Expenses"]}
+                        contentStyle={{ fontSize: 11, borderRadius: 8 }}
+                      />
+                      <Bar dataKey="amount" name="Expenses" fill="#ef4444" radius={[4, 4, 0, 0]} />
+                    </BarChart>
+                  </ResponsiveContainer>
+                </CardContent>
+              </Card>
+            )}
+
+            {/* Complimentary by department — orange, distinct from revenue/expenses */}
+            {(() => {
+              const compData = finData.filter(d => d.complimentary > 0)
+                .map(d => ({ name: d.name, amount: d.complimentary }));
+              if (compData.length === 0) return null;
+              const totalComp = compData.reduce((s, d) => s + d.amount, 0);
+              return (
+                <Card>
+                  <CardHeader className="pb-2">
+                    <CardTitle className="text-sm font-semibold flex items-center gap-2">
+                      <BarChart2 className="h-4 w-4 text-amber-600" /> Complimentary (Non-Sale)
+                    </CardTitle>
+                    <p className="text-xs text-muted-foreground">
+                      Value of items given free — not actual revenue · Total: {fmt(totalComp)}
+                    </p>
+                  </CardHeader>
+                  <CardContent className="pb-4">
+                    <ResponsiveContainer width="100%" height={200}>
+                      <BarChart data={compData} margin={{ top: 4, right: 8, left: 0, bottom: 0 }}>
+                        <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f0f0f0" />
+                        <XAxis dataKey="name" tick={{ fontSize: 10 }} />
+                        <YAxis tick={{ fontSize: 10 }} tickFormatter={fmtShort} />
+                        <Tooltip
+                          formatter={(v: number) => [fmt(v), "Complimentary"]}
+                          contentStyle={{ fontSize: 11, borderRadius: 8 }}
+                        />
+                        <Bar dataKey="amount" name="Complimentary" fill="#f97316" radius={[4, 4, 0, 0]} />
+                      </BarChart>
+                    </ResponsiveContainer>
+                  </CardContent>
+                </Card>
+              );
+            })()}
+
+            {/* Overall pie */}
+            {(totalRevenue > 0 || totalExpenses > 0 || totalComplimentary > 0) && (
+              <Card>
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-sm font-semibold flex items-center gap-2">
+                    <BarChart2 className="h-4 w-4 text-purple-600" /> Overall Revenue vs Expenses
+                  </CardTitle>
+                  <p className="text-xs text-muted-foreground">{reportViewDate} · All Departments</p>
+                </CardHeader>
+                <CardContent className="pb-4">
+                  <div className="flex items-center gap-4">
+                    <ResponsiveContainer width="50%" height={200}>
+                      <PieChart>
+                        <Pie data={pieData} cx="50%" cy="50%" innerRadius={50} outerRadius={80} paddingAngle={3} dataKey="value">
+                          {pieData.map((e, i) => <Cell key={i} fill={e.fill} />)}
+                        </Pie>
+                        <Tooltip formatter={(v: number) => [fmt(v)]} contentStyle={{ fontSize: 11, borderRadius: 8 }} />
+                      </PieChart>
+                    </ResponsiveContainer>
+                    <div className="flex-1 space-y-3 text-sm">
+                      <div>
+                        <div className="flex items-center gap-2"><span className="h-2.5 w-2.5 rounded-full bg-green-500" /><span className="text-xs text-muted-foreground">Revenue</span></div>
+                        <p className="font-bold text-green-700">{fmt(totalRevenue)}</p>
                       </div>
-                      <p className="text-lg font-bold text-green-700">{fmt(totalRevenue)}</p>
-                    </div>
-                    <div>
-                      <div className="flex items-center gap-2 mb-1">
-                        <span className="h-3 w-3 rounded-full bg-red-500 shrink-0" />
-                        <span className="text-xs text-muted-foreground">Total Expenses</span>
+                      <div>
+                        <div className="flex items-center gap-2"><span className="h-2.5 w-2.5 rounded-full bg-red-500" /><span className="text-xs text-muted-foreground">Expenses</span></div>
+                        <p className="font-bold text-red-700">{fmt(totalExpenses)}</p>
                       </div>
-                      <p className="text-lg font-bold text-red-700">{fmt(totalExpenses)}</p>
-                    </div>
-                    <div className="pt-2 border-t border-border">
-                      <p className="text-xs text-muted-foreground mb-1">Net</p>
-                      <p className={`text-xl font-bold ${totalNet >= 0 ? "text-green-700" : "text-red-700"}`}>
-                        {fmt(totalNet)}
-                      </p>
-                      {totalRevenue > 0 && (
-                        <div className="mt-2">
-                          <div className="flex justify-between text-xs text-muted-foreground mb-1">
-                            <span>Profit margin</span>
-                            <span>{Math.round((totalNet / totalRevenue) * 100)}%</span>
-                          </div>
-                          <div className="h-2 rounded-full bg-gray-100 overflow-hidden">
-                            <div
-                              className={`h-full rounded-full transition-all duration-500 ${totalNet >= 0 ? "bg-green-500" : "bg-red-500"}`}
-                              style={{ width: `${Math.min(100, Math.abs(Math.round((totalNet / totalRevenue) * 100)))}%` }}
-                            />
-                          </div>
+                      {totalComplimentary > 0 && (
+                        <div>
+                          <div className="flex items-center gap-2"><span className="h-2.5 w-2.5 rounded-full bg-orange-500" /><span className="text-xs text-muted-foreground">Complimentary</span></div>
+                          <p className="font-bold text-orange-600">{fmt(totalComplimentary)}</p>
                         </div>
                       )}
+                      <div className="pt-2 border-t border-border">
+                        <p className="text-xs text-muted-foreground">Net (Rev − Exp)</p>
+                        <p className={`text-lg font-bold ${totalNet >= 0 ? "text-green-700" : "text-red-700"}`}>{fmt(totalNet)}</p>
+                        {totalRevenue > 0 && (
+                          <div className="mt-1.5">
+                            <div className="flex justify-between text-xs text-muted-foreground mb-1">
+                              <span>Margin</span><span>{Math.round((totalNet / totalRevenue) * 100)}%</span>
+                            </div>
+                            <div className="h-1.5 rounded-full bg-gray-100 overflow-hidden">
+                              <div className={`h-full rounded-full ${totalNet >= 0 ? "bg-green-500" : "bg-red-500"}`}
+                                style={{ width: `${Math.min(100, Math.abs(Math.round((totalNet / totalRevenue) * 100)))}%` }} />
+                            </div>
+                          </div>
+                        )}
+                      </div>
                     </div>
                   </div>
-                </div>
-              </CardContent>
-            </Card>
+                </CardContent>
+              </Card>
+            )}
           </div>
         );
       })()}
@@ -1330,9 +1639,9 @@ function ReportsDashboard({
                     return (
                       <tr
                         key={template.role}
-                        className={`border-b border-border/50 transition-colors ${i % 2 === 0 ? "bg-background" : "bg-secondary/30"} ${clickable ? "cursor-pointer hover:bg-accent/5" : ""}`}
+                        className={`border-b border-border/50 transition-colors ${i % 2 === 0 ? "bg-background" : "bg-secondary/30"} ${isAdmin && clickable ? "cursor-pointer hover:bg-accent/5" : ""}`}
                         onClick={() => {
-                          if (latest && isSubmitted) scrollToReport(latest.id);
+                          if (isAdmin && latest && isSubmitted) scrollToReport(latest.id);
                         }}
                       >
                         <td className="px-4 py-3 align-top">
@@ -1351,7 +1660,7 @@ function ReportsDashboard({
                                   {new Date(latest.submitted_at).toLocaleTimeString("en-KE", { hour: "2-digit", minute: "2-digit" })}
                                 </p>
                               )}
-                              {isSubmitted && (
+                              {isAdmin && isSubmitted && (
                                 <p className="text-xs text-accent mt-1">↓ click to view report</p>
                               )}
                             </div>
@@ -1366,10 +1675,57 @@ function ReportsDashboard({
                           }
                         </td>
                         <td className="px-4 py-3 align-top">
-                          {mgmtAction
-                            ? <p className="text-sm text-red-700 font-medium whitespace-pre-wrap leading-relaxed">{mgmtAction}</p>
-                            : <p className="text-xs text-muted-foreground italic">—</p>
-                          }
+                          {/* Existing action response */}
+                          {(() => {
+                            const action = reportActions.find(a => a.department === template.role);
+                            return (
+                              <div className="space-y-2">
+                                {/* The dept's original attention required text */}
+                                {mgmtAction && (
+                                  <p className="text-sm text-red-700 font-medium whitespace-pre-wrap leading-relaxed">{mgmtAction}</p>
+                                )}
+                                {!mgmtAction && <p className="text-xs text-muted-foreground italic">—</p>}
+
+                                {/* CEO action taken */}
+                                {action && (
+                                  <div className={`rounded-lg p-2.5 text-xs border mt-2 ${
+                                    action.signed_off
+                                      ? "bg-green-50 border-green-200"
+                                      : action.action_type === "meeting"
+                                      ? "bg-purple-50 border-purple-200"
+                                      : "bg-blue-50 border-blue-200"
+                                  }`}>
+                                    <div className="flex items-center gap-1.5 mb-1 font-semibold">
+                                      {action.signed_off && <span className="text-green-700">✅ Signed Off</span>}
+                                      {!action.signed_off && action.action_type === "meeting" && <span className="text-purple-700">📅 Meeting Scheduled</span>}
+                                      {!action.signed_off && action.action_type === "comment" && <span className="text-blue-700">💬 CEO Response</span>}
+                                    </div>
+                                    {action.comment && <p className="text-foreground/80 whitespace-pre-wrap">{action.comment}</p>}
+                                    {action.scheduled_date && (
+                                      <p className="mt-1 font-medium text-purple-700">
+                                        📅 {action.scheduled_date}{action.scheduled_time ? ` at ${action.scheduled_time}` : ""}
+                                      </p>
+                                    )}
+                                    <p className="text-muted-foreground mt-1">
+                                      — {action.actioned_by_name} · {new Date(action.created_at).toLocaleString("en-KE", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" })}
+                                    </p>
+                                  </div>
+                                )}
+
+                                {/* Action panel for CEO/super_admin */}
+                                {isCeoOrSuperAdmin && mgmtAction && (
+                                  <CeoActionPanel
+                                    reportId={latest?.id ?? ""}
+                                    department={template.role}
+                                    deptLabel={template.label}
+                                    reportDate={reportViewDate}
+                                    existingAction={action ?? null}
+                                    onSaved={onActionSaved}
+                                  />
+                                )}
+                              </div>
+                            );
+                          })()}
                         </td>
                       </tr>
                     );
@@ -1483,32 +1839,100 @@ function ReportsDashboard({
                       </tbody>
                     </table>
                   </div>
-                  {/* Financials row */}
-                  {(report.entries?.["__revenue"] || report.entries?.["__expenses"]) && (
-                    <div className="grid grid-cols-3 divide-x divide-border border-t border-border text-sm">
-                      <div className="px-4 py-3">
-                        <p className="text-xs text-muted-foreground">Revenue</p>
-                        <p className="font-semibold text-green-700">
-                          KES {parseFloat(report.entries["__revenue"] ?? "0").toLocaleString("en-KE", { minimumFractionDigits: 2 })}
-                        </p>
+                  {/* Financials row — revenue sub-categories + expenses from procurement */}
+                  {(() => {
+                    const revenueFields = REVENUE_CONFIG[report.department];
+                    const hasRevSubs = revenueFields && revenueFields.some(f => report.entries?.[`__rev_${f}`]);
+                    const hasOldRev  = !!report.entries?.["__revenue"];
+                    const hasComplimentary = !!report.entries?.["__complimentary"];
+                    const isProc = report.department === "procurement";
+                    const hasExpenses = isProc && EXPENSE_DEPARTMENTS.some(d => report.entries?.[`__exp_${d}`]);
+                    const hasOldExp = !!report.entries?.["__expenses"];
+
+                    if (!hasRevSubs && !hasOldRev && !hasComplimentary && !hasExpenses && !hasOldExp) return null;
+
+                    const fmtKes = (v: number) => `KES ${v.toLocaleString("en-KE", { minimumFractionDigits: 2 })}`;
+
+                    return (
+                      <div className="border-t border-border">
+                        {/* Revenue sub-categories */}
+                        {(hasRevSubs || hasOldRev) && (
+                          <div className="bg-green-50/60 px-4 py-3">
+                            <p className="text-xs font-semibold text-green-800 mb-2">Revenue Generated</p>
+                            {hasRevSubs ? (
+                              <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                                {revenueFields.map(f => {
+                                  const val = parseFloat(report.entries?.[`__rev_${f}`] ?? "0") || 0;
+                                  if (!val) return null;
+                                  return (
+                                    <div key={f}>
+                                      <p className="text-xs text-muted-foreground">{f}</p>
+                                      <p className="text-sm font-semibold text-green-700">{fmtKes(val)}</p>
+                                    </div>
+                                  );
+                                })}
+                                {(() => {
+                                  const total = revenueFields.reduce((s, f) => s + (parseFloat(report.entries?.[`__rev_${f}`] ?? "0") || 0), 0);
+                                  return total > 0 ? (
+                                    <div className="col-span-full border-t border-green-200 pt-2 mt-1">
+                                      <p className="text-xs text-green-900 font-bold">Total: {fmtKes(total)}</p>
+                                    </div>
+                                  ) : null;
+                                })()}
+                              </div>
+                            ) : (
+                              <p className="text-sm font-semibold text-green-700">
+                                {fmtKes(parseFloat(report.entries?.["__revenue"] ?? "0"))}
+                              </p>
+                            )}
+                          </div>
+                        )}
+
+                        {/* Complimentary */}
+                        {hasComplimentary && (
+                          <div className="bg-amber-50/60 px-4 py-3 border-t border-border">
+                            <p className="text-xs font-semibold text-amber-800 mb-1">Complimentary (Non-Sale)</p>
+                            <p className="text-sm font-bold text-amber-700">
+                              KES {parseFloat(report.entries?.["__complimentary"] ?? "0").toLocaleString("en-KE", { minimumFractionDigits: 2 })}
+                            </p>
+                          </div>
+                        )}
+
+                        {/* Expenses per department (procurement) */}
+                        {(hasExpenses || hasOldExp) && (
+                          <div className="bg-red-50/60 px-4 py-3 border-t border-border">
+                            <p className="text-xs font-semibold text-red-800 mb-2">Expenses by Department</p>
+                            {hasExpenses ? (
+                              <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                                {EXPENSE_DEPARTMENTS.map(d => {
+                                  const val = parseFloat(report.entries?.[`__exp_${d}`] ?? "0") || 0;
+                                  if (!val) return null;
+                                  return (
+                                    <div key={d}>
+                                      <p className="text-xs text-muted-foreground">{d}</p>
+                                      <p className="text-sm font-semibold text-red-700">{fmtKes(val)}</p>
+                                    </div>
+                                  );
+                                })}
+                                {(() => {
+                                  const total = EXPENSE_DEPARTMENTS.reduce((s, d) => s + (parseFloat(report.entries?.[`__exp_${d}`] ?? "0") || 0), 0);
+                                  return total > 0 ? (
+                                    <div className="col-span-full border-t border-red-200 pt-2 mt-1">
+                                      <p className="text-xs text-red-900 font-bold">Total: {fmtKes(total)}</p>
+                                    </div>
+                                  ) : null;
+                                })()}
+                              </div>
+                            ) : (
+                              <p className="text-sm font-semibold text-red-700">
+                                {fmtKes(parseFloat(report.entries?.["__expenses"] ?? "0"))}
+                              </p>
+                            )}
+                          </div>
+                        )}
                       </div>
-                      <div className="px-4 py-3">
-                        <p className="text-xs text-muted-foreground">Expenses</p>
-                        <p className="font-semibold text-red-700">
-                          KES {parseFloat(report.entries["__expenses"] ?? "0").toLocaleString("en-KE", { minimumFractionDigits: 2 })}
-                        </p>
-                      </div>
-                      <div className="px-4 py-3">
-                        <p className="text-xs text-muted-foreground">Net</p>
-                        <p className={`font-semibold ${
-                          (parseFloat(report.entries["__revenue"] ?? "0") - parseFloat(report.entries["__expenses"] ?? "0")) >= 0
-                            ? "text-green-700" : "text-red-700"
-                        }`}>
-                          KES {(parseFloat(report.entries["__revenue"] ?? "0") - parseFloat(report.entries["__expenses"] ?? "0")).toLocaleString("en-KE", { minimumFractionDigits: 2 })}
-                        </p>
-                      </div>
-                    </div>
-                  )}
+                    );
+                  })()}
                   </>
                 )}
               </Card>
@@ -1681,6 +2105,157 @@ function MyReports({ staffId, today }: { staffId: string; today: string }) {
             </Card>
           );
         })
+      )}
+    </div>
+  );
+}
+
+// ── CEO Action Panel ──────────────────────────────────────────────────────────
+
+interface CeoActionPanelProps {
+  reportId: string;
+  department: string;
+  deptLabel: string;
+  reportDate: string;
+  existingAction: ReportAction | null;
+  onSaved: (action: ReportAction) => void;
+}
+
+function CeoActionPanel({ reportId, department, deptLabel, reportDate, existingAction, onSaved }: CeoActionPanelProps) {
+  const { staff } = useStaffAuth();
+  const [open, setOpen] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [actionType, setActionType] = useState<"comment" | "meeting" | "signed_off">(
+    existingAction?.action_type ?? "comment"
+  );
+  const [comment, setComment] = useState(existingAction?.comment ?? "");
+  const [scheduledDate, setScheduledDate] = useState(existingAction?.scheduled_date ?? "");
+  const [scheduledTime, setScheduledTime] = useState(existingAction?.scheduled_time ?? "");
+
+  async function handleSave() {
+    if (!staff) return;
+    setSaving(true);
+    const payload = {
+      report_id: reportId,
+      department,
+      report_date: reportDate,
+      action_type: actionType,
+      comment: comment.trim() || null,
+      scheduled_date: actionType === "meeting" ? scheduledDate || null : null,
+      scheduled_time: actionType === "meeting" ? scheduledTime || null : null,
+      signed_off: actionType === "signed_off",
+      actioned_by_name: staff.full_name,
+    };
+
+    let result;
+    if (existingAction?.id) {
+      const { data, error } = await supabase
+        .from("report_actions")
+        .update({ ...payload, updated_at: new Date().toISOString() })
+        .eq("id", existingAction.id)
+        .select()
+        .single();
+      if (error) { alert("Failed to save: " + error.message); setSaving(false); return; }
+      result = data;
+    } else {
+      const { data, error } = await supabase
+        .from("report_actions")
+        .insert(payload)
+        .select()
+        .single();
+      if (error) { alert("Failed to save: " + error.message); setSaving(false); return; }
+      result = data;
+    }
+
+    if (result) onSaved(result as ReportAction);
+    setSaving(false);
+    setOpen(false);
+  }
+
+  return (
+    <div className="mt-2">
+      {!open ? (
+        <button
+          onClick={() => setOpen(true)}
+          className="text-xs text-blue-600 hover:text-blue-800 underline flex items-center gap-1"
+        >
+          {existingAction ? "✏️ Update response" : "💬 Respond / Take action"}
+        </button>
+      ) : (
+        <div className="border border-blue-200 bg-blue-50/60 rounded-xl p-3 space-y-3 mt-2">
+          <p className="text-xs font-semibold text-blue-800">CEO Action — {deptLabel}</p>
+
+          {/* Action type */}
+          <div className="flex gap-2 flex-wrap">
+            {(["comment", "meeting", "signed_off"] as const).map(t => (
+              <button
+                key={t}
+                onClick={() => setActionType(t)}
+                className={`text-xs px-3 py-1 rounded-full border transition-colors ${
+                  actionType === t
+                    ? t === "signed_off" ? "bg-green-600 text-white border-green-600"
+                      : t === "meeting" ? "bg-purple-600 text-white border-purple-600"
+                      : "bg-blue-600 text-white border-blue-600"
+                    : "bg-white border-border text-muted-foreground hover:bg-secondary"
+                }`}
+              >
+                {t === "comment" ? "💬 Comment" : t === "meeting" ? "📅 Schedule Meeting" : "✅ Sign Off"}
+              </button>
+            ))}
+          </div>
+
+          {/* Comment / note */}
+          <textarea
+            value={comment}
+            onChange={e => setComment(e.target.value)}
+            placeholder={
+              actionType === "signed_off"
+                ? "Optional note on sign-off…"
+                : actionType === "meeting"
+                ? "Meeting agenda or notes…"
+                : "Your response or directive…"
+            }
+            rows={3}
+            className="w-full text-sm px-2.5 py-2 border border-border rounded-lg bg-white focus:outline-none focus:ring-1 focus:ring-blue-400 resize-none"
+          />
+
+          {/* Meeting date/time */}
+          {actionType === "meeting" && (
+            <div className="grid grid-cols-2 gap-2">
+              <div>
+                <label className="text-xs text-muted-foreground block mb-1">Date *</label>
+                <input
+                  type="date"
+                  value={scheduledDate}
+                  onChange={e => setScheduledDate(e.target.value)}
+                  className="w-full text-sm px-2.5 py-1.5 border border-border rounded-lg bg-white focus:outline-none focus:ring-1 focus:ring-purple-400"
+                />
+              </div>
+              <div>
+                <label className="text-xs text-muted-foreground block mb-1">Time</label>
+                <input
+                  type="time"
+                  value={scheduledTime}
+                  onChange={e => setScheduledTime(e.target.value)}
+                  className="w-full text-sm px-2.5 py-1.5 border border-border rounded-lg bg-white focus:outline-none focus:ring-1 focus:ring-purple-400"
+                />
+              </div>
+            </div>
+          )}
+
+          <div className="flex gap-2 justify-end">
+            <Button size="sm" variant="outline" onClick={() => setOpen(false)}>Cancel</Button>
+            <Button
+              size="sm"
+              disabled={saving || (actionType === "meeting" && !scheduledDate) || (!comment.trim() && actionType !== "signed_off")}
+              onClick={handleSave}
+              className={actionType === "signed_off" ? "bg-green-600 hover:bg-green-700 text-white" : actionType === "meeting" ? "bg-purple-600 hover:bg-purple-700 text-white" : "bg-blue-600 hover:bg-blue-700 text-white"}
+            >
+              {saving ? <Loader2 className="h-3.5 w-3.5 animate-spin mr-1" /> : null}
+              {actionType === "signed_off" ? "Sign Off" : actionType === "meeting" ? "Schedule" : "Save Response"}
+            </Button>
+          </div>
+        </div>
       )}
     </div>
   );

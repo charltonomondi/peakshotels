@@ -285,3 +285,28 @@ export function getTemplateForRole(role: string): DepartmentTemplate | undefined
 }
 
 export const ADMIN_ROLES = ["manager", "super_admin", "ceo"];
+
+// ── Revenue config ────────────────────────────────────────────────────────────
+// Roles allowed to fill revenue, and their sub-category fields
+export const REVENUE_CONFIG: Record<string, string[]> = {
+  receptionist: ["Accommodation", "Restaurant", "Conference", "Bar", "Outdoor"],
+  wellness_centre: ["Swimming", "Gym", "Steam Bath", "Sauna", "Massage", "Beauty Parlour"],
+  mothers_choice: ["Total Revenue"],
+  kcau: ["Total Revenue"],
+};
+
+// ── Complimentary config ──────────────────────────────────────────────────────
+// Roles allowed to fill complimentary (non-sale giveaways)
+export const COMPLIMENTARY_ROLES = [
+  "receptionist", "wellness_centre", "food_beverage", "mothers_choice", "kcau",
+];
+
+// ── Expenses ──────────────────────────────────────────────────────────────────
+// Only procurement fills expenses, broken down per department
+export const EXPENSES_ROLE = "procurement";
+export const EXPENSE_DEPARTMENTS = [
+  "Front Office", "Kitchen", "Food & Beverage", "Procurement & Stores",
+  "Stock & Cost Control", "Accounts", "Housekeeping", "Maintenance",
+  "Wellness Centre", "Outdoor Centre", "Security & Grounds", "Marketing",
+  "ICT", "Human Resource", "Administration", "KCAU", "Mother's Choice",
+];
