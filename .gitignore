@@ -38,3 +38,4 @@ src/assets/conferences/Conference new.mp4
 src/assets/video/
 src/assets/facilities/*.mp4
 src/assets/hero/chal.mp4
+deployment/public_html/assets/*.mp4
