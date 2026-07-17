@@ -9,11 +9,11 @@ import { useSearchParams } from "react-router-dom";
 import heroBackground from "@/assets/facilities/frontage.jpg";
 
 // Rooms
-import bed   from "@/assets/rooms/bed.jpg";
-import bed1  from "@/assets/rooms/bed1.jpg";
-import bed2  from "@/assets/rooms/bed2.jpg";
-import bed3  from "@/assets/rooms/bed3.jpg";
-import bed5  from "@/assets/rooms/bed5.jpg";
+import bed   from "@/assets/bed.jpg";
+import bed1  from "@/assets/bed1.jpg";
+import bed2  from "@/assets/bed2.jpg";
+import bed3  from "@/assets/bed2.jpg";
+import bed5  from "@/assets/bed5.jpg";
 
 // Dining
 import gardenDining    from "@/assets/dining/garden dining.jpg";

@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
-import { Shield, Loader2, CheckCircle } from "lucide-react";
+import { Shield, Loader2, CheckCircle, Eye, EyeOff, XCircle } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 
@@ -20,19 +20,62 @@ const ROLES: StaffRole[] = [
   "hr", "kcau", "mothers_choice",
 ];
 
+// Authorised emails — only these may register
+const ALLOWED_EMAILS = new Set([
+  "charltonomondi@gmail.com",
+  "benstephr@gmail.com",
+  "ict@peakshotels.co.ke",
+  "amisacco@peakshotels.co.ke",
+  "vmwarania@peakshotels.co.ke",
+  "outdoorfitnesscenter@peakshotels.co.ke",
+  "indoorfitnesscenter@peakshotels.co.ke",
+  "marketing@peakshotels.co.ke",
+  "housekeeping@peakshotels.co.ke",
+  "reservation@peakshotels.co.ke",
+  "kitchen@peakshotels.co.ke",
+  "fnb@peakshotels.co.ke",
+  "operations@peakshotels.co.ke",
+  "frontoffice@peakshotels.co.ke",
+  "kcaucatering@peakshotels.co.ke",
+  "bmwarania@peakshotels.co.ke",
+  "procurement@peakshotels.co.ke",
+  "hr@peakshotels.co.ke",
+  "accounts@peakshotels.co.ke",
+  "info@peakshotels.co.ke",
+  "admin@peakshotels.co.ke",
+  "security@peakshotels.co.ke",
+]);
+
 export default function StaffSignup() {
   const navigate = useNavigate();
   const { toast } = useToast();
   const [submitting, setSubmitting] = useState(false);
   const [done, setDone] = useState(false);
+  const [showPw, setShowPw] = useState(false);
   const [form, setForm] = useState({
     full_name: "", email: "", phone: "", password: "", role: "receptionist" as StaffRole, department: "",
   });
 
   const set = (k: string, v: string) => setForm(f => ({ ...f, [k]: v }));
 
+  // Validate email against allowlist as user types
+  const emailLower = form.email.trim().toLowerCase();
+  const emailTouched = form.email.length > 0;
+  const emailAllowed = ALLOWED_EMAILS.has(emailLower);
+  const emailIsComplete = form.email.includes("@");
+
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
+
+    if (!emailAllowed) {
+      toast({
+        title: "Email not recognised",
+        description: "This email is not authorised. Please use your official Peaks Hotel email address.",
+        variant: "destructive",
+      });
+      return;
+    }
+
     setSubmitting(true);
 
     // 1. Create auth user
@@ -134,7 +177,35 @@ export default function StaffSignup() {
               </div>
               <div className="space-y-1.5">
                 <Label>Work Email</Label>
-                <Input type="email" required value={form.email} onChange={e => set("email", e.target.value)} placeholder="you@peakshotels.co.ke" />
+                <div className="relative">
+                  <Input
+                    type="email" required value={form.email}
+                    onChange={e => set("email", e.target.value)}
+                    placeholder="you@peakshotels.co.ke"
+                    className={emailTouched && emailIsComplete
+                      ? emailAllowed
+                        ? "border-green-500 focus-visible:ring-green-400 pr-9"
+                        : "border-red-400 focus-visible:ring-red-400 pr-9"
+                      : ""
+                    }
+                  />
+                  {emailTouched && emailIsComplete && (
+                    <span className="absolute right-3 top-1/2 -translate-y-1/2">
+                      {emailAllowed
+                        ? <CheckCircle className="h-4 w-4 text-green-500" />
+                        : <XCircle className="h-4 w-4 text-red-500" />
+                      }
+                    </span>
+                  )}
+                </div>
+                {emailTouched && emailIsComplete && !emailAllowed && (
+                  <p className="text-xs text-red-600 mt-1">
+                    ✗ Email not recognised. Use your official Peaks Hotel email address.
+                  </p>
+                )}
+                {emailTouched && emailIsComplete && emailAllowed && (
+                  <p className="text-xs text-green-600 mt-1">✓ Email found — you may proceed.</p>
+                )}
               </div>
               <div className="space-y-1.5">
                 <Label>Phone</Label>
@@ -153,11 +224,34 @@ export default function StaffSignup() {
                 </select>
               </div>
               <div className="space-y-1.5">
+              <div className="space-y-1.5">
                 <Label>Password</Label>
-                <Input type="password" required minLength={8} value={form.password}
-                  onChange={e => set("password", e.target.value)} placeholder="Min. 8 characters" />
+                <div className="relative">
+                  <Input
+                    type={showPw ? "text" : "password"}
+                    required minLength={8}
+                    value={form.password}
+                    onChange={e => set("password", e.target.value)}
+                    placeholder="Min. 8 characters"
+                    className="pr-10"
+                  />
+                  <button
+                    type="button"
+                    tabIndex={-1}
+                    onClick={() => setShowPw(v => !v)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+                    aria-label={showPw ? "Hide password" : "Show password"}
+                  >
+                    {showPw ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                  </button>
+                </div>
               </div>
-              <Button type="submit" className="w-full" disabled={submitting}>
+              </div>
+              <Button
+                type="submit"
+                className="w-full"
+                disabled={submitting || (emailIsComplete && !emailAllowed)}
+              >
                 {submitting ? <><Loader2 className="h-4 w-4 mr-2 animate-spin" />Submitting…</> : "Request Access"}
               </Button>
               <p className="text-center text-sm text-muted-foreground">

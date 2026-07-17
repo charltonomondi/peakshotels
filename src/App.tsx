@@ -40,6 +40,7 @@ import { StaffAuthProvider } from "./lib/staffAuth";
 import StaffLogin from "./pages/staff/Login";
 import StaffSignup from "./pages/staff/Signup";
 import StaffDashboard from "./pages/staff/Dashboard";
+import StaffResetPassword from "./pages/staff/ResetPassword";
 
 const queryClient = new QueryClient();
 
@@ -92,6 +93,7 @@ const App = () => {
                   <Route path="/staff/login" element={<StaffLogin />} />
                   <Route path="/staff/signup" element={<StaffSignup />} />
                   <Route path="/staff/dashboard" element={<StaffDashboard />} />
+                  <Route path="/staff/reset-password" element={<StaffResetPassword />} />
                   <Route path="*" element={<NotFound />} />
                 </Routes>
               </>

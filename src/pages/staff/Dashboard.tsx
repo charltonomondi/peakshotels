@@ -10,7 +10,7 @@ import {
   LogOut, CalendarDays, FileText, Clock, BedDouble,
   Users, CheckCircle2, Circle, Plus, Loader2, Shield,
   UserCheck, UserX, Phone, Mail, Upload, Download, Trash2,
-  FileSpreadsheet, FileType2, File, ClipboardList, BarChart2, ChevronDown, ChevronUp,
+  FileSpreadsheet, FileType2, File, ClipboardList, BarChart2, ChevronDown, ChevronUp, KeyRound,
 } from "lucide-react";
 import {
   PieChart, Pie, Cell, Tooltip, ResponsiveContainer,
@@ -131,9 +131,9 @@ export default function StaffDashboard() {
   const [reportActions, setReportActions] = useState<ReportAction[]>([]);
   const isCeoOrSuperAdmin = staff?.role === "ceo" || staff?.role === "super_admin";
 
-  // CEO notification modal state (shown in Dashboard tab)
+  // CEO notification panel state (shown at top of dashboard tab)
   const [ceoNotification, setCeoNotification] = useState<ReportAction | null>(null);
-  const [notifDismissed, setNotifDismissed] = useState(false);
+  const [notifDate, setNotifDate] = useState(today);
 
   // Calendar state
   const [calendarDate, setCalendarDate] = useState(today);
@@ -168,6 +168,10 @@ export default function StaffDashboard() {
       loadDailyReports(reportViewDate, reportViewDept);
     }
   }, [activeTab, reportViewDate, reportViewDept]);
+
+  useEffect(() => {
+    if (isApproved) loadCeoNotification(notifDate);
+  }, [notifDate, isApproved]);
 
   useEffect(() => {
     if (isApproved) loadMeetingsForDate(calendarDate);
@@ -213,26 +217,23 @@ export default function StaffDashboard() {
     setStaffRequests(data ?? []);
   }
 
-  async function loadCeoNotification() {
+  async function loadCeoNotification(date?: string) {
     if (!staff) return;
-    // Find today's submitted report for this staff's department
+    const targetDate = date ?? notifDate;
     const { data: report } = await supabase
       .from("daily_reports")
       .select("id")
       .eq("department", staff.role)
-      .eq("report_date", today)
+      .eq("report_date", targetDate)
       .eq("submitted", true)
       .maybeSingle();
-    if (!report) return;
-    // Check if CEO has actioned it
+    if (!report) { setCeoNotification(null); return; }
     const { data: action } = await supabase
       .from("report_actions")
       .select("*")
       .eq("report_id", report.id)
       .maybeSingle();
-    if (action) {
-      setCeoNotification(action as ReportAction);
-    }
+    setCeoNotification(action as ReportAction ?? null);
   }
 
   async function loadDailyReports(date?: string, dept?: string) {
@@ -488,121 +489,6 @@ export default function StaffDashboard() {
   return (
     <>
       <Navbar />
-
-      {/* ── CEO Action Notification Modal ── */}
-      <AnimatePresence>
-        {ceoNotification && !notifDismissed && activeTab === "dashboard" && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm"
-            onClick={() => setNotifDismissed(true)}
-          >
-            <motion.div
-              initial={{ opacity: 0, scale: 0.9, y: 20 }}
-              animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.9, y: 10 }}
-              transition={{ duration: 0.25 }}
-              className={`w-full max-w-md rounded-2xl shadow-2xl overflow-hidden ${
-                ceoNotification.signed_off
-                  ? "bg-green-50 border-2 border-green-400"
-                  : ceoNotification.action_type === "meeting"
-                  ? "bg-purple-50 border-2 border-purple-400"
-                  : "bg-blue-50 border-2 border-blue-400"
-              }`}
-              onClick={e => e.stopPropagation()}
-            >
-              {/* Header */}
-              <div className={`px-6 py-4 flex items-center justify-between ${
-                ceoNotification.signed_off ? "bg-green-600"
-                : ceoNotification.action_type === "meeting" ? "bg-purple-600"
-                : "bg-blue-600"
-              }`}>
-                <div className="flex items-center gap-3">
-                  <span className="text-2xl">
-                    {ceoNotification.signed_off ? "✅"
-                      : ceoNotification.action_type === "meeting" ? "📅"
-                      : "💬"}
-                  </span>
-                  <div>
-                    <p className="text-white font-bold text-sm">CEO Response</p>
-                    <p className="text-white/80 text-xs">
-                      {ceoNotification.signed_off
-                        ? "Your report has been signed off"
-                        : ceoNotification.action_type === "meeting"
-                        ? "A meeting has been scheduled"
-                        : "CEO has responded to your report"}
-                    </p>
-                  </div>
-                </div>
-                <button
-                  onClick={() => setNotifDismissed(true)}
-                  className="text-white/70 hover:text-white transition-colors text-xl leading-none"
-                >
-                  ×
-                </button>
-              </div>
-
-              {/* Body */}
-              <div className="px-6 py-5 space-y-4">
-                {/* Department badge */}
-                <div className="flex items-center gap-2">
-                  <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Department</span>
-                  <Badge variant="outline" className="text-xs capitalize">
-                    {ceoNotification.department.replace(/_/g, " ")}
-                  </Badge>
-                  <Badge variant="outline" className="text-xs">
-                    {ceoNotification.report_date}
-                  </Badge>
-                </div>
-
-                {/* Comment */}
-                {ceoNotification.comment && (
-                  <div>
-                    <p className="text-xs font-semibold text-muted-foreground mb-1">Response / Directive</p>
-                    <p className="text-sm text-foreground/90 whitespace-pre-wrap leading-relaxed bg-white/60 rounded-lg px-3 py-2.5 border border-border/40">
-                      {ceoNotification.comment}
-                    </p>
-                  </div>
-                )}
-
-                {/* Meeting schedule */}
-                {ceoNotification.scheduled_date && (
-                  <div className="flex items-center gap-3 bg-purple-100 rounded-xl px-4 py-3">
-                    <span className="text-2xl">📅</span>
-                    <div>
-                      <p className="text-xs font-semibold text-purple-800">Meeting Scheduled</p>
-                      <p className="text-sm font-bold text-purple-900">
-                        {new Date(ceoNotification.scheduled_date).toLocaleDateString("en-KE", {
-                          weekday: "long", day: "numeric", month: "long", year: "numeric"
-                        })}
-                        {ceoNotification.scheduled_time && ` · ${ceoNotification.scheduled_time}`}
-                      </p>
-                    </div>
-                  </div>
-                )}
-
-                {/* Actioned by + time */}
-                <div className="flex items-center justify-between text-xs text-muted-foreground pt-1 border-t border-border/40">
-                  <span>— {ceoNotification.actioned_by_name}</span>
-                  <span>{new Date(ceoNotification.created_at).toLocaleString("en-KE", {
-                    day: "numeric", month: "short", hour: "2-digit", minute: "2-digit"
-                  })}</span>
-                </div>
-
-                <Button
-                  className="w-full"
-                  onClick={() => setNotifDismissed(true)}
-                  variant={ceoNotification.signed_off ? "default" : "outline"}
-                >
-                  Acknowledged
-                </Button>
-              </div>
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
 
       <div className="min-h-screen bg-background pt-24 pb-12">
         <div className="container mx-auto px-4 sm:px-6 md:px-8 lg:px-10 max-w-screen-2xl">
@@ -1132,6 +1018,9 @@ export default function StaffDashboard() {
               </CardContent>
             </Card>
           )}
+
+          {/* Password Reset Tickets — super_admin only */}
+          {isSuperAdmin && <PasswordResetTickets />}
 
           </>
           )}
@@ -2258,5 +2147,164 @@ function CeoActionPanel({ reportId, department, deptLabel, reportDate, existingA
         </div>
       )}
     </div>
+  );
+}
+
+// ── Password Reset Tickets (super_admin only) ────────────────────────────────
+
+interface ResetTicket {
+  id: string;
+  email: string;
+  full_name: string | null;
+  department: string | null;
+  status: string;
+  token: string;
+  requested_at: string;
+  actioned_at: string | null;
+  actioned_by: string | null;
+}
+
+function PasswordResetTickets() {
+  const { staff } = useStaffAuth();
+  const [tickets, setTickets] = useState<ResetTicket[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [actioningId, setActioningId] = useState<string | null>(null);
+
+  useEffect(() => {
+    async function load() {
+      const { data } = await supabase
+        .from("password_reset_tickets")
+        .select("*")
+        .order("requested_at", { ascending: false })
+        .limit(50);
+      setTickets(data ?? []);
+      setLoading(false);
+    }
+    load();
+  }, []);
+
+  async function handleApprove(ticket: ResetTicket) {
+    setActioningId(ticket.id);
+    const { error } = await supabase
+      .from("password_reset_tickets")
+      .update({
+        status: "approved",
+        actioned_at: new Date().toISOString(),
+        actioned_by: staff?.full_name ?? "super_admin",
+      })
+      .eq("id", ticket.id);
+
+    if (error) { alert("Failed: " + error.message); setActioningId(null); return; }
+
+    // Send the reset link — the reset page URL with the token
+    const resetUrl = `${window.location.origin}/staff/reset-password?token=${ticket.token}`;
+
+    // Copy link to clipboard for manual sharing
+    try { await navigator.clipboard.writeText(resetUrl); } catch (_) {}
+
+    setTickets(ts => ts.map(t => t.id === ticket.id ? { ...t, status: "approved" } : t));
+    setActioningId(null);
+
+    alert(
+      `✅ Approved!\n\nShare this reset link with ${ticket.full_name ?? ticket.email}:\n\n${resetUrl}\n\n(Link copied to clipboard)`
+    );
+  }
+
+  async function handleReject(id: string) {
+    if (!confirm("Reject this reset request?")) return;
+    setActioningId(id);
+    await supabase.from("password_reset_tickets").update({
+      status: "rejected",
+      actioned_at: new Date().toISOString(),
+      actioned_by: staff?.full_name ?? "super_admin",
+    }).eq("id", id);
+    setTickets(ts => ts.map(t => t.id === id ? { ...t, status: "rejected" } : t));
+    setActioningId(null);
+  }
+
+  const pending = tickets.filter(t => t.status === "pending");
+
+  return (
+    <Card className="mt-6">
+      <CardHeader className="pb-3">
+        <CardTitle className="text-base flex items-center gap-2">
+          <KeyRound className="h-4 w-4 text-amber-600" /> Password Reset Requests
+          {pending.length > 0 && (
+            <Badge className="bg-amber-100 text-amber-700 ml-1">{pending.length} pending</Badge>
+          )}
+        </CardTitle>
+      </CardHeader>
+      <CardContent>
+        {loading ? (
+          <div className="flex justify-center py-6"><Loader2 className="h-5 w-5 animate-spin text-muted-foreground" /></div>
+        ) : tickets.length === 0 ? (
+          <p className="text-sm text-muted-foreground text-center py-4">No reset requests yet</p>
+        ) : (
+          <div className="space-y-3">
+            {tickets.map(ticket => (
+              <div key={ticket.id} className="flex items-center justify-between p-4 rounded-xl border border-border bg-card gap-4">
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <p className="text-sm font-semibold">{ticket.full_name ?? ticket.email}</p>
+                    <Badge className={
+                      ticket.status === "approved"  ? "bg-green-100 text-green-700" :
+                      ticket.status === "rejected"  ? "bg-red-100 text-red-700"    :
+                      ticket.status === "completed" ? "bg-blue-100 text-blue-700"  :
+                      "bg-amber-100 text-amber-700"
+                    }>
+                      {ticket.status}
+                    </Badge>
+                  </div>
+                  <p className="text-xs text-muted-foreground mt-0.5">{ticket.email}</p>
+                  {ticket.department && <p className="text-xs text-muted-foreground">{ticket.department}</p>}
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Requested {new Date(ticket.requested_at).toLocaleString("en-KE", { day: "numeric", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" })}
+                  </p>
+                  {ticket.actioned_by && ticket.actioned_at && (
+                    <p className="text-xs text-muted-foreground">
+                      {ticket.status === "approved" ? "Approved" : "Rejected"} by {ticket.actioned_by} · {new Date(ticket.actioned_at).toLocaleString("en-KE", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" })}
+                    </p>
+                  )}
+                </div>
+                {ticket.status === "pending" && (
+                  <div className="flex gap-2 shrink-0">
+                    <Button
+                      size="sm" variant="outline"
+                      className="text-green-700 border-green-300 hover:bg-green-50"
+                      disabled={actioningId === ticket.id}
+                      onClick={() => handleApprove(ticket)}
+                    >
+                      {actioningId === ticket.id ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <CheckCircle2 className="h-3.5 w-3.5" />}
+                      <span className="ml-1.5">Approve & Send Link</span>
+                    </Button>
+                    <Button
+                      size="sm" variant="outline"
+                      className="text-red-700 border-red-300 hover:bg-red-50"
+                      disabled={actioningId === ticket.id}
+                      onClick={() => handleReject(ticket.id)}
+                    >
+                      <Trash2 className="h-3.5 w-3.5" />
+                      <span className="ml-1.5">Reject</span>
+                    </Button>
+                  </div>
+                )}
+                {ticket.status === "approved" && (
+                  <Button
+                    size="sm" variant="outline"
+                    onClick={async () => {
+                      const url = `${window.location.origin}/staff/reset-password?token=${ticket.token}`;
+                      try { await navigator.clipboard.writeText(url); alert("Reset link copied!"); }
+                      catch (_) { alert(url); }
+                    }}
+                  >
+                    Copy Link
+                  </Button>
+                )}
+              </div>
+            ))}
+          </div>
+        )}
+      </CardContent>
+    </Card>
   );
 }

@@ -14,7 +14,7 @@ import { Button } from "@/components/ui/button";
 import { Award, Heart, Shield, Users, MapPin, Mountain, Star, ArrowRight } from "lucide-react";
 
 // Images
-import grounds1   from "@/assets/facilities/conference10.jpg";
+import grounds1   from "@/assets/facilities/frontage.jpg";
 import grounds2   from "@/assets/facilities/Grounds2.jpg";
 import frontage   from "@/assets/facilities/frontage.jpg";
 import rooftop    from "@/assets/restaurant/rest2.jpg";
@@ -192,7 +192,7 @@ const Index = () => {
               <div className="overflow-hidden rounded-3xl shadow-2xl aspect-video">
                 <iframe
                   src="https://www.youtube.com/embed/kwW1S6c_RlM"
-                  title="Peaks Tv | Easter Outdoor Experience at Peaks"
+                  title="Peaks Tv | Outdoor Experience at Peaks"
                   frameBorder="0"
                   allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
                   referrerPolicy="strict-origin-when-cross-origin"

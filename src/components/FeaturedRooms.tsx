@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
 import { Bed, Users, Maximize, Wifi, Wind, Coffee, ArrowRight } from "lucide-react";
 import executive from "@/assets/bed5.jpg";
-import superior from "@/assets/bed3.jpg";
+import superior from "@/assets/bed2.jpg";
 import standard from "@/assets/bed1.jpg";
 
 const rooms = [
@@ -13,7 +13,7 @@ const rooms = [
     price: "From KES 8,400",
     size: "35 sqm",
     // guests: "2 Adults",
-    bed: "King Size Bed",
+    bed: "Queen Size Bed",
     description:"",
     amenities: [Wifi, Wind, Coffee],
   },
