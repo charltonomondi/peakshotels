@@ -10,7 +10,7 @@ import {
   LogOut, CalendarDays, FileText, Clock, BedDouble,
   Users, CheckCircle2, Circle, Plus, Loader2, Shield,
   UserCheck, UserX, Phone, Mail, Upload, Download, Trash2,
-  FileSpreadsheet, FileType2, File, ClipboardList, BarChart2, ChevronDown, ChevronUp, KeyRound,
+  FileSpreadsheet, FileType2, File, ClipboardList, BarChart2, ChevronDown, ChevronUp, KeyRound, Settings,
 } from "lucide-react";
 import {
   PieChart, Pie, Cell, Tooltip, ResponsiveContainer,
@@ -19,6 +19,7 @@ import {
 import Navbar from "@/components/Navbar";
 import DailyReportForm from "@/components/DailyReportForm";
 import { REPORT_TEMPLATES, REVENUE_CONFIG, EXPENSE_DEPARTMENTS } from "@/lib/reportTemplates";
+import SuperAdminConsole from "./SuperAdminConsole";
 
 interface StaffRequest {
   id: string;
@@ -118,7 +119,7 @@ export default function StaffDashboard() {
   const isAdmin = staff?.role === "manager" || staff?.role === "super_admin" || staff?.role === "ceo";
   const isSuperAdmin = staff?.role === "super_admin";
   const canManageCalendar = staff?.role === "receptionist" || isAdmin;
-  const [activeTab, setActiveTab] = useState<"dashboard" | "report" | "reports_view" | "my_reports">("dashboard");
+  const [activeTab, setActiveTab] = useState<"dashboard" | "report" | "reports_view" | "my_reports" | "admin_console">("dashboard");
 
   // Reports viewer state
   const [reportViewDate, setReportViewDate] = useState(today);
@@ -551,6 +552,17 @@ export default function StaffDashboard() {
             >
               <BarChart2 className="h-4 w-4" /> Reports Dashboard
             </button>
+            {/* Admin Console — super_admin only */}
+            {isSuperAdmin && (
+              <button
+                onClick={() => setActiveTab("admin_console")}
+                className={`flex items-center gap-2 px-4 py-2.5 text-sm font-medium border-b-2 transition-colors whitespace-nowrap ${
+                  activeTab === "admin_console" ? "border-accent text-accent" : "border-transparent text-muted-foreground hover:text-foreground"
+                }`}
+              >
+                <Settings className="h-4 w-4" /> Admin Console
+              </button>
+            )}
           </div>
 
           {activeTab === "report" ? (
@@ -566,6 +578,8 @@ export default function StaffDashboard() {
             </Card>
           ) : activeTab === "my_reports" && !isAdmin ? (
             <MyReports staffId={staff.id} today={today} />
+          ) : activeTab === "admin_console" && isSuperAdmin ? (
+            <SuperAdminConsole staff={staff} />
           ) : activeTab === "reports_view" ? (
             <ReportsDashboard
               today={today}

@@ -12,7 +12,6 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as AdminRouteImport } from './routes/admin'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AdminIndexRouteImport } from './routes/admin.index'
-import { Route as ApiNotifyRouteImport } from './routes/api.notify'
 import { Route as AdminStaffRouteImport } from './routes/admin.staff'
 import { Route as AdminSignupRouteImport } from './routes/admin/signup'
 import { Route as AdminRoomsRouteImport } from './routes/admin.rooms'
@@ -29,11 +28,6 @@ import { Route as AdminCustomersRouteImport } from './routes/admin.customers'
 import { Route as AdminCmsRouteImport } from './routes/admin.cms'
 import { Route as AdminCalendarRouteImport } from './routes/admin.calendar'
 import { Route as AdminBookingsRouteImport } from './routes/admin.bookings'
-import { Route as ApiPublicRoomsRouteImport } from './routes/api.public.rooms'
-import { Route as ApiPublicBookingsRouteImport } from './routes/api.public.bookings'
-import { Route as ApiMpesaStkRouteImport } from './routes/api.mpesa.stk'
-import { Route as ApiMpesaCallbackRouteImport } from './routes/api.mpesa.callback'
-import { Route as ApiPublicMpesaStkRouteImport } from './routes/api.public.mpesa.stk'
 
 const AdminRoute = AdminRouteImport.update({
   id: '/admin',
@@ -49,11 +43,6 @@ const AdminIndexRoute = AdminIndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => AdminRoute,
-} as any)
-const ApiNotifyRoute = ApiNotifyRouteImport.update({
-  id: '/api/notify',
-  path: '/api/notify',
-  getParentRoute: () => rootRouteImport,
 } as any)
 const AdminStaffRoute = AdminStaffRouteImport.update({
   id: '/staff',
@@ -135,31 +124,6 @@ const AdminBookingsRoute = AdminBookingsRouteImport.update({
   path: '/bookings',
   getParentRoute: () => AdminRoute,
 } as any)
-const ApiPublicRoomsRoute = ApiPublicRoomsRouteImport.update({
-  id: '/api/public/rooms',
-  path: '/api/public/rooms',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ApiPublicBookingsRoute = ApiPublicBookingsRouteImport.update({
-  id: '/api/public/bookings',
-  path: '/api/public/bookings',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ApiMpesaStkRoute = ApiMpesaStkRouteImport.update({
-  id: '/api/mpesa/stk',
-  path: '/api/mpesa/stk',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ApiMpesaCallbackRoute = ApiMpesaCallbackRouteImport.update({
-  id: '/api/mpesa/callback',
-  path: '/api/mpesa/callback',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ApiPublicMpesaStkRoute = ApiPublicMpesaStkRouteImport.update({
-  id: '/api/public/mpesa/stk',
-  path: '/api/public/mpesa/stk',
-  getParentRoute: () => rootRouteImport,
-} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -180,13 +144,7 @@ export interface FileRoutesByFullPath {
   '/admin/rooms': typeof AdminRoomsRoute
   '/admin/signup': typeof AdminSignupRoute
   '/admin/staff': typeof AdminStaffRoute
-  '/api/notify': typeof ApiNotifyRoute
   '/admin/': typeof AdminIndexRoute
-  '/api/mpesa/callback': typeof ApiMpesaCallbackRoute
-  '/api/mpesa/stk': typeof ApiMpesaStkRoute
-  '/api/public/bookings': typeof ApiPublicBookingsRoute
-  '/api/public/rooms': typeof ApiPublicRoomsRoute
-  '/api/public/mpesa/stk': typeof ApiPublicMpesaStkRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -206,13 +164,7 @@ export interface FileRoutesByTo {
   '/admin/rooms': typeof AdminRoomsRoute
   '/admin/signup': typeof AdminSignupRoute
   '/admin/staff': typeof AdminStaffRoute
-  '/api/notify': typeof ApiNotifyRoute
   '/admin': typeof AdminIndexRoute
-  '/api/mpesa/callback': typeof ApiMpesaCallbackRoute
-  '/api/mpesa/stk': typeof ApiMpesaStkRoute
-  '/api/public/bookings': typeof ApiPublicBookingsRoute
-  '/api/public/rooms': typeof ApiPublicRoomsRoute
-  '/api/public/mpesa/stk': typeof ApiPublicMpesaStkRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -234,13 +186,7 @@ export interface FileRoutesById {
   '/admin/rooms': typeof AdminRoomsRoute
   '/admin/signup': typeof AdminSignupRoute
   '/admin/staff': typeof AdminStaffRoute
-  '/api/notify': typeof ApiNotifyRoute
   '/admin/': typeof AdminIndexRoute
-  '/api/mpesa/callback': typeof ApiMpesaCallbackRoute
-  '/api/mpesa/stk': typeof ApiMpesaStkRoute
-  '/api/public/bookings': typeof ApiPublicBookingsRoute
-  '/api/public/rooms': typeof ApiPublicRoomsRoute
-  '/api/public/mpesa/stk': typeof ApiPublicMpesaStkRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -263,13 +209,7 @@ export interface FileRouteTypes {
     | '/admin/rooms'
     | '/admin/signup'
     | '/admin/staff'
-    | '/api/notify'
     | '/admin/'
-    | '/api/mpesa/callback'
-    | '/api/mpesa/stk'
-    | '/api/public/bookings'
-    | '/api/public/rooms'
-    | '/api/public/mpesa/stk'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -289,13 +229,7 @@ export interface FileRouteTypes {
     | '/admin/rooms'
     | '/admin/signup'
     | '/admin/staff'
-    | '/api/notify'
     | '/admin'
-    | '/api/mpesa/callback'
-    | '/api/mpesa/stk'
-    | '/api/public/bookings'
-    | '/api/public/rooms'
-    | '/api/public/mpesa/stk'
   id:
     | '__root__'
     | '/'
@@ -316,24 +250,12 @@ export interface FileRouteTypes {
     | '/admin/rooms'
     | '/admin/signup'
     | '/admin/staff'
-    | '/api/notify'
     | '/admin/'
-    | '/api/mpesa/callback'
-    | '/api/mpesa/stk'
-    | '/api/public/bookings'
-    | '/api/public/rooms'
-    | '/api/public/mpesa/stk'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AdminRoute: typeof AdminRouteWithChildren
-  ApiNotifyRoute: typeof ApiNotifyRoute
-  ApiMpesaCallbackRoute: typeof ApiMpesaCallbackRoute
-  ApiMpesaStkRoute: typeof ApiMpesaStkRoute
-  ApiPublicBookingsRoute: typeof ApiPublicBookingsRoute
-  ApiPublicRoomsRoute: typeof ApiPublicRoomsRoute
-  ApiPublicMpesaStkRoute: typeof ApiPublicMpesaStkRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -358,13 +280,6 @@ declare module '@tanstack/react-router' {
       fullPath: '/admin/'
       preLoaderRoute: typeof AdminIndexRouteImport
       parentRoute: typeof AdminRoute
-    }
-    '/api/notify': {
-      id: '/api/notify'
-      path: '/api/notify'
-      fullPath: '/api/notify'
-      preLoaderRoute: typeof ApiNotifyRouteImport
-      parentRoute: typeof rootRouteImport
     }
     '/admin/staff': {
       id: '/admin/staff'
@@ -478,41 +393,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminBookingsRouteImport
       parentRoute: typeof AdminRoute
     }
-    '/api/public/rooms': {
-      id: '/api/public/rooms'
-      path: '/api/public/rooms'
-      fullPath: '/api/public/rooms'
-      preLoaderRoute: typeof ApiPublicRoomsRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/api/public/bookings': {
-      id: '/api/public/bookings'
-      path: '/api/public/bookings'
-      fullPath: '/api/public/bookings'
-      preLoaderRoute: typeof ApiPublicBookingsRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/api/mpesa/stk': {
-      id: '/api/mpesa/stk'
-      path: '/api/mpesa/stk'
-      fullPath: '/api/mpesa/stk'
-      preLoaderRoute: typeof ApiMpesaStkRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/api/mpesa/callback': {
-      id: '/api/mpesa/callback'
-      path: '/api/mpesa/callback'
-      fullPath: '/api/mpesa/callback'
-      preLoaderRoute: typeof ApiMpesaCallbackRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/api/public/mpesa/stk': {
-      id: '/api/public/mpesa/stk'
-      path: '/api/public/mpesa/stk'
-      fullPath: '/api/public/mpesa/stk'
-      preLoaderRoute: typeof ApiPublicMpesaStkRouteImport
-      parentRoute: typeof rootRouteImport
-    }
   }
 }
 
@@ -561,22 +441,7 @@ const AdminRouteWithChildren = AdminRoute._addFileChildren(AdminRouteChildren)
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AdminRoute: AdminRouteWithChildren,
-  ApiNotifyRoute: ApiNotifyRoute,
-  ApiMpesaCallbackRoute: ApiMpesaCallbackRoute,
-  ApiMpesaStkRoute: ApiMpesaStkRoute,
-  ApiPublicBookingsRoute: ApiPublicBookingsRoute,
-  ApiPublicRoomsRoute: ApiPublicRoomsRoute,
-  ApiPublicMpesaStkRoute: ApiPublicMpesaStkRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { createStart } from '@tanstack/react-start'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-  }
-}

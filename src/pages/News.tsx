@@ -1,9 +1,9 @@
 import { useState } from "react";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { Button } from "@/components/ui/button";
-import { Calendar, User, ArrowRight, Star, Send } from "lucide-react";
+import { Calendar, User, ArrowRight, Star, Send, X } from "lucide-react";
 import heroBackground from "@/assets/facilities/frontage.jpg";
 import awardImage from "@/assets/facilities/frontage.jpg";
 import wellnessImage from "@/assets/massage/mas1.jpg";
@@ -11,9 +11,20 @@ import sustainabilityImage from "@/assets/views/Ngare Ndare.jpg";
 import adventureImage from "@/assets/outdoor/mount.jpeg";
 import diningImage from "@/assets/restaurant/rest1.jpg";
 import communityImage from "@/assets/restaurant/tm.jpg";
+import festiveImage from "@/assets/facilities/conference10.jpg";
 import { useReviews } from "@/hooks/useReviews";
 
 const newsItems = [
+  {
+    id: 0,
+    title: "Festive Season 2026 — Special Packages",
+    excerpt: "Celebrate the festive season in style at Peaks Hotel Nanyuki. Enjoy our exclusive Half Board and Full Board packages with complimentary wellness facilities, early bird discounts, and so much more.",
+    date: "2026-07-20",
+    author: "Peaks Hotel Team",
+    category: "Festive",
+    image: festiveImage,
+    isFestive: true,
+  },
   {
     id: 1,
     title: "Peaks Hotel Wins 'Best Mountain Resort' Award 2024",
@@ -72,6 +83,7 @@ const newsItems = [
 
 const News = () => {
   const { addReview } = useReviews();
+  const [selectedNewsId, setSelectedNewsId] = useState<number | null>(null);
   const [feedbackData, setFeedbackData] = useState({
     name: "",
     email: "",
@@ -209,7 +221,8 @@ const News = () => {
                   <p className="text-muted-foreground mb-4">
                     {item.excerpt}
                   </p>
-                  <Button variant="ghost" size="sm" className="p-0 h-auto font-semibold text-accent hover:text-accent/80">
+                  <Button variant="ghost" size="sm" className="p-0 h-auto font-semibold text-accent hover:text-accent/80"
+                    onClick={() => setSelectedNewsId(item.id)}>
                     Read More
                     <ArrowRight className="h-4 w-4 ml-2" />
                   </Button>
@@ -230,6 +243,128 @@ const News = () => {
             transition={{ duration: 0.6 }}
             className="max-w-2xl mx-auto"
           >
+      {/* Festive Package Modal */}
+      <AnimatePresence>
+        {selectedNewsId === 0 && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-start justify-center p-4 pt-20 overflow-y-auto"
+            onClick={() => setSelectedNewsId(null)}
+          >
+            <motion.div
+              initial={{ opacity: 0, y: 30, scale: 0.97 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: 20, scale: 0.97 }}
+              transition={{ duration: 0.3 }}
+              className="bg-background rounded-2xl shadow-2xl w-full max-w-3xl mb-8"
+              onClick={e => e.stopPropagation()}
+            >
+              {/* Header */}
+              <div className="relative">
+                <img src={festiveImage} alt="Festive Season" className="w-full h-48 object-cover rounded-t-2xl" />
+                <div className="absolute inset-0 bg-gradient-to-b from-transparent to-black/70 rounded-t-2xl" />
+                <div className="absolute bottom-4 left-6 right-6 flex items-end justify-between">
+                  <div>
+                    <span className="bg-accent text-accent-foreground text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wider">Festive 2026</span>
+                    <h2 className="text-white font-bold text-xl mt-2">Festive Season 2026 — Special Packages</h2>
+                  </div>
+                  <button onClick={() => setSelectedNewsId(null)} className="text-white/80 hover:text-white p-1">
+                    <X className="h-6 w-6" />
+                  </button>
+                </div>
+              </div>
+
+              {/* Body */}
+              <div className="p-6 space-y-6">
+                {/* Rates table */}
+                <div>
+                  <h3 className="font-bold text-lg text-foreground mb-3">Festive Season Rates (KES per person per night)</h3>
+                  <div className="overflow-x-auto rounded-xl border border-border">
+                    <table className="w-full text-sm">
+                      <thead>
+                        <tr className="bg-accent/10 border-b border-border">
+                          <th className="text-left px-4 py-3 font-semibold text-foreground">Type of Room</th>
+                          <th className="text-right px-4 py-3 font-semibold text-foreground">Half Board (HB)</th>
+                          <th className="text-right px-4 py-3 font-semibold text-foreground">Full Board (FB)</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-border">
+                        <tr className="bg-secondary/40"><td className="px-4 py-2 font-bold text-foreground" colSpan={3}>Standard Rooms</td></tr>
+                        <tr className="hover:bg-secondary/20"><td className="px-4 py-2.5 pl-6">1. Single Room</td><td className="px-4 py-2.5 text-right font-medium">13,500</td><td className="px-4 py-2.5 text-right font-medium">16,000</td></tr>
+                        <tr className="hover:bg-secondary/20"><td className="px-4 py-2.5 pl-6">2. Double Room</td><td className="px-4 py-2.5 text-right font-medium">17,900</td><td className="px-4 py-2.5 text-right font-medium">20,900</td></tr>
+                        <tr className="hover:bg-secondary/20"><td className="px-4 py-2.5 pl-6">3. Twin Room (per person sharing)</td><td className="px-4 py-2.5 text-right font-medium">10,600</td><td className="px-4 py-2.5 text-right font-medium">13,100</td></tr>
+
+                        <tr className="bg-secondary/40"><td className="px-4 py-2 font-bold text-foreground" colSpan={3}>Superior Rooms</td></tr>
+                        <tr className="hover:bg-secondary/20"><td className="px-4 py-2.5 pl-6">1. Single Room</td><td className="px-4 py-2.5 text-right font-medium">15,000</td><td className="px-4 py-2.5 text-right font-medium">17,500</td></tr>
+                        <tr className="hover:bg-secondary/20"><td className="px-4 py-2.5 pl-6">2. Double Room</td><td className="px-4 py-2.5 text-right font-medium">19,400</td><td className="px-4 py-2.5 text-right font-medium">22,400</td></tr>
+                        <tr className="hover:bg-secondary/20"><td className="px-4 py-2.5 pl-6">3. Twin Room (per person sharing)</td><td className="px-4 py-2.5 text-right font-medium">11,400</td><td className="px-4 py-2.5 text-right font-medium">13,900</td></tr>
+
+                        <tr className="bg-secondary/40"><td className="px-4 py-2 font-bold text-foreground" colSpan={3}>Executive Rooms</td></tr>
+                        <tr className="hover:bg-secondary/20"><td className="px-4 py-2.5 pl-6">1. Single Room</td><td className="px-4 py-2.5 text-right font-medium">20,000</td><td className="px-4 py-2.5 text-right font-medium">22,500</td></tr>
+                        <tr className="hover:bg-secondary/20"><td className="px-4 py-2.5 pl-6">2. Double Room</td><td className="px-4 py-2.5 text-right font-medium">25,000</td><td className="px-4 py-2.5 text-right font-medium">28,000</td></tr>
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+
+                {/* Notes */}
+                <div className="bg-accent/5 border border-accent/20 rounded-xl p-4 space-y-2">
+                  <h3 className="font-bold text-foreground mb-3">Notes</h3>
+                  {[
+                    "Lunch and dinner for in-house guests will be KSh 2,500 per person per meal.",
+                    "For walk-ins, brunch is KSh 3,500 per person and dinner is KSh 3,000 per person.",
+                    "À la carte options will not be available during the festive season.",
+                    "Early bird direct bookings will receive a 5% discount, valid until 31st October 2026.",
+                    "Bookings for three days and above will receive a 10% discount.",
+                    "The heated pool (Swimming), Gymnasium, Steam Bath and Sauna are complimentary for in-house guests.",
+                    "No one-day bookings over the festive seasons.",
+                    "Bookings (meal plans) will be only at Half Board and Full Board.",
+                  ].map((note, i) => (
+                    <p key={i} className="text-sm text-muted-foreground flex items-start gap-2">
+                      <span className="text-accent font-bold shrink-0">{i + 1}.</span>
+                      {note}
+                    </p>
+                  ))}
+                </div>
+
+                {/* Children Policy */}
+                <div className="bg-secondary/40 rounded-xl p-4">
+                  <h3 className="font-bold text-foreground mb-3">Children Policy</h3>
+                  <div className="grid sm:grid-cols-3 gap-4 text-sm">
+                    <div>
+                      <p className="font-semibold text-foreground mb-1">a. Sharing a room with adults</p>
+                      <p className="text-muted-foreground">0–4 years — Free of Charge (FOC)</p>
+                      <p className="text-muted-foreground">5–11 years — KSh 3,500</p>
+                      <p className="text-muted-foreground">12 years and above — Full Adult Rate</p>
+                    </div>
+                    <div>
+                      <p className="font-semibold text-foreground mb-1">b. Own Room</p>
+                      <p className="text-muted-foreground">5–11 years (max 3 children) — KSh 13,500</p>
+                      <p className="text-muted-foreground">12 years and above — Full Adult Rate</p>
+                    </div>
+                    <div>
+                      <p className="font-semibold text-foreground mb-1">c. Meals</p>
+                      <p className="text-muted-foreground">0–4 years — FOC</p>
+                      <p className="text-muted-foreground">5–7 years — KSh 1,250 per full meal</p>
+                      <p className="text-muted-foreground">8 years and above — Full Adult Rate</p>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="flex gap-3 pt-2">
+                  <Button variant="gold" asChild className="flex-1">
+                    <a href="/booking">Book Now — Festive 2026</a>
+                  </Button>
+                  <Button variant="outline" onClick={() => setSelectedNewsId(null)}>Close</Button>
+                </div>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
             <div className="text-center mb-10">
               <h2 className="font-heading text-3xl md:text-4xl font-bold text-foreground mb-4">
                 Share Your Experience

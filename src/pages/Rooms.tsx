@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
@@ -6,6 +6,7 @@ import SEO from "@/components/SEO";
 import { Button } from "@/components/ui/button";
 import { Link, useNavigate } from "react-router-dom";
 import { Bed, Users, Maximize, Wifi, Wind, Tv, Bath, ArrowRight, Check, X, FileText } from "lucide-react";
+import { supabase } from "@/lib/supabase";
 import roomDeluxe from "@/assets/bed.jpg";
 import roomExecutive from "@/assets/bed1.jpg";
 import roomPresidential from "@/assets/bed5.jpg";
@@ -105,6 +106,38 @@ const Rooms = () => {
   const [welcomeRoomNumber, setWelcomeRoomNumber] = useState<number | null>(null);
   const [showConfigModal, setShowConfigModal] = useState(false);
   const [showPolicies, setShowPolicies] = useState(false);
+
+  // Room booking statuses: key = room number string, value = 'completed'|'confirmed'|'available'
+  const [roomStatuses, setRoomStatuses] = useState<Record<string, { status: string; check_out: string }>>({});
+
+  // Fetch booking statuses whenever the modal opens
+  useEffect(() => {
+    if (selectedCategory) {
+      loadRoomStatuses();
+    }
+  }, [selectedCategory]);
+
+  async function loadRoomStatuses() {
+    const today = new Date().toISOString().split("T")[0];
+    // Get all active bookings (confirmed or completed where checkout >= today)
+    const { data } = await supabase
+      .from("bookings")
+      .select("room_number, status, check_out")
+      .in("status", ["confirmed", "completed"])
+      .gte("check_out", today); // only current/future bookings
+
+    const statuses: Record<string, { status: string; check_out: string }> = {};
+    (data ?? []).forEach((b: any) => {
+      if (!b.room_number) return;
+      const key = String(b.room_number).trim();
+      const existing = statuses[key];
+      // Prefer 'completed' (occupied) over 'confirmed' (reserved)
+      if (!existing || b.status === "completed") {
+        statuses[key] = { status: b.status, check_out: b.check_out };
+      }
+    });
+    setRoomStatuses(statuses);
+  }
 
   const handleRoomClick = async (roomNumber: number) => {
     setCheckingRoomNumber(roomNumber);
@@ -433,21 +466,61 @@ const Rooms = () => {
               </div>
 
               <div className="p-6">
-                {Object.entries(getRoomsByCategory(selectedCategory)).map(([floor, roomNumbers]) => (
+                {/* Legend */}
+                <div className="flex flex-wrap items-center gap-4 mb-5 p-3 bg-secondary/50 rounded-xl text-xs font-medium">
+                  <div className="flex items-center gap-1.5"><span className="h-3 w-3 rounded bg-green-500 shrink-0" />Open for booking</div>
+                  <div className="flex items-center gap-1.5"><span className="h-3 w-3 rounded bg-amber-400 shrink-0" />Booking in progress (confirmed)</div>
+                  <div className="flex items-center gap-1.5"><span className="h-3 w-3 rounded bg-red-500 shrink-0" />Room booked (occupied)</div>
+                </div>
+
+                {Object.entries(getRoomsByCategory(selectedCategory)).map(([floor, roomNums]) => (
                   <div key={floor} className="mb-6">
                     <h3 className="font-heading text-xl font-semibold text-foreground mb-3">
                       Floor {floor}
                     </h3>
                     <div className="grid grid-cols-4 md:grid-cols-6 lg:grid-cols-8 gap-3">
-                      {roomNumbers.map((roomNumber) => (
-                        <div
-                          key={roomNumber}
-                          onClick={() => handleRoomClick(roomNumber)}
-                          className="bg-secondary hover:bg-accent hover:text-accent-foreground rounded-lg p-3 text-center font-medium transition-colors cursor-pointer"
-                        >
-                          {roomNumber}
-                        </div>
-                      ))}
+                      {roomNums.map((roomNumber) => {
+                        const info = roomStatuses[String(roomNumber).trim()];
+                        const isCompleted = info?.status === "completed";
+                        const isConfirmed = info?.status === "confirmed";
+                        const checkOutFmt = info?.check_out
+                          ? new Date(info.check_out).toLocaleDateString("en-KE", { day: "numeric", month: "short", year: "numeric" })
+                          : "";
+
+                        const tooltip = isCompleted
+                          ? `Room booked until ${checkOutFmt}`
+                          : isConfirmed
+                          ? `Booking in progress until ${checkOutFmt}`
+                          : `Room ${roomNumber} — Available`;
+
+                        const colorClass = isCompleted
+                          ? "bg-red-100 text-red-700 border border-red-400 cursor-not-allowed line-through"
+                          : isConfirmed
+                          ? "bg-amber-100 text-amber-700 border border-amber-400 cursor-not-allowed"
+                          : "bg-green-50 text-green-800 border border-green-300 hover:bg-accent hover:text-accent-foreground hover:border-accent cursor-pointer";
+
+                        return (
+                          <div key={roomNumber} className="relative group">
+                            <div
+                              onClick={() => { if (!isCompleted && !isConfirmed) handleRoomClick(roomNumber); }}
+                              title={tooltip}
+                              className={`rounded-lg p-3 text-center font-medium transition-colors text-sm ${colorClass}`}
+                            >
+                              {roomNumber}
+                            </div>
+                            {/* Tooltip on hover for booked rooms */}
+                            {(isCompleted || isConfirmed) && (
+                              <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 z-30 hidden group-hover:block w-max max-w-[180px] pointer-events-none">
+                                <div className={`text-xs px-2.5 py-1.5 rounded-lg shadow-lg text-white text-center ${isCompleted ? "bg-red-700" : "bg-amber-700"}`}>
+                                  {isCompleted ? "Room booked" : "Booking in progress"}
+                                  {checkOutFmt && <><br />till {checkOutFmt}</>}
+                                  <div className={`absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent ${isCompleted ? "border-t-red-700" : "border-t-amber-700"}`} />
+                                </div>
+                              </div>
+                            )}
+                          </div>
+                        );
+                      })}
                     </div>
                   </div>
                 ))}

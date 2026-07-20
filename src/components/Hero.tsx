@@ -4,8 +4,9 @@ import { Button } from "@/components/ui/button";
 import { Link, useNavigate } from "react-router-dom";
 import { CalendarDays, Users, ChevronDown } from "lucide-react";
 
-// ── Video ─────────────────────────────────────────────────────────────────────
-import heroVideo from "@/assets/hero/chal.mp4";
+// ── Video — served from public folder (no Vite hashing) ─────────────────────
+// Place chal.mp4 in public/assets/ on the server
+const HERO_VIDEO = "/assets/chal.mp4";
 
 // ── Posters — src/assets/hero/ ───────────────────────────────────────────────
 import poster1 from "@/assets/hero/p1.png";
@@ -82,7 +83,7 @@ const Hero = () => {
       {/* Video — always mounted so browser can seek/play; hidden during poster phase */}
       <video
         ref={videoRef}
-        src={heroVideo}
+        src={HERO_VIDEO}
         autoPlay
         muted
         playsInline

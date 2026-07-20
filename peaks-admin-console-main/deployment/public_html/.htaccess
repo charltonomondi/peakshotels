@@ -9,6 +9,12 @@ DirectoryIndex index.html
   RewriteRule ^ index.html [QSA,L]
 </IfModule>
 
+# Allow access to all files
+<Files *>
+  Order allow,deny
+  Allow from all
+</Files>
+
 <IfModule mod_headers.c>
   <FilesMatch "\.(js|css|png|jpg|jpeg|gif|ico|svg|woff|woff2|ttf|eot)$">
     Header set Cache-Control "max-age=31536000, public"

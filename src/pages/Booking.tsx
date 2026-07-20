@@ -194,6 +194,7 @@ const Booking = () => {
   const totalPrice = getRoomPrice() * formData.rooms * nights;
 
   const [bookedRooms, setBookedRooms] = useState<Set<string>>(new Set());
+  const [bookedRoomDetails, setBookedRoomDetails] = useState<Record<string, { check_out: string; status: string }>>({});
   const [availabilityError, setAvailabilityError] = useState<string | null>(null);
   const [loadingAvailability, setLoadingAvailability] = useState(false);
 
@@ -210,20 +211,35 @@ const Booking = () => {
     if (!formData.checkIn || !formData.checkOut) return;
     setLoadingAvailability(true);
     try {
-      // Query Supabase directly — no proxy dependency
-      const { data: bookings } = await supabase
+      // Fetch ALL confirmed/pending bookings that overlap with the requested dates
+      // Overlap condition: existing.check_in < new.check_out AND existing.check_out > new.check_in
+      const { data: bookings, error } = await supabase
         .from("bookings")
-        .select("room_number")
+        .select("room_number, check_in, check_out, status")
         .in("status", ["pending", "confirmed"])
-        .lt("check_in", formData.checkOut)
-        .gt("check_out", formData.checkIn);
+        .lt("check_in", formData.checkOut)   // booking starts before our checkout
+        .gt("check_out", formData.checkIn);  // booking ends after our checkin
 
-      const booked = new Set<string>(
-        (bookings ?? []).map((b: any) => b.room_number).filter(Boolean)
-      );
+      if (error) console.error("loadBookedRooms error:", error.message);
+
+      const booked = new Set<string>();
+      const details: Record<string, { check_out: string; status: string }> = {};
+
+      (bookings ?? []).forEach((b: any) => {
+        if (!b.room_number) return;
+        const key = String(b.room_number).trim();
+        booked.add(key);
+        const existing = details[key];
+        if (!existing || new Date(b.check_out) > new Date(existing.check_out)) {
+          details[key] = { check_out: b.check_out, status: b.status };
+        }
+      });
+
+      console.log("Booked rooms:", Array.from(booked), "for dates", formData.checkIn, "→", formData.checkOut);
       setBookedRooms(booked);
-    } catch (_) {
-      // keep existing state on error
+      setBookedRoomDetails(details);
+    } catch (err) {
+      console.error("loadBookedRooms exception:", err);
     } finally {
       setLoadingAvailability(false);
     }
@@ -232,8 +248,17 @@ const Booking = () => {
   const handleRoomSelection = async (roomNumber: number) => {
     setAvailabilityError(null);
 
-    if (bookedRooms.has(String(roomNumber))) {
-      setAvailabilityError(`Room ${roomNumber} is already booked for your selected dates. Please choose another room.`);
+    if (bookedRooms.has(String(roomNumber).trim())) {
+      const detail = bookedRoomDetails[String(roomNumber).trim()];
+      const checkOutFormatted = detail?.check_out
+        ? new Date(detail.check_out).toLocaleDateString("en-KE", { weekday: "long", day: "numeric", month: "long", year: "numeric" })
+        : "";
+      const statusMsg = detail?.status === "confirmed"
+        ? `Room ${roomNumber} is already reserved${checkOutFormatted ? ` until ${checkOutFormatted}` : ""}. Please choose another room.`
+        : detail?.status === "completed"
+        ? `Room ${roomNumber} is currently occupied${checkOutFormatted ? ` until ${checkOutFormatted}` : ""}. Please choose another room.`
+        : `Room ${roomNumber} is already booked for your selected dates. Please choose another room.`;
+      setAvailabilityError(statusMsg);
       return;
     }
 
@@ -242,17 +267,28 @@ const Booking = () => {
     try {
       const { data: bookings } = await supabase
         .from("bookings")
-        .select("room_number")
+        .select("room_number, check_out, status")
         .in("status", ["pending", "confirmed"])
         .lt("check_in", formData.checkOut)
         .gt("check_out", formData.checkIn);
 
-      const latest = new Set<string>(
-        (bookings ?? []).map((b: any) => b.room_number).filter(Boolean)
-      );
+      const latest = new Set<string>();
+      const latestDetails: Record<string, { check_out: string; status: string }> = {};
+      (bookings ?? []).forEach((b: any) => {
+        if (!b.room_number) return;
+        const key = String(b.room_number).trim();
+        latest.add(key);
+        latestDetails[key] = { check_out: b.check_out, status: b.status };
+      });
       setBookedRooms(latest);
-      if (latest.has(String(roomNumber))) {
-        setAvailabilityError(`Room ${roomNumber} was just booked. Please choose another room.`);
+      setBookedRoomDetails(latestDetails);
+
+      if (latest.has(String(roomNumber).trim())) {
+        const detail = latestDetails[String(roomNumber).trim()];
+        const checkOutFormatted = detail?.check_out
+          ? new Date(detail.check_out).toLocaleDateString("en-KE", { day: "numeric", month: "long", year: "numeric" })
+          : "";
+        setAvailabilityError(`Room ${roomNumber} was just reserved${checkOutFormatted ? ` until ${checkOutFormatted}` : ""}. Please choose another room.`);
         setIsCheckingAvailability(false);
         return;
       }
@@ -835,21 +871,49 @@ const Booking = () => {
                           <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 gap-2 md:gap-3">
                             {rooms.map((roomNumber) => {
                               const isBooked = bookedRooms.has(String(roomNumber));
+                              const detail = bookedRoomDetails[String(roomNumber)];
+                              const isConfirmedOrCompleted = isBooked && (detail?.status === "confirmed" || detail?.status === "completed");
+                              const isPending = isBooked && detail?.status === "pending";
+                              const checkOutFormatted = detail?.check_out
+                                ? new Date(detail.check_out).toLocaleDateString("en-KE", { day: "numeric", month: "short", year: "numeric" })
+                                : "";
+                              const tooltip = isConfirmedOrCompleted
+                                ? `Room ${roomNumber} — Reserved until ${checkOutFormatted}`
+                                : isPending
+                                ? `Room ${roomNumber} — Booking in progress`
+                                : `Room ${roomNumber} — Available`;
                               return (
-                                <button
-                                  key={roomNumber}
-                                  type="button"
-                                  disabled={isBooked || isCheckingAvailability}
-                                  onClick={() => handleRoomSelection(roomNumber)}
-                                  title={isBooked ? `Room ${roomNumber} — Already booked` : `Room ${roomNumber} — Available`}
-                                  className={`rounded-lg p-2 md:p-3 text-center font-medium transition-colors text-sm md:text-base relative ${
-                                    isBooked
-                                      ? "bg-red-100 dark:bg-red-900/30 text-red-400 dark:text-red-500 border border-red-300 dark:border-red-700 cursor-not-allowed line-through"
-                                      : "bg-secondary hover:bg-accent hover:text-accent-foreground cursor-pointer"
-                                  }`}
-                                >
-                                  {roomNumber}
-                                </button>
+                                <div key={roomNumber} className="relative group">
+                                  <button
+                                    type="button"
+                                    disabled={isBooked || isCheckingAvailability}
+                                    onClick={() => handleRoomSelection(roomNumber)}
+                                    className={`w-full rounded-lg p-2 md:p-3 text-center font-medium transition-colors text-sm md:text-base ${
+                                      isConfirmedOrCompleted
+                                        ? "bg-red-100 text-red-600 border border-red-400 cursor-not-allowed line-through"
+                                        : isPending
+                                        ? "bg-amber-100 text-amber-600 border border-amber-400 cursor-not-allowed"
+                                        : "bg-secondary hover:bg-accent hover:text-accent-foreground cursor-pointer"
+                                    }`}
+                                  >
+                                    {roomNumber}
+                                  </button>
+                                  {/* Hover tooltip */}
+                                  {isBooked && (
+                                    <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 z-30 pointer-events-none hidden group-hover:block w-max max-w-[200px]">
+                                      <div className={`text-xs px-2.5 py-1.5 rounded-lg shadow-lg text-white text-center ${
+                                        isConfirmedOrCompleted ? "bg-red-700" : "bg-amber-700"
+                                      }`}>
+                                        {isConfirmedOrCompleted
+                                          ? <>Room already reserved<br />till {checkOutFormatted}</>
+                                          : "Booking in progress"}
+                                        <div className={`absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent ${
+                                          isConfirmedOrCompleted ? "border-t-red-700" : "border-t-amber-700"
+                                        }`} />
+                                      </div>
+                                    </div>
+                                  )}
+                                </div>
                               );
                             })}
                           </div>
