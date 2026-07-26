@@ -15,6 +15,8 @@ import Rooms from "./pages/Rooms";
 import Facilities from "./pages/Facilities";
 import Activities from "./pages/Activities";
 import News from "./pages/News";
+import FestivePackage from "./pages/FestivePackage";
+import AnniversaryOffer from "./pages/AnniversaryOffer";
 import Restaurant from "./pages/Restaurant";
 import Gallery from "./pages/Gallery";
 import Contact from "./pages/Contact";
@@ -71,6 +73,9 @@ const App = () => {
                   <Route path="/facilities" element={<Facilities />} />
                   <Route path="/activities" element={<Activities />} />
                   <Route path="/news" element={<News />} />
+                  <Route path="/news/festive-2026" element={<FestivePackage />} />
+                  <Route path="/news/anniversary-2026" element={<AnniversaryOffer />} />
+                  <Route path="/news/festive-2026" element={<FestivePackage />} />
                   <Route path="/restaurant" element={<Restaurant />} />
                   <Route path="/gallery" element={<Gallery />} />
                   <Route path="/contact" element={<Contact />} />

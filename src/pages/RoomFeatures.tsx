@@ -4,14 +4,32 @@ import { motion, AnimatePresence } from "framer-motion";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { Button } from "@/components/ui/button";
-import { Bed, Wifi, Tv, Coffee, Utensils, Calendar, ArrowLeft, Shield, Wind, Music, Moon, Bath, UserCheck, Info, Star, X, Smartphone, Building2, CreditCard as CardIcon } from "lucide-react";
-import roomDeluxe from "@/assets/bed.jpg";
-import roomExecutive from "@/assets/bed1.jpg";
-import roomPresidential from "@/assets/bed5.jpg";
+import { Bed, Wifi, Tv, Coffee, Utensils, Calendar, ArrowLeft, Shield, Wind, Music, Moon, Bath, UserCheck, Info, Star, X, Smartphone, Building2, CreditCard as CardIcon, ChevronLeft, ChevronRight } from "lucide-react";
 import MpesaPayment from "@/components/MpesaPayment";
 import PaystackPayment from "@/components/PaystackPayment";
 import BankTransferPayment from "@/components/BankTransferPayment";
 import { supabase } from "@/lib/supabase";
+
+// ── Room images from src/assets/rooms/ (PNGs only — JPGs in rooms/ are broken) ─
+import rSt1   from "@/assets/rooms/st1.png";
+import rSup1  from "@/assets/rooms/sup1.png";
+import rSup2  from "@/assets/rooms/sup2.png";
+import rSup3  from "@/assets/rooms/sup3.png";
+import rSup4  from "@/assets/rooms/sup4.png";
+import rSup5  from "@/assets/rooms/sup5.png";
+import rEx    from "@/assets/rooms/ex.png";
+import rEx1   from "@/assets/rooms/ex1.png";
+import rEx2   from "@/assets/rooms/ex2.png";
+import rEx3   from "@/assets/rooms/ex3.png";
+import rEx4   from "@/assets/rooms/ex4.png";
+import rOut1  from "@/assets/rooms/out1.png";
+import rOut2  from "@/assets/rooms/out2.png";
+
+// Valid bed images from src/assets/ (root)
+import fallbackBed  from "@/assets/bed.jpg";
+import fallbackBed1 from "@/assets/bed1.jpg";
+import fallbackBed2 from "@/assets/bed2.jpg";
+import fallbackBed5 from "@/assets/bed5.jpg";
 
 // Define the types for room configuration and meal plans to ensure type safety.
 type RoomConfig = "single" | "double" | "twin";
@@ -30,7 +48,8 @@ const roomTypes = [
     id: "standard",
     name: "Standard Room",
     priceRange: "From KES 8,400",
-    image: roomDeluxe,
+    image: fallbackBed2,
+    gallery: [fallbackBed2, rSt1, rOut1, fallbackBed, fallbackBed1, rOut2],
     pricing: {
       single: { bed_breakfast: 8400, half_board: 10400, full_board: 12400 },
       // Note: values aligned to the provided rate card
@@ -71,7 +90,8 @@ const roomTypes = [
     id: "superior",
     name: "Superior Room",
     priceRange: "From KES 9,600",
-    image: roomExecutive,
+    image: rSup1,
+    gallery: [rSup1, rSup2, rSup3, rSup4, rSup5, fallbackBed5, rOut2],
     pricing: {
       single: { bed_breakfast: 9600, half_board: 11600, full_board: 13600 },
       double: { bed_breakfast: 12600, half_board: 16600, full_board: 20600 },
@@ -112,7 +132,8 @@ const roomTypes = [
     id: "executive",
     name: "Executive Room",
     priceRange: "From KES 13,400",
-    image: roomPresidential,
+    image: rEx,
+    gallery: [rEx, rEx1, rEx2, rEx3, rEx4, fallbackBed, fallbackBed5],
     pricing: {
       single: { bed_breakfast: 13400, half_board: 15400, full_board: 17400 },
       double: { bed_breakfast: 16900, half_board: 20900, full_board: 24900 },
@@ -204,7 +225,9 @@ const RoomFeatures = () => {
       const roomType = roomTypes.find(r => r.id === roomCategory);
       if (roomType) {
         setSelectedRoom(roomType as (typeof roomTypes)[0] & { pricing: RoomPricing });
-        setRoomImages([roomType.image, roomType.image, roomType.image]); // Use same image 3 times for demo
+        // Use the gallery images if available, otherwise fall back to single image
+        const galleryImages = (roomType as any).gallery ?? [roomType.image, roomType.image, roomType.image];
+        setRoomImages(galleryImages);
       }
       setIsLoading(false);
     }, 1000);

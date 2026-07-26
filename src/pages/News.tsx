@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { Link } from "react-router-dom";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { Button } from "@/components/ui/button";
@@ -12,6 +13,7 @@ import adventureImage from "@/assets/outdoor/mount.jpeg";
 import diningImage from "@/assets/restaurant/rest1.jpg";
 import communityImage from "@/assets/restaurant/tm.jpg";
 import festiveImage from "@/assets/facilities/conference10.jpg";
+import anniversaryImage from "@/assets/facilities/frontage.jpg";
 import { useReviews } from "@/hooks/useReviews";
 
 const newsItems = [
@@ -23,7 +25,17 @@ const newsItems = [
     author: "Peaks Hotel Team",
     category: "Festive",
     image: festiveImage,
-    isFestive: true,
+    link: "/news/festive-2026",
+  },
+  {
+    id: -1,
+    title: "Peaks Anniversary 2026 — We're Turning 8! 🎂",
+    excerpt: "We are turning 8 on 6th August 2026! Celebrate with us and enjoy an exclusive 15% discount on accommodation, wellness and outdoor activities — valid until 9th August 2026.",
+    date: "2026-07-21",
+    author: "Peaks Hotel Team",
+    category: "Anniversary",
+    image: anniversaryImage,
+    link: "/news/anniversary-2026",
   },
   {
     id: 1,
@@ -189,12 +201,14 @@ const News = () => {
                 className="bg-card rounded-xl shadow-elegant overflow-hidden group hover:shadow-xl transition-shadow duration-300"
               >
                 <div className="aspect-video bg-muted relative overflow-hidden">
-                  <img
-                    src={item.image}
-                    alt={item.title}
-                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                  />
-                  <div className="absolute top-4 left-4">
+                  {'link' in item && item.link ? (
+                    <Link to={item.link} className="block w-full h-full">
+                      <img src={item.image} alt={item.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
+                    </Link>
+                  ) : (
+                    <img src={item.image} alt={item.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
+                  )}
+                  <div className="absolute top-4 left-4 pointer-events-none">
                     <span className="bg-accent text-accent-foreground px-3 py-1 rounded-full text-sm font-medium">
                       {item.category}
                     </span>
@@ -221,11 +235,18 @@ const News = () => {
                   <p className="text-muted-foreground mb-4">
                     {item.excerpt}
                   </p>
-                  <Button variant="ghost" size="sm" className="p-0 h-auto font-semibold text-accent hover:text-accent/80"
-                    onClick={() => setSelectedNewsId(item.id)}>
-                    Read More
-                    <ArrowRight className="h-4 w-4 ml-2" />
-                  </Button>
+                  {'link' in item && item.link ? (
+                    <Button variant="ghost" size="sm" className="p-0 h-auto font-semibold text-accent hover:text-accent/80" asChild>
+                      <Link to={item.link}>
+                        Read More <ArrowRight className="h-4 w-4 ml-2" />
+                      </Link>
+                    </Button>
+                  ) : (
+                    <Button variant="ghost" size="sm" className="p-0 h-auto font-semibold text-accent hover:text-accent/80"
+                      onClick={() => setSelectedNewsId(item.id)}>
+                      Read More <ArrowRight className="h-4 w-4 ml-2" />
+                    </Button>
+                  )}
                 </div>
               </motion.article>
             ))}

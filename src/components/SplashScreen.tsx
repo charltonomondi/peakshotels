@@ -10,26 +10,17 @@ const SplashScreen = ({ onComplete }: SplashScreenProps) => {
   const [show, setShow] = useState(true);
   const [logoError, setLogoError] = useState(false);
   const [logoLoading, setLogoLoading] = useState(true);
-  const [animationComplete, setAnimationComplete] = useState(false);
 
   useEffect(() => {
-    // Allow time for initial animations, then auto-complete after 4 seconds
+    // Progress bar: starts at delay 2s, runs 2s → completes at 4s
+    // Auto-dismiss after 4.3s with 0.8s exit animation
     const timer = setTimeout(() => {
-      setAnimationComplete(true);
-    }, 3500);
+      setShow(false);
+      setTimeout(onComplete, 800);
+    }, 4300);
 
     return () => clearTimeout(timer);
-  }, []);
-
-  const handleExit = () => {
-    setShow(false);
-    setTimeout(onComplete, 800); // Wait for exit animation
-  };
-
-  // Allow skip on click - exit animation
-  const handleSkip = () => {
-    handleExit();
-  };
+  }, [onComplete]);
 
   if (!show) return null;
 
@@ -38,8 +29,8 @@ const SplashScreen = ({ onComplete }: SplashScreenProps) => {
       initial={{ opacity: 1 }}
       animate={{ opacity: show ? 1 : 0 }}
       transition={{ duration: 0.8, ease: "easeInOut" }}
-      onClick={handleSkip}
-      className="fixed inset-0 z-50 flex items-center justify-center overflow-hidden cursor-pointer"
+      onClick={undefined}
+      className="fixed inset-0 z-50 flex items-center justify-center overflow-hidden"
     >
       {/* Animated Background */}
       <div className="absolute inset-0 bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
@@ -265,16 +256,6 @@ const SplashScreen = ({ onComplete }: SplashScreenProps) => {
             />
           ))}
         </motion.div>
-
-        {/* Skip hint */}
-        <motion.p
-          initial={{ opacity: 0 }}
-          animate={{ opacity: animationComplete ? 1 : 0 }}
-          transition={{ duration: 0.3 }}
-          className="text-gray-500 text-sm mt-8"
-        >
-          Tap anywhere to continue
-        </motion.p>
       </div>
 
       {/* Decorative corners */}
