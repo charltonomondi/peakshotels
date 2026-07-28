@@ -6,7 +6,7 @@ import { CalendarDays, Users, ChevronDown } from "lucide-react";
 
 // ── Video — served from public folder ────────────────────────────────────────
 // Place v1.mp4 in public/assets/ for production deployment
-const HERO_VIDEO = "/assets/hero/v1.mp4";
+const HERO_VIDEO = "/assets/v1.mp4";
 
 const Hero = () => {
   const navigate  = useNavigate();
