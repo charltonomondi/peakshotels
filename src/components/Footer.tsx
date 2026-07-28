@@ -80,6 +80,7 @@ const Footer = () => {
                 { name: "Rooms & Suites", path: "/rooms" },
                 { name: "Restaurant & Bar", path: "/dining" },
                 { name: "Facilities", path: "/facilities" },
+                { name: "Careers", path: "/careers" },
                 { name: "Gallery", path: "/gallery" },
                 { name: "Contact", path: "/contact" },
               ].map((link) => (

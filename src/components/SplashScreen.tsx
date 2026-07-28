@@ -287,7 +287,7 @@ const SplashScreen = ({ onComplete }: SplashScreenProps) => {
       {/* Exit animation overlay */}
       <motion.div
         initial={{ scaleY: 0 }}
-        animate={{ scaleY: animationComplete && !show ? 1 : 0 }}
+        animate={{ scaleY: !show ? 1 : 0 }}
         transition={{ duration: 0.5 }}
         className="absolute inset-x-0 bottom-0 h-full bg-gradient-to-t from-slate-900 via-slate-900/90 to-transparent origin-bottom"
       />

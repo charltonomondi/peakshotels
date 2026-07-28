@@ -1,6 +1,6 @@
 import { Link, useLocation } from "react-router-dom";
 import { useState, useRef } from "react";
-import { Menu, X, Phone, Mail, ChevronDown, Star, CreditCard, Waves, Dumbbell, Flame, Wind, Sparkles, Scissors, Newspaper, Images, MessageSquare, Info, ArrowRight, Shield } from "lucide-react";
+import { Menu, X, Phone, Mail, ChevronDown, Star, CreditCard, Waves, Dumbbell, Flame, Wind, Sparkles, Scissors, Newspaper, Images, MessageSquare, Info, ArrowRight, Shield, Briefcase } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -38,6 +38,7 @@ const wellnessLinks = [
 // Secondary links tucked into a "More" dropdown
 const moreNavItems = [
   { name: "News & Updates", path: "/news",    icon: Newspaper,    desc: "Latest news and events" },
+  { name: "Careers",        path: "/careers", icon: Briefcase,    desc: "Job opportunities at Peaks Hotel" },
   { name: "Gallery",        path: "/gallery",  icon: Images,       desc: "Photos from around the hotel" },
   { name: "Contact",        path: "/contact",  icon: MessageSquare,desc: "Get in touch with us" },
   { name: "About Us",       path: "/about",    icon: Info,         desc: "Our story and values" },

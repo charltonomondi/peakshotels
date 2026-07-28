@@ -17,6 +17,7 @@ import Activities from "./pages/Activities";
 import News from "./pages/News";
 import FestivePackage from "./pages/FestivePackage";
 import AnniversaryOffer from "./pages/AnniversaryOffer";
+import Careers from "./pages/Careers";
 import Restaurant from "./pages/Restaurant";
 import Gallery from "./pages/Gallery";
 import Contact from "./pages/Contact";
@@ -75,6 +76,7 @@ const App = () => {
                   <Route path="/news" element={<News />} />
                   <Route path="/news/festive-2026" element={<FestivePackage />} />
                   <Route path="/news/anniversary-2026" element={<AnniversaryOffer />} />
+                  <Route path="/careers" element={<Careers />} />
                   <Route path="/news/festive-2026" element={<FestivePackage />} />
                   <Route path="/restaurant" element={<Restaurant />} />
                   <Route path="/gallery" element={<Gallery />} />
