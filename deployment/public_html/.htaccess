@@ -4,8 +4,12 @@ RewriteEngine On
 # ── Google Search Console verification ───────────────────────────────────────
 RewriteRule ^google[0-9a-f]+\.html$ - [L]
 
+# ── WebSocket upgrade for interview signaling ─────────────────────────────────
+RewriteCond %{HTTP:Upgrade} =websocket [NC]
+RewriteCond %{REQUEST_URI} ^/ws/interview
+RewriteRule ^ws/interview(.*)$ ws://localhost:3001/ws/interview$1 [P,L]
+
 # ── API proxy → Node.js on port 3001 ─────────────────────────────────────────
-# All /api/* requests are forwarded to the Express server
 RewriteCond %{REQUEST_URI} ^/api/
 RewriteRule ^api/(.*)$ http://localhost:3001/api/$1 [P,L]
 

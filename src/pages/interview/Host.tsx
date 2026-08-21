@@ -279,15 +279,23 @@ function HostInner() {
               <div className="space-y-2">
                 <p className="text-[10px] text-zinc-500 uppercase tracking-widest">Exam Controls</p>
                 {!examActive ? (
-                  <Button
-                    className="w-full text-xs bg-green-700 hover:bg-green-600"
-                    size="sm"
-                    onClick={startExam}
-                    disabled={admittedList.length === 0}
-                  >
-                    <PlayCircle className="h-3.5 w-3.5 mr-1" />
-                    Start Exam
-                  </Button>
+                  <>
+                    <Button
+                      className="w-full text-xs bg-green-700 hover:bg-green-600"
+                      size="sm"
+                      onClick={startExam}
+                    >
+                      <PlayCircle className="h-3.5 w-3.5 mr-1" />
+                      Start Exam
+                    </Button>
+                    {admittedList.length === 0 && (
+                      <p className="text-[10px] text-zinc-500 text-center leading-snug">
+                        {candidateList.length === 0
+                          ? "No candidates yet — you can still start the timer."
+                          : "Admit candidates below to let them receive the exam."}
+                      </p>
+                    )}
+                  </>
                 ) : (
                   <>
                     <div className="bg-red-950 border border-red-800 rounded-lg py-2 text-center">

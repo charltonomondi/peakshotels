@@ -65,7 +65,16 @@ interface InterviewContextType {
 
 const InterviewContext = createContext<InterviewContextType | null>(null);
 
-const WS_URL = import.meta.env.VITE_INTERVIEW_WS_URL || "ws://localhost:4000";
+const WS_URL = (() => {
+  // In production the signaling WS lives on the same server as the API (port 3001 → same origin via proxy).
+  // In dev, Vite proxies /ws/interview → localhost:3001/ws/interview.
+  const base = import.meta.env.VITE_INTERVIEW_WS_URL;
+  if (base) return base; // explicit override wins
+  // Auto-detect: same origin, just swap protocol
+  const proto = window.location.protocol === "https:" ? "wss:" : "ws:";
+  const host  = window.location.host; // e.g. peakshotels.co.ke  OR  localhost:8080 in dev
+  return `${proto}//${host}/ws/interview`;
+})();
 
 const RTC_CONFIG: RTCConfiguration = {
   iceServers: [
