@@ -366,10 +366,10 @@ function CandidateCard({
       animate={{ opacity: 1, scale: 1 }}
       layout
       className={`bg-zinc-900 rounded-2xl border overflow-hidden ${
-        c.admitted ? "border-zinc-800" : "border-amber-500/60 ring-1 ring-amber-500/20"
+        c.admitted ? "border-zinc-700" : "border-amber-500/60 ring-1 ring-amber-500/20"
       }`}
     >
-      {/* "Knocking" banner for unadmitted candidates */}
+      {/* ── Knocking banner ─────────────────────────────────────────────── */}
       <AnimatePresence>
         {!c.admitted && (
           <motion.div
@@ -380,9 +380,7 @@ function CandidateCard({
           >
             <div className="flex items-center gap-2 min-w-0">
               <div className="w-2 h-2 rounded-full bg-amber-400 animate-pulse shrink-0" />
-              <span className="text-[11px] text-amber-300 font-semibold truncate">
-                Wants to join
-              </span>
+              <span className="text-[11px] text-amber-300 font-semibold truncate">Wants to join</span>
             </div>
             <button
               onClick={onAdmit}
@@ -394,7 +392,7 @@ function CandidateCard({
         )}
       </AnimatePresence>
 
-      {/* Camera feed */}
+      {/* ── Camera feed ──────────────────────────────────────────────────── */}
       <div className="relative">
         <VideoTile
           stream={c.stream}
@@ -403,33 +401,50 @@ function CandidateCard({
           camOn={c.camOn}
           className="aspect-video w-full"
         />
-        {!c.screenOn && c.admitted && (
+
+        {/* Connection status overlay */}
+        {c.admitted && !c.connected && !c.stream && (
+          <div className="absolute inset-0 flex items-center justify-center bg-zinc-950/60">
+            <div className="flex flex-col items-center gap-1.5">
+              <div className="w-5 h-5 border-2 border-zinc-500 border-t-accent rounded-full animate-spin" />
+              <span className="text-[10px] text-zinc-400">Connecting…</span>
+            </div>
+          </div>
+        )}
+
+        {/* No-screen badge (only when admitted) */}
+        {c.admitted && c.connected && !c.screenOn && (
           <div className="absolute top-2 right-2">
-            <span className="bg-red-700 text-white text-[10px] font-semibold px-2 py-0.5 rounded-full flex items-center gap-1">
+            <span className="bg-red-700/90 backdrop-blur-sm text-white text-[10px] font-semibold px-2 py-0.5 rounded-full flex items-center gap-1">
               <MonitorOff className="h-2.5 w-2.5" /> No Screen
             </span>
           </div>
         )}
       </div>
 
-      {/* Screen share feed (when active) */}
-      <AnimatePresence>
-        {c.screenOn && c.screenStream && (
-          <motion.div
-            initial={{ height: 0, opacity: 0 }}
-            animate={{ height: "auto", opacity: 1 }}
-            exit={{ height: 0, opacity: 0 }}
-            className="border-t border-zinc-800 overflow-hidden"
-          >
-            <p className="text-[10px] text-zinc-500 px-2 pt-1.5 flex items-center gap-1">
-              <Monitor className="h-3 w-3" /> Screen Share
-            </p>
-            <VideoTile stream={c.screenStream} className="aspect-video w-full" />
-          </motion.div>
-        )}
-      </AnimatePresence>
+      {/* ── Screen share feed ────────────────────────────────────────────── */}
+      {c.admitted && (
+        <div className="border-t border-zinc-800">
+          <div className="px-2 py-1 flex items-center gap-1.5">
+            <Monitor className={`h-3 w-3 ${c.screenOn ? "text-blue-400" : "text-zinc-600"}`} />
+            <span className={`text-[10px] font-medium ${c.screenOn ? "text-blue-400" : "text-zinc-600"}`}>
+              {c.screenOn ? "Screen share active" : "Screen not shared"}
+            </span>
+          </div>
+          {c.screenOn && c.screenStream ? (
+            <VideoTile
+              stream={c.screenStream}
+              className="aspect-video w-full"
+            />
+          ) : (
+            <div className="aspect-video w-full bg-zinc-950 flex items-center justify-center">
+              <MonitorOff className="h-6 w-6 text-zinc-700" />
+            </div>
+          )}
+        </div>
+      )}
 
-      {/* Name, email, status row */}
+      {/* ── Name + email ─────────────────────────────────────────────────── */}
       <div className="px-3 pt-2 pb-1">
         <p className="text-xs font-semibold text-white truncate">{c.name}</p>
         {c.email && (
@@ -439,13 +454,13 @@ function CandidateCard({
         )}
       </div>
 
-      {/* Status icons + remove */}
+      {/* ── Status dots + remove ─────────────────────────────────────────── */}
       <div className="px-3 py-2 flex items-center justify-between gap-2">
         <div className="flex gap-1">
-          <StatusDot on={c.micOn} iconOn={<Mic className="h-3 w-3" />} iconOff={<MicOff className="h-3 w-3" />} title="Microphone" />
-          <StatusDot on={c.camOn} iconOn={<Video className="h-3 w-3" />} iconOff={<VideoOff className="h-3 w-3" />} title="Camera" />
-          <StatusDot on={c.screenOn} iconOn={<Monitor className="h-3 w-3" />} iconOff={<MonitorOff className="h-3 w-3" />} title="Screen" />
-          <StatusDot on={c.connected} iconOn={<Wifi className="h-3 w-3" />} iconOff={<WifiOff className="h-3 w-3" />} title="Connection" />
+          <StatusDot on={c.micOn}     iconOn={<Mic className="h-3 w-3" />}       iconOff={<MicOff className="h-3 w-3" />}     title="Microphone" />
+          <StatusDot on={c.camOn}     iconOn={<Video className="h-3 w-3" />}      iconOff={<VideoOff className="h-3 w-3" />}   title="Camera" />
+          <StatusDot on={c.screenOn}  iconOn={<Monitor className="h-3 w-3" />}    iconOff={<MonitorOff className="h-3 w-3" />} title="Screen" />
+          <StatusDot on={c.connected} iconOn={<Wifi className="h-3 w-3" />}       iconOff={<WifiOff className="h-3 w-3" />}    title="Connection" />
         </div>
         <button
           onClick={onRemove}
