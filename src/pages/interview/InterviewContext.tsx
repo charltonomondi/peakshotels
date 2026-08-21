@@ -144,14 +144,18 @@ export function InterviewProvider({ children }: { children: React.ReactNode }) {
 
     const pc = new RTCPeerConnection(RTC_CONFIG);
 
-    // Add local camera/mic
-    localStreamRef.current?.getTracks().forEach(t =>
-      pc.addTrack(t, localStreamRef.current!),
-    );
-    // Add screen share if already active
-    screenStreamRef.current?.getTracks().forEach(t =>
-      pc.addTrack(t, screenStreamRef.current!),
-    );
+    // Add local camera/mic tracks with a stream label the receiver can identify
+    if (localStreamRef.current) {
+      localStreamRef.current.getTracks().forEach(t =>
+        pc.addTrack(t, localStreamRef.current!),
+      );
+    }
+    // Add screen share if already active — in a separate stream
+    if (screenStreamRef.current) {
+      screenStreamRef.current.getTracks().forEach(t =>
+        pc.addTrack(t, screenStreamRef.current!),
+      );
+    }
 
     // ICE candidates → send via broadcast
     pc.onicecandidate = (e) => {
@@ -160,19 +164,58 @@ export function InterviewProvider({ children }: { children: React.ReactNode }) {
     };
 
     // Incoming media — host only (privacy enforcement)
+    // We distinguish camera vs screen by stream ID:
+    //   – first stream = camera/mic
+    //   – second stream = screen share
+    // The candidate sends them in separate streams via addTrack(track, dedicatedStream)
+    const receivedStreams: MediaStream[] = [];
+
     pc.ontrack = (e) => {
       if (roleRef.current !== "host") return;
-      const stream = e.streams[0] ?? new MediaStream([e.track]);
-      const label  = e.track.label?.toLowerCase() ?? "";
-      const isScreen = label.includes("screen") || label.includes("display")
-        || e.track.contentHint === "detail";
+
+      const incomingStream = e.streams[0];
+      if (!incomingStream) return;
+
+      // Avoid duplicates
+      if (receivedStreams.find(s => s.id === incomingStream.id)) return;
+      receivedStreams.push(incomingStream);
+
+      // First stream = camera, second = screen share
+      const isScreen = receivedStreams.length >= 2 ||
+        incomingStream.getVideoTracks().some(t =>
+          t.label.toLowerCase().includes("screen") ||
+          t.label.toLowerCase().includes("display") ||
+          t.contentHint === "detail"
+        );
 
       updateCandidates(prev => {
         const next = new Map(prev);
         const c = next.get(peerId);
-        if (c) next.set(peerId, isScreen ? { ...c, screenStream: stream } : { ...c, stream });
+        if (c) {
+          if (isScreen) {
+            next.set(peerId, { ...c, screenStream: incomingStream });
+          } else {
+            next.set(peerId, { ...c, stream: incomingStream });
+          }
+        }
         return next;
       });
+
+      // Handle new tracks added to an existing stream (e.g. audio added after video)
+      incomingStream.onaddtrack = () => {
+        updateCandidates(prev => {
+          const next = new Map(prev);
+          const c = next.get(peerId);
+          if (!c) return prev;
+          // Force a re-render by creating a new stream reference wrapper
+          if (isScreen) {
+            next.set(peerId, { ...c, screenStream: incomingStream });
+          } else {
+            next.set(peerId, { ...c, stream: incomingStream });
+          }
+          return next;
+        });
+      };
     };
 
     // Connection state
@@ -203,6 +246,7 @@ export function InterviewProvider({ children }: { children: React.ReactNode }) {
     if (isInitiator) {
       pc.onnegotiationneeded = async () => {
         try {
+          if (pc.signalingState !== "stable") return;
           const offer = await pc.createOffer();
           await pc.setLocalDescription(offer);
           broadcast("offer", { to: peerId, from: myIdRef.current, sdp: pc.localDescription });
@@ -508,12 +552,26 @@ export function InterviewProvider({ children }: { children: React.ReactNode }) {
       video: { displaySurface: "monitor" } as MediaTrackConstraints,
       audio: true,
     });
+
+    // Label the screen tracks so the receiver can identify them
+    screen.getVideoTracks().forEach(t => { t.contentHint = "detail"; });
+
     screenStreamRef.current = screen;
     setScreenStream(screen);
 
-    // Add to all existing peer connections
-    peersRef.current.forEach(pc => {
-      screen.getVideoTracks().forEach(t => { try { pc.addTrack(t, screen); } catch {} });
+    // Add screen tracks to all existing peer connections and renegotiate
+    peersRef.current.forEach((pc, peerId) => {
+      screen.getTracks().forEach(t => {
+        try { pc.addTrack(t, screen); } catch {}
+      });
+      // Manually trigger renegotiation since onnegotiationneeded may not fire
+      if (pc.signalingState === "stable") {
+        pc.createOffer().then(offer => {
+          return pc.setLocalDescription(offer).then(() => {
+            broadcast("offer", { to: peerId, from: myIdRef.current, sdp: pc.localDescription });
+          });
+        }).catch(console.error);
+      }
     });
 
     if (roleRef.current === "candidate") {
