@@ -1,25 +1,24 @@
 ---
 deployment:
   tasks:
-    # Exit on any error
-    - /bin/bash -c 'set -e'
+    # ── Frontend ──────────────────────────────────────────────────────────────
+    # Copy the pre-built React app from deployment/public_html into public_html
+    - /bin/mkdir -p /home/$USER/public_html
+    - /bin/cp -r deployment/public_html/. /home/$USER/public_html/
+    - echo "✓ Frontend deployed to /home/$USER/public_html"
 
-    # 1. Copy built frontend to public_html
-    - export DEPLOYPATH=/home/$USER/public_html
-    - /bin/mkdir -p $DEPLOYPATH
-    - /bin/cp -r deployment/public_html/. $DEPLOYPATH/
-    - echo "Frontend deployed to $DEPLOYPATH"
+    # ── Node.js server ────────────────────────────────────────────────────────
+    # Copy server source files into the nodeapp directory
+    - /bin/mkdir -p /home/$USER/nodeapp
+    - /bin/cp -r deployment/server/. /home/$USER/nodeapp/
+    - echo "✓ Server files copied to /home/$USER/nodeapp"
 
-    # 2. Copy server to nodeapp directory (outside public_html)
-    - export SERVERPATH=/home/$USER/nodeapp
-    - /bin/mkdir -p $SERVERPATH
-    - /bin/cp -r deployment/server/. $SERVERPATH/
-    - echo "Server deployed to $SERVERPATH"
+    # Install production Node.js dependencies
+    - /bin/bash -c 'cd /home/$USER/nodeapp && npm install --omit=dev --prefer-offline 2>&1 | tail -5'
+    - echo "✓ npm install complete"
 
-    # 3. Install server Node.js dependencies
-    - cd $SERVERPATH && npm install --omit=dev
-    - echo "Server dependencies installed"
-
-    # 4. Restart Node.js app (cPanel Passenger/Node.js restart trigger)
-    - /bin/touch $SERVERPATH/tmp/restart.txt 2>/dev/null || true
-    - echo "Node.js app restart triggered"
+    # ── Restart Node.js application ───────────────────────────────────────────
+    # cPanel Node.js Selector watches for this file to trigger a restart
+    - /bin/mkdir -p /home/$USER/nodeapp/tmp
+    - /bin/touch /home/$USER/nodeapp/tmp/restart.txt
+    - echo "✓ Node.js app restart triggered"
