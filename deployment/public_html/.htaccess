@@ -1,17 +1,22 @@
 Options -MultiViews
 RewriteEngine On
 
-# Never rewrite Google Search Console verification files
+# ── Google Search Console verification ───────────────────────────────────────
 RewriteRule ^google[0-9a-f]+\.html$ - [L]
 
-# Serve existing files/directories directly
+# ── API proxy → Node.js on port 3001 ─────────────────────────────────────────
+# All /api/* requests are forwarded to the Express server
+RewriteCond %{REQUEST_URI} ^/api/
+RewriteRule ^api/(.*)$ http://localhost:3001/api/$1 [P,L]
+
+# ── Serve existing files/directories directly ─────────────────────────────────
 RewriteCond %{REQUEST_FILENAME} !-f
 RewriteCond %{REQUEST_FILENAME} !-d
 
-# Route all other requests to index.html (React Router)
+# ── React Router SPA fallback ─────────────────────────────────────────────────
 RewriteRule ^ index.html [QSA,L]
 
-# MIME types for media
+# ── MIME types ────────────────────────────────────────────────────────────────
 <IfModule mod_mime.c>
   AddType video/mp4 .mp4
   AddType video/webm .webm
@@ -21,7 +26,7 @@ RewriteRule ^ index.html [QSA,L]
   AddType image/svg+xml .svg
 </IfModule>
 
-# Cache static assets
+# ── Cache static assets ───────────────────────────────────────────────────────
 <IfModule mod_expires.c>
   ExpiresActive On
   ExpiresByType image/jpeg "access plus 1 year"
@@ -36,12 +41,12 @@ RewriteRule ^ index.html [QSA,L]
   ExpiresByType application/json "access plus 0 seconds"
 </IfModule>
 
-# Gzip compression
+# ── Gzip compression ──────────────────────────────────────────────────────────
 <IfModule mod_deflate.c>
   AddOutputFilterByType DEFLATE text/html text/css application/javascript application/json
 </IfModule>
 
-# Security headers
+# ── Security headers ──────────────────────────────────────────────────────────
 <IfModule mod_headers.c>
   Header always set X-Content-Type-Options nosniff
   Header always set X-Frame-Options SAMEORIGIN
