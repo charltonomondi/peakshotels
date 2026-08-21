@@ -56,6 +56,13 @@ export default defineConfig(({ mode }) => ({
         changeOrigin: true,
         secure: false,
       },
+      // Interview signaling WebSocket
+      '/interview-ws': {
+        target: 'ws://localhost:4000',
+        ws: true,
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/interview-ws/, ''),
+      },
     }
   },
   plugins: [react(), mode === "development" && componentTagger()].filter(Boolean),
