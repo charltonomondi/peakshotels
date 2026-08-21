@@ -56,12 +56,11 @@ export default defineConfig(({ mode }) => ({
         changeOrigin: true,
         secure: false,
       },
-      // Interview signaling WebSocket
-      '/interview-ws': {
-        target: 'ws://localhost:4000',
+      // Interview signaling WebSocket (served by Express on port 3001)
+      '/ws/interview': {
+        target: 'ws://localhost:3001',
         ws: true,
         changeOrigin: true,
-        rewrite: (path) => path.replace(/^\/interview-ws/, ''),
       },
     }
   },

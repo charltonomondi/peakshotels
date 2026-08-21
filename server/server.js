@@ -1,4 +1,6 @@
 import express from "express";
+import { createServer as createHttpServer } from "http";
+import { WebSocketServer } from "ws";
 import nodemailer from "nodemailer";
 import cors from "cors";
 import axios from "axios";
@@ -1329,8 +1331,107 @@ transporter.verify()
     console.error("Please check your email credentials and app password");
   });
 
-app.listen(PORT, () => {
-  console.log(`🚀 Peaks Hotel Booking API server running on http://localhost:${PORT}`);
-  console.log(`📧 Email service configured for: PEAKS HOTEL NANYUKI (cipherctech@gmail.com)`);
-  console.log(`🔐 Using SMTP/TLS on port 587`);
+// ── Interview Signaling Server (WebSocket on same port as Express) ────────────
+// Rooms: Map<roomId, Map<clientId, { ws, role, name, email }>>
+const interviewRooms = new Map();
+
+function getInterviewRoom(roomId) {
+  if (!interviewRooms.has(roomId)) interviewRooms.set(roomId, new Map());
+  return interviewRooms.get(roomId);
+}
+
+function getRoomHost(room) {
+  for (const [, peer] of room) {
+    if (peer.role === "host") return peer;
+  }
+  return null;
+}
+
+function wsSend(peer, msg) {
+  if (peer?.ws?.readyState === 1) peer.ws.send(JSON.stringify(msg));
+}
+
+const httpServer = createHttpServer(app);
+const wss = new WebSocketServer({ server: httpServer, path: "/ws/interview" });
+
+wss.on("connection", (ws, req) => {
+  const url = new URL(req.url, "http://localhost");
+  const roomId   = url.searchParams.get("room")  || "default";
+  const clientId = url.searchParams.get("id")    || Math.random().toString(36).slice(2);
+  const role     = url.searchParams.get("role")  || "candidate";
+  const name     = decodeURIComponent(url.searchParams.get("name")  || "Unknown");
+  const email    = decodeURIComponent(url.searchParams.get("email") || "");
+
+  const room = getInterviewRoom(roomId);
+  room.set(clientId, { ws, role, name, email });
+  console.log(`[interview] ${role} "${name}" joined room ${roomId} (${room.size} total)`);
+
+  if (role === "candidate") {
+    const host = getRoomHost(room);
+    wsSend(host, { type: "joined", id: clientId, name, email });
+  } else if (role === "host") {
+    for (const [id, peer] of room) {
+      if (id !== clientId && peer.role === "candidate") {
+        wsSend({ ws }, { type: "joined", id, name: peer.name, email: peer.email || "" });
+      }
+    }
+  }
+
+  ws.on("message", (raw) => {
+    let msg;
+    try { msg = JSON.parse(raw); } catch { return; }
+    const { type, to } = msg;
+
+    if (type === "offer" || type === "answer" || type === "ice") {
+      const me = room.get(clientId);
+      if (!me) return;
+      if (me.role === "candidate") {
+        wsSend(getRoomHost(room), { ...msg, from: clientId });
+      } else if (me.role === "host" && to) {
+        wsSend(room.get(to), { ...msg, from: clientId });
+      }
+      return;
+    }
+
+    if (type === "admit" && to) {
+      if (room.get(clientId)?.role !== "host") return;
+      wsSend(room.get(to), { type: "admitted" });
+      return;
+    }
+
+    if (type === "remove" && to) {
+      if (room.get(clientId)?.role !== "host") return;
+      wsSend(room.get(to), { type: "removed" });
+      room.delete(to);
+      return;
+    }
+
+    if (type === "candidate-status" || type === "visibility") {
+      wsSend(getRoomHost(room), { ...msg, from: clientId });
+      return;
+    }
+
+    if (type === "exam-start" || type === "exam-end") {
+      if (room.get(clientId)?.role !== "host") return;
+      for (const [id, peer] of room) {
+        if (id !== clientId && peer.role === "candidate") wsSend(peer, msg);
+      }
+      return;
+    }
+  });
+
+  ws.on("close", () => {
+    room.delete(clientId);
+    if (room.size === 0) interviewRooms.delete(roomId);
+    if (role === "candidate") {
+      wsSend(getRoomHost(room), { type: "left", id: clientId, name });
+    }
+    console.log(`[interview] ${role} "${name}" left room ${roomId}`);
+  });
+});
+
+httpServer.listen(PORT, () => {
+  console.log(`🚀 Peaks Hotel server running on http://localhost:${PORT}`);
+  console.log(`🎙  Interview WS: ws://localhost:${PORT}/ws/interview`);
+  console.log(`📧 Email service: cipherctech@gmail.com`);
 });
