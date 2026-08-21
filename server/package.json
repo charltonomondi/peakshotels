@@ -9,6 +9,8 @@
     "build": "echo 'No build step required for server'",
     "stk:start": "node stk_server.js",
     "stk:dev": "nodemon stk_server.js",
+    "interview:start": "node interview-signal.js",
+    "interview:dev": "nodemon interview-signal.js",
     "lint": "eslint . --ext .js"
   },
   "dependencies": {
@@ -19,7 +21,8 @@
     "express": "^4.22.1",
     "intasend-node": "^1.1.2",
     "node-fetch": "^3.3.2",
-    "nodemailer": "^6.9.7"
+    "nodemailer": "^6.9.7",
+    "ws": "^8.18.0"
   },
   "devDependencies": {
     "eslint": "^8.57.0",

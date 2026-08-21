@@ -4,7 +4,7 @@ import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import SEO from "@/components/SEO";
 import { Button } from "@/components/ui/button";
-import { Briefcase, GraduationCap, Clock, Mail, Paperclip, Calendar, CheckCircle2, ArrowRight, Users } from "lucide-react";
+import { Briefcase, GraduationCap, Clock, Mail, Paperclip, Calendar, CheckCircle2, ArrowRight, Users, Video, Monitor, Shield } from "lucide-react";
 import heroImage from "@/assets/facilities/frontage.jpg";
 
 const positions = [
@@ -198,6 +198,63 @@ export default function Careers() {
                   {v}
                 </div>
               ))}
+            </div>
+          </motion.div>
+        </div>
+      </section>
+
+      {/* Interview Platform CTA */}
+      <section className="py-14 bg-zinc-950">
+        <div className="container mx-auto px-4 sm:px-6">
+          <motion.div
+            initial={{ opacity: 0, y: 24 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            className="max-w-4xl mx-auto"
+          >
+            <div className="text-center mb-8">
+              <div className="inline-flex items-center justify-center w-12 h-12 rounded-2xl bg-accent/20 mb-4">
+                <Video className="h-6 w-6 text-accent" />
+              </div>
+              <h2 className="font-heading text-2xl sm:text-3xl font-bold text-white mb-3">
+                Online Interview &amp; Examination Platform
+              </h2>
+              <p className="text-zinc-400 text-sm max-w-xl mx-auto">
+                We conduct shortlisted candidate interviews online. Hosts can monitor all participants via live video,
+                while candidates sit a timed Google Forms exam — fully proctored and audit-logged.
+              </p>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
+              {[
+                { icon: <Monitor className="h-5 w-5 text-accent" />, title: "Full Screen Monitoring", desc: "Candidates must share their entire screen throughout the exam." },
+                { icon: <Shield className="h-5 w-5 text-accent" />, title: "Privacy Enforced", desc: "Candidates never see each other. Only the host sees all participants." },
+                { icon: <Users className="h-5 w-5 text-accent" />, title: "Multi-Candidate", desc: "Host monitors a grid of all candidates with camera, screen and mic status." },
+              ].map((f, i) => (
+                <motion.div
+                  key={i}
+                  initial={{ opacity: 0, y: 16 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ delay: i * 0.1 }}
+                  className="bg-zinc-900 border border-zinc-800 rounded-2xl p-5"
+                >
+                  <div className="w-9 h-9 bg-accent/10 rounded-xl flex items-center justify-center mb-3">
+                    {f.icon}
+                  </div>
+                  <h3 className="text-white text-sm font-semibold mb-1">{f.title}</h3>
+                  <p className="text-zinc-500 text-xs leading-relaxed">{f.desc}</p>
+                </motion.div>
+              ))}
+            </div>
+
+            <div className="flex flex-col sm:flex-row gap-3 justify-center">
+              <Button variant="outline" size="lg" className="border-zinc-700 text-zinc-300 hover:text-white hover:border-zinc-500" asChild>
+                <Link to="/interview">
+                  <Users className="h-4 w-4 mr-2" />
+                  Join Meeting
+                </Link>
+              </Button>
             </div>
           </motion.div>
         </div>

@@ -44,6 +44,9 @@ import StaffLogin from "./pages/staff/Login";
 import StaffSignup from "./pages/staff/Signup";
 import StaffDashboard from "./pages/staff/Dashboard";
 import StaffResetPassword from "./pages/staff/ResetPassword";
+import InterviewLobby from "./pages/interview/Lobby";
+import InterviewHost from "./pages/interview/Host";
+import InterviewCandidate from "./pages/interview/Candidate";
 
 const queryClient = new QueryClient();
 
@@ -101,6 +104,9 @@ const App = () => {
                   <Route path="/staff/signup" element={<StaffSignup />} />
                   <Route path="/staff/dashboard" element={<StaffDashboard />} />
                   <Route path="/staff/reset-password" element={<StaffResetPassword />} />
+                  <Route path="/interview" element={<InterviewLobby />} />
+                  <Route path="/interview/host/:roomId" element={<InterviewHost />} />
+                  <Route path="/interview/candidate/:roomId" element={<InterviewCandidate />} />
                   <Route path="*" element={<NotFound />} />
                 </Routes>
               </>
