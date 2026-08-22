@@ -328,7 +328,9 @@ export function InterviewProvider({ children }: { children: React.ReactNode }) {
   }, [bcast]);
 
   const startScreenShare = useCallback(async () => {
-    const screen = await navigator.mediaDevices.getDisplayMedia({ video: { displaySurface: "monitor" } as MediaTrackConstraints, audio: true });
+    // Don't constrain displaySurface — let the browser show all options
+    // (screen, window, tab) so it works on all platforms
+    const screen = await navigator.mediaDevices.getDisplayMedia({ video: true, audio: true });
     screen.getVideoTracks().forEach(t => { t.contentHint = "detail"; });
     screenRef.current = screen; setScreenStream(screen);
     peersRef.current.forEach((pc, pid) => {
