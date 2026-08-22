@@ -10,12 +10,13 @@ import { motion, AnimatePresence } from "framer-motion";
 import {
   Mic, MicOff, Video, VideoOff, Monitor, MonitorOff,
   Clock, LogOut, Wifi, WifiOff,
-  AlertTriangle, CheckCircle2, Hourglass, Maximize2, Minimize2,
+  AlertTriangle, CheckCircle2, Hourglass, Maximize2, Minimize2, MessageSquare,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useInterview, InterviewProvider } from "./InterviewContext";
 import VideoTile from "./VideoTile";
+import ChatPanel from "./ChatPanel";
 
 type Step = "media-check" | "waiting" | "exam" | "ended" | "kicked";
 
@@ -45,10 +46,10 @@ function CandidateInner() {
   const {
     localStream, screenStream,
     examActive, examFormUrl, examSecondsLeft,
-    connected, admitted,
+    connected, admitted, myId, myName: ctxName,
     initCandidate, toggleMic, toggleCam,
     startScreenShare, stopScreenShare,
-    disconnect, sendVisibilityEvent,
+    disconnect, sendVisibilityEvent, sendChat, chatMessages,
   } = useInterview();
 
   const [step, setStep] = useState<Step>("media-check");
@@ -58,6 +59,7 @@ function CandidateInner() {
   const [screenError, setScreenError] = useState("");
   const [tabWarnings, setTabWarnings] = useState(0);
   const [formExpanded, setFormExpanded] = useState(false);
+  const [chatOpen, setChatOpen] = useState(false);
   const mobile = isMobile();
   const screenSupported = canShareScreen();
   const prevStep = useRef<Step>("media-check");
@@ -140,6 +142,19 @@ function CandidateInner() {
                 <WifiOff className="h-3 w-3 mr-1" /> …
               </Badge>
             )}
+            {/* Chat toggle */}
+            <button
+              onClick={() => setChatOpen(o => !o)}
+              className={`relative w-7 h-7 flex items-center justify-center rounded-lg transition-colors ${chatOpen ? "bg-accent text-accent-foreground" : "bg-zinc-800 text-zinc-400 hover:text-white"}`}
+              title="Chat"
+            >
+              <MessageSquare className="h-3.5 w-3.5" />
+              {chatMessages.length > 0 && !chatOpen && (
+                <span className="absolute -top-0.5 -right-0.5 w-3 h-3 rounded-full bg-red-500 text-[8px] text-white flex items-center justify-center font-bold">
+                  {chatMessages.length > 9 ? "9" : chatMessages.length}
+                </span>
+              )}
+            </button>
           </div>
         </header>
 
@@ -273,6 +288,19 @@ function CandidateInner() {
             </div>
           )}
         </div>
+
+        {/* Chat overlay panel — slides in from the right */}
+        {chatOpen && (
+          <div className="fixed inset-y-0 right-0 w-72 z-40 flex flex-col shadow-2xl">
+            <ChatPanel
+              messages={chatMessages}
+              myId={myId}
+              myName={ctxName ?? name}
+              onSend={sendChat}
+              className="h-full rounded-none border-l border-zinc-700"
+            />
+          </div>
+        )}
       </div>
     );
   }

@@ -10,12 +10,13 @@ import {
   Mic, MicOff, Video, VideoOff, Monitor, MonitorOff,
   Users, PlayCircle, StopCircle, LogOut, Clock,
   AlertTriangle, CheckCircle2, XCircle, Wifi, WifiOff,
-  ScrollText, PanelRight, ClipboardCopy, Mail,
+  ScrollText, PanelRight, ClipboardCopy, Mail, MessageSquare,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useInterview, InterviewProvider } from "./InterviewContext";
 import VideoTile from "./VideoTile";
+import ChatPanel from "./ChatPanel";
 
 function formatTime(s: number) {
   const m = Math.floor(s / 60).toString().padStart(2, "0");
@@ -32,15 +33,15 @@ function HostInner() {
     (location.state as { name: string; formUrl: string; duration: number }) || {};
 
   const {
-    localStream, candidates, auditLog,
+    localStream, candidates, auditLog, chatMessages,
     examActive, examSecondsLeft,
-    connected,
+    connected, myId, myName: hostName,
     initHost, startExam, endExam,
     admitCandidate, removeCandidate,
-    toggleMic, toggleCam, disconnect,
+    toggleMic, toggleCam, disconnect, sendChat,
   } = useInterview();
 
-  const [activeTab, setActiveTab] = useState<"monitor" | "audit">("monitor");
+  const [activeTab, setActiveTab] = useState<"monitor" | "audit" | "chat">("monitor");
   const [initialized, setInitialized] = useState(false);
   const [micOn, setMicOn] = useState(true);
   const [camOn, setCamOn] = useState(true);
@@ -149,20 +150,27 @@ function HostInner() {
 
           {/* Tabs */}
           <div className="flex items-center gap-1 mb-4">
-            {(["monitor", "audit"] as const).map(t => (
+            {(["monitor", "audit", "chat"] as const).map(t => (
               <button
                 key={t}
                 onClick={() => setActiveTab(t)}
-                className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
+                className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors relative ${
                   activeTab === t
                     ? "bg-accent text-accent-foreground"
                     : "text-zinc-400 hover:text-white hover:bg-zinc-800"
                 }`}
               >
-                {t === "monitor" ? (
-                  <><Users className="h-3.5 w-3.5 inline mr-1" />Candidates ({candidateList.length})</>
-                ) : (
-                  <><ScrollText className="h-3.5 w-3.5 inline mr-1" />Audit ({auditLog.length})</>
+                {t === "monitor" && <><Users className="h-3.5 w-3.5 inline mr-1" />Candidates ({candidateList.length})</>}
+                {t === "audit"   && <><ScrollText className="h-3.5 w-3.5 inline mr-1" />Audit ({auditLog.length})</>}
+                {t === "chat"    && (
+                  <>
+                    <MessageSquare className="h-3.5 w-3.5 inline mr-1" />Chat
+                    {chatMessages.length > 0 && activeTab !== "chat" && (
+                      <span className="ml-1 inline-flex items-center justify-center w-4 h-4 rounded-full bg-accent text-accent-foreground text-[9px] font-bold">
+                        {chatMessages.length > 9 ? "9+" : chatMessages.length}
+                      </span>
+                    )}
+                  </>
                 )}
               </button>
             ))}
@@ -234,6 +242,17 @@ function HostInner() {
                 </div>
               )}
             </div>
+          )}
+
+          {/* ── Chat ──────────────────────────────────────────────────────── */}
+          {activeTab === "chat" && (
+            <ChatPanel
+              messages={chatMessages}
+              myId={myId}
+              myName={hostName ?? name}
+              onSend={sendChat}
+              className="h-[calc(100vh-14rem)]"
+            />
           )}
         </main>
 
