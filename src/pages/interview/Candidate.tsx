@@ -162,31 +162,65 @@ function CandidateInner() {
             <div className="absolute inset-0 flex flex-col">
               <div className="flex items-center justify-between bg-zinc-800 px-3 py-1.5 shrink-0">
                 <span className="text-[10px] text-zinc-400 truncate flex-1 mr-2">
-                  {examFormUrl}
+                  {/* Never show the URL until exam is active and admitted */}
+                  {admitted && examActive && examSecondsLeft > 0 ? examFormUrl : "Examination Form"}
                 </span>
-                <button
-                  onClick={() => setFormExpanded(e => !e)}
-                  className="text-zinc-400 hover:text-white p-1 rounded"
-                  title={formExpanded ? "Exit fullscreen" : "Fullscreen form"}
-                >
-                  {formExpanded
-                    ? <Minimize2 className="h-3.5 w-3.5" />
-                    : <Maximize2 className="h-3.5 w-3.5" />}
-                </button>
+                {admitted && examActive && examSecondsLeft > 0 && (
+                  <button
+                    onClick={() => setFormExpanded(e => !e)}
+                    className="text-zinc-400 hover:text-white p-1 rounded"
+                    title={formExpanded ? "Exit fullscreen" : "Fullscreen form"}
+                  >
+                    {formExpanded
+                      ? <Minimize2 className="h-3.5 w-3.5" />
+                      : <Maximize2 className="h-3.5 w-3.5" />}
+                  </button>
+                )}
               </div>
-              {examFormUrl ? (
-                <iframe
-                  src={examFormUrl}
-                  className="flex-1 w-full border-0 bg-white"
-                  allow="camera; microphone"
-                  title="Examination Form"
-                  sandbox="allow-same-origin allow-scripts allow-forms allow-popups allow-top-navigation"
-                />
-              ) : (
-                <div className="flex-1 flex items-center justify-center text-zinc-500 text-sm">
-                  No exam form URL provided.
+
+              {/* ── Gate: only show form when admitted + exam running + time remaining ── */}
+              {admitted && examActive && examSecondsLeft > 0 ? (
+                examFormUrl ? (
+                  <iframe
+                    src={examFormUrl}
+                    className="flex-1 w-full border-0 bg-white"
+                    allow="camera; microphone"
+                    title="Examination Form"
+                    sandbox="allow-same-origin allow-scripts allow-forms allow-popups allow-top-navigation"
+                  />
+                ) : (
+                  <div className="flex-1 flex items-center justify-center text-zinc-500 text-sm">
+                    No exam form URL provided.
+                  </div>
+                )
+              ) : !admitted ? (
+                /* Not yet admitted */
+                <div className="flex-1 flex flex-col items-center justify-center bg-zinc-950 gap-4 px-8 text-center">
+                  <div className="w-14 h-14 rounded-2xl bg-zinc-800 flex items-center justify-center">
+                    <Hourglass className="h-7 w-7 text-amber-400" />
+                  </div>
+                  <p className="text-white font-semibold text-base">Waiting for Admission</p>
+                  <p className="text-zinc-400 text-sm leading-relaxed">
+                    The host has not admitted you yet. The examination form will appear here
+                    once you are admitted and the exam begins.
+                  </p>
                 </div>
-              )}
+              ) : !examActive || examSecondsLeft === 0 ? (
+                /* Time elapsed or exam ended */
+                <div className="flex-1 flex flex-col items-center justify-center bg-zinc-950 gap-4 px-8 text-center">
+                  <div className="w-14 h-14 rounded-2xl bg-red-900/40 flex items-center justify-center">
+                    <Clock className="h-7 w-7 text-red-400" />
+                  </div>
+                  <p className="text-white font-semibold text-base">
+                    {examSecondsLeft === 0 ? "Time's Up" : "Exam Not Started"}
+                  </p>
+                  <p className="text-zinc-400 text-sm leading-relaxed">
+                    {examSecondsLeft === 0
+                      ? "The examination time has elapsed. The form is no longer accessible."
+                      : "The host has not started the examination yet. Please wait."}
+                  </p>
+                </div>
+              ) : null}
             </div>
           </div>
 
