@@ -142,19 +142,16 @@ function CandidateInner() {
                 <WifiOff className="h-3 w-3 mr-1" /> …
               </Badge>
             )}
-            {/* Chat toggle */}
-            <button
-              onClick={() => setChatOpen(o => !o)}
-              className={`relative w-7 h-7 flex items-center justify-center rounded-lg transition-colors ${chatOpen ? "bg-accent text-accent-foreground" : "bg-zinc-800 text-zinc-400 hover:text-white"}`}
-              title="Chat"
-            >
-              <MessageSquare className="h-3.5 w-3.5" />
-              {chatMessages.length > 0 && !chatOpen && (
-                <span className="absolute -top-0.5 -right-0.5 w-3 h-3 rounded-full bg-red-500 text-[8px] text-white flex items-center justify-center font-bold">
-                  {chatMessages.length > 9 ? "9" : chatMessages.length}
-                </span>
-              )}
-            </button>
+            {/* Chat indicator — main button is floating bottom-right */}
+            {chatMessages.filter(m => m.senderId !== myId).length > 0 && !chatOpen && (
+              <button
+                onClick={() => setChatOpen(true)}
+                className="relative w-7 h-7 flex items-center justify-center rounded-lg bg-red-600 text-white animate-pulse"
+                title="New message from examiner"
+              >
+                <MessageSquare className="h-3.5 w-3.5" />
+              </button>
+            )}
           </div>
         </header>
 
@@ -177,8 +174,7 @@ function CandidateInner() {
             <div className="absolute inset-0 flex flex-col">
               <div className="flex items-center justify-between bg-zinc-800 px-3 py-1.5 shrink-0">
                 <span className="text-[10px] text-zinc-400 truncate flex-1 mr-2">
-                  {/* Never show the URL until exam is active and admitted */}
-                  {admitted && examActive && examSecondsLeft > 0 ? examFormUrl : "Examination Form"}
+                  Examination Form
                 </span>
                 {admitted && examActive && examSecondsLeft > 0 && (
                   <button
@@ -289,18 +285,58 @@ function CandidateInner() {
           )}
         </div>
 
-        {/* Chat overlay panel — slides in from the right */}
-        {chatOpen && (
-          <div className="fixed inset-y-0 right-0 w-72 z-40 flex flex-col shadow-2xl">
-            <ChatPanel
-              messages={chatMessages}
-              myId={myId}
-              myName={ctxName ?? name}
-              onSend={sendChat}
-              className="h-full rounded-none border-l border-zinc-700"
-            />
-          </div>
-        )}
+        {/* Chat toggle button — prominent, always visible during exam */}
+        <button
+          onClick={() => setChatOpen(o => !o)}
+          className="fixed bottom-6 right-6 z-40 flex items-center gap-2 bg-accent text-accent-foreground px-4 py-2.5 rounded-full shadow-lg hover:bg-accent/90 transition-colors font-medium text-sm"
+        >
+          <MessageSquare className="h-4 w-4" />
+          Chat with Examiner
+          {chatMessages.filter(m => m.senderId !== myId).length > 0 && (
+            <span className="bg-red-500 text-white text-[10px] font-bold w-5 h-5 rounded-full flex items-center justify-center">
+              {chatMessages.filter(m => m.senderId !== myId).length > 9 ? "9+" : chatMessages.filter(m => m.senderId !== myId).length}
+            </span>
+          )}
+        </button>
+
+        {/* Chat modal */}
+        <AnimatePresence>
+          {chatOpen && (
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 20 }}
+              transition={{ duration: 0.2 }}
+              className="fixed bottom-20 right-6 z-50 w-80 shadow-2xl"
+            >
+              <div className="bg-zinc-900 border border-zinc-700 rounded-2xl overflow-hidden flex flex-col"
+                style={{ height: "420px" }}>
+                {/* Modal header with close button */}
+                <div className="flex items-center justify-between px-4 py-3 bg-zinc-800 border-b border-zinc-700 shrink-0">
+                  <div className="flex items-center gap-2">
+                    <MessageSquare className="h-4 w-4 text-accent" />
+                    <span className="text-sm font-semibold text-white">Chat with Examiner</span>
+                  </div>
+                  <button
+                    onClick={() => setChatOpen(false)}
+                    className="w-6 h-6 flex items-center justify-center rounded-lg bg-zinc-700 hover:bg-zinc-600 text-zinc-400 hover:text-white transition-colors"
+                    title="Close chat"
+                  >
+                    <span className="text-sm leading-none">✕</span>
+                  </button>
+                </div>
+                {/* Chat content */}
+                <ChatPanel
+                  messages={chatMessages}
+                  myId={myId}
+                  myName={ctxName ?? name}
+                  onSend={sendChat}
+                  className="flex-1 rounded-none border-0"
+                />
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
     );
   }
