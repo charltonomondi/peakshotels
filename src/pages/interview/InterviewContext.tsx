@@ -1,11 +1,13 @@
 /**
  * InterviewContext — WebRTC Interview Platform
- * Signaling: Supabase Realtime Broadcast (confirmed working)
+ * Signaling: Supabase Realtime Broadcast
+ * Persistence: Supabase DB (interview_rooms + interview_participants tables)
  *
- * THE ACTUAL BUG WAS:
- * - roleRef.current was not set before joinChannel() was called
- * - The onMsg handler checked roleRef.current === "host" but it was null
- * - Fixed: set roleRef BEFORE calling startPolling/subscribe
+ * Session survival across page reloads:
+ *  - Host reloads → reads existing participants from DB, re-announces to channel
+ *  - Candidates still in room re-announce on "host-joined" event
+ *  - Admission status persisted in DB so it survives host page reload
+ *  - Participant ID stored in localStorage so same person keeps same ID
  */
 import React, {
   createContext, useContext, useEffect, useRef, useState, useCallback,
@@ -53,10 +55,74 @@ const RTC_CFG: RTCConfiguration = {
 
 function ch(roomId: string) { return `interview:${roomId.toUpperCase()}`; }
 
+// ── Stable participant ID (persists across page reloads via localStorage) ─────
+function getOrCreateParticipantId(roomId: string, role: ParticipantRole): string {
+  const key = `interview_pid_${roomId.toUpperCase()}_${role}`;
+  const existing = localStorage.getItem(key);
+  if (existing) return existing;
+  const fresh = crypto.randomUUID();
+  localStorage.setItem(key, fresh);
+  return fresh;
+}
+
+// ── DB persistence helpers ────────────────────────────────────────────────────
+async function dbUpsertRoom(roomId: string, hostName: string, formUrl: string, durationSecs: number) {
+  await supabase.from("interview_rooms").upsert({
+    room_id: roomId, host_name: hostName, form_url: formUrl,
+    duration_secs: durationSecs, updated_at: new Date().toISOString(),
+  }, { onConflict: "room_id" });
+}
+
+async function dbUpsertParticipant(
+  roomId: string, participantId: string, name: string,
+  email: string, role: ParticipantRole, admitted = false,
+) {
+  await supabase.from("interview_participants").upsert({
+    room_id: roomId, participant_id: participantId,
+    name, email, role, admitted, last_seen: new Date().toISOString(),
+  }, { onConflict: "room_id,participant_id" });
+}
+
+async function dbSetAdmitted(roomId: string, participantId: string, admitted: boolean) {
+  await supabase.from("interview_participants")
+    .update({ admitted, last_seen: new Date().toISOString() })
+    .eq("room_id", roomId).eq("participant_id", participantId);
+}
+
+async function dbLoadParticipants(roomId: string) {
+  const { data } = await supabase
+    .from("interview_participants")
+    .select("*")
+    .eq("room_id", roomId)
+    .eq("role", "candidate")
+    .order("created_at");
+  return data ?? [];
+}
+
+async function dbLoadRoom(roomId: string) {
+  const { data } = await supabase
+    .from("interview_rooms")
+    .select("*")
+    .eq("room_id", roomId)
+    .maybeSingle();
+  return data;
+}
+
+async function dbLoadMyAdmission(roomId: string, participantId: string): Promise<boolean> {
+  const { data } = await supabase
+    .from("interview_participants")
+    .select("admitted")
+    .eq("room_id", roomId)
+    .eq("participant_id", participantId)
+    .maybeSingle();
+  return data?.admitted ?? false;
+}
+
 export function InterviewProvider({ children }: { children: React.ReactNode }) {
   const [role,            setRole]            = useState<ParticipantRole | null>(null);
   const [roomId,          setRoomId]          = useState("");
-  const [myId]                                = useState(() => crypto.randomUUID());
+  // myId is set during init from localStorage (stable across reloads)
+  const [myId,            setMyId]            = useState(() => crypto.randomUUID());
   const [myName,          setMyName]          = useState("");
   const [localStream,     setLocalStream]     = useState<MediaStream | null>(null);
   const [screenStream,    setScreenStream]    = useState<MediaStream | null>(null);
@@ -76,6 +142,7 @@ export function InterviewProvider({ children }: { children: React.ReactNode }) {
   const timerRef   = useRef<ReturnType<typeof setInterval> | null>(null);
   // IMPORTANT: set these BEFORE subscribing so message handler sees correct values
   const roleRef    = useRef<ParticipantRole | null>(null);
+  const roomIdRef  = useRef("");
   const myIdRef    = useRef(myId);
   const nameRef    = useRef("");
   const emailRef   = useRef("");
@@ -165,18 +232,29 @@ export function InterviewProvider({ children }: { children: React.ReactNode }) {
     if (event === "joined" && r === "host") {
       const { id, name, email } = raw as { id: string; name: string; email: string };
       if (!id || !name) return;
+      // Check if this candidate was previously admitted (from DB or current state)
+      const existingAdmitted = candRef.current.get(id)?.admitted ?? false;
       upd(prev => {
         const next = new Map(prev);
         if (next.has(id)) {
           const c = next.get(id)!;
-          next.set(id, { ...c, name: name ?? c.name, email: email ?? c.email });
+          next.set(id, { ...c, name: name ?? c.name, email: email ?? c.email, connected: true });
         } else {
           next.set(id, { id, name, email: email ?? "", stream: null, screenStream: null,
-            micOn: true, camOn: true, screenOn: false, connected: false, admitted: false, examStarted: false });
+            micOn: true, camOn: true, screenOn: false, connected: true,
+            admitted: existingAdmitted, examStarted: false });
         }
         return next;
       });
-      audit(id, name, "joined — waiting to be admitted");
+      audit(id, name, existingAdmitted ? "reconnected (was admitted)" : "joined — waiting to be admitted");
+      // Upsert into DB
+      dbUpsertParticipant(roomIdRef.current, id, name, email ?? "", "candidate", existingAdmitted);
+      // If previously admitted, re-send the admitted signal so they don't wait
+      if (existingAdmitted) {
+        bcast("admitted", { _to: id });
+        // Re-initiate WebRTC
+        getPeer(id, true);
+      }
       if (examRef.current) bcast("exam-state", { formUrl: formRef.current, duration: durRef.current, active: true, _to: id });
       return;
     }
@@ -272,15 +350,48 @@ export function InterviewProvider({ children }: { children: React.ReactNode }) {
 
   const initHost = useCallback(async (rid: string, name: string, formUrl: string, mins: number) => {
     doneRef.current = false;
-    // Set refs BEFORE subscribing so onMsg sees correct role
+    // Use stable ID from localStorage so same host gets same ID on reload
+    const stableId = getOrCreateParticipantId(rid, "host");
+    myIdRef.current = stableId;
+    setMyId(stableId);
+
     roleRef.current = "host";
     nameRef.current = name;
     formRef.current = formUrl;
     durRef.current = mins * 60;
+    roomIdRef.current = rid;
 
     setRole("host"); setRoomId(rid); setMyName(name);
     setExamFormUrl(formUrl); setExamDuration(mins * 60); setExamSecondsLeft(mins * 60);
     setAdmitted(true);
+
+    // Persist room to DB (upsert so reload doesn't duplicate)
+    await dbUpsertRoom(rid, name, formUrl, mins * 60);
+    await dbUpsertParticipant(rid, stableId, name, "", "host", true);
+
+    // Load any existing participants from DB (handles host page reload)
+    const existing = await dbLoadParticipants(rid);
+    if (existing.length > 0) {
+      upd(() => {
+        const next = new Map<string, CandidateState>();
+        for (const p of existing) {
+          next.set(p.participant_id, {
+            id: p.participant_id,
+            name: p.name,
+            email: p.email ?? "",
+            stream: null, screenStream: null,
+            micOn: true, camOn: true, screenOn: false,
+            connected: false,
+            admitted: p.admitted ?? false,
+            examStarted: false,
+          });
+        }
+        return next;
+      });
+      if (existing.length > 0) {
+        audit("system", "system", `Restored ${existing.length} participant(s) from previous session`);
+      }
+    }
 
     try {
       const s = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
@@ -288,19 +399,49 @@ export function InterviewProvider({ children }: { children: React.ReactNode }) {
     } catch { console.warn("[media] no host camera"); }
 
     sub(rid, () => {
-      // Tell any already-waiting candidates host is here
-      bcast("host-joined", { _from: myIdRef.current });
+      // Broadcast host-joined so any still-connected candidates re-announce
+      bcast("host-joined", { _from: stableId });
     });
-  }, [sub, bcast]);
+  }, [sub, bcast, upd, audit]);
 
   const initCandidate = useCallback(async (rid: string, name: string, email: string) => {
     doneRef.current = false;
-    // Set refs BEFORE subscribing
+    // Use stable ID from localStorage so same candidate keeps same ID on reload
+    const stableId = getOrCreateParticipantId(rid, "candidate");
+    myIdRef.current = stableId;
+    setMyId(stableId);
+
     roleRef.current = "candidate";
     nameRef.current = name;
     emailRef.current = email;
+    roomIdRef.current = rid;
 
     setRole("candidate"); setRoomId(rid); setMyName(name);
+
+    // Check if already admitted (handles candidate page reload)
+    const wasAdmitted = await dbLoadMyAdmission(rid, stableId);
+    if (wasAdmitted) {
+      setAdmitted(true);
+    }
+
+    // Upsert participant row
+    await dbUpsertParticipant(rid, stableId, name, email, "candidate", wasAdmitted);
+
+    // Also check if exam is running (load room state)
+    const room = await dbLoadRoom(rid);
+    if (room?.exam_started && room.exam_ends_at) {
+      const secsLeft = Math.max(0, Math.round((new Date(room.exam_ends_at).getTime() - Date.now()) / 1000));
+      if (secsLeft > 0 && wasAdmitted) {
+        setExamActive(true);
+        setExamFormUrl(room.form_url ?? "");
+        setExamDuration(room.duration_secs ?? 3600);
+        setExamSecondsLeft(secsLeft);
+        examRef.current = true;
+        formRef.current = room.form_url ?? "";
+        durRef.current = secsLeft;
+        audit(stableId, name, "rejoined — exam in progress");
+      }
+    }
 
     try {
       const s = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
@@ -309,9 +450,9 @@ export function InterviewProvider({ children }: { children: React.ReactNode }) {
 
     sub(rid, () => {
       // Announce to host after confirmed subscribed
-      bcast("joined", { id: myIdRef.current, name, email });
+      bcast("joined", { id: stableId, name, email });
     });
-  }, [sub, bcast]);
+  }, [sub, bcast, audit]);
 
   const toggleMic = useCallback(() => {
     const t = localRef.current?.getAudioTracks()[0]; if (!t) return;
@@ -357,7 +498,10 @@ export function InterviewProvider({ children }: { children: React.ReactNode }) {
     upd(prev => { const next = new Map(prev); const c = next.get(cid); if (c) next.set(cid, { ...c, admitted: true }); return next; });
     bcast("admitted", { _to: cid });
     getPeer(cid, true);
-    audit(cid, candRef.current.get(cid)?.name ?? cid, "admitted ✓");
+    const cname = candRef.current.get(cid)?.name ?? cid;
+    audit(cid, cname, "admitted ✓");
+    // Persist to DB so it survives host reload
+    dbSetAdmitted(roomIdRef.current, cid, true);
   }, [bcast, getPeer, audit, upd]);
 
   const removeCandidate = useCallback((cid: string) => {
@@ -372,17 +516,37 @@ export function InterviewProvider({ children }: { children: React.ReactNode }) {
     const dur = durRef.current; const url = formRef.current;
     setExamActive(true); examRef.current = true; setExamSecondsLeft(dur);
     bcast("exam-start", { formUrl: url, duration: dur });
+    // Persist exam start to DB so candidates who reload can pick up the state
+    const endsAt = new Date(Date.now() + dur * 1000).toISOString();
+    supabase.from("interview_rooms").update({
+      exam_started: true,
+      exam_started_at: new Date().toISOString(),
+      exam_ends_at: endsAt,
+      updated_at: new Date().toISOString(),
+    }).eq("room_id", roomIdRef.current).then(() => {});
     if (timerRef.current) clearInterval(timerRef.current);
     timerRef.current = setInterval(() => {
       setExamSecondsLeft(s => {
-        if (s <= 1) { clearInterval(timerRef.current!); setExamActive(false); examRef.current = false; bcast("exam-end", {}); return 0; }
+        if (s <= 1) {
+          clearInterval(timerRef.current!);
+          setExamActive(false); examRef.current = false;
+          bcast("exam-end", {});
+          supabase.from("interview_rooms").update({
+            exam_started: false, updated_at: new Date().toISOString(),
+          }).eq("room_id", roomIdRef.current).then(() => {});
+          return 0;
+        }
         return s - 1;
       });
     }, 1000);
   }, [bcast]);
 
   const endExam = useCallback(() => {
-    clearInterval(timerRef.current!); setExamActive(false); examRef.current = false; setExamSecondsLeft(0); bcast("exam-end", {});
+    clearInterval(timerRef.current!); setExamActive(false); examRef.current = false; setExamSecondsLeft(0);
+    bcast("exam-end", {});
+    supabase.from("interview_rooms").update({
+      exam_started: false, updated_at: new Date().toISOString(),
+    }).eq("room_id", roomIdRef.current).then(() => {});
   }, [bcast]);
 
   const openForm = useCallback(() => { if (formRef.current) window.open(formRef.current, "_blank", "noopener,noreferrer"); }, []);
