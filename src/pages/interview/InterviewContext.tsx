@@ -17,6 +17,15 @@ import type { RealtimeChannel } from "@supabase/supabase-js";
 
 export type ParticipantRole = "host" | "candidate";
 
+export interface ChatMessage {
+  id: string;
+  senderId: string;
+  senderName: string;
+  senderRole: ParticipantRole;
+  text: string;
+  ts: number;
+}
+
 export interface AuditEvent {
   ts: number; candidateId: string; candidateName: string; event: string;
 }
@@ -32,6 +41,7 @@ interface InterviewContextType {
   role: ParticipantRole | null; roomId: string; myId: string; myName: string;
   localStream: MediaStream | null; screenStream: MediaStream | null;
   candidates: Map<string, CandidateState>; auditLog: AuditEvent[];
+  chatMessages: ChatMessage[];
   examActive: boolean; examFormUrl: string; examDuration: number; examSecondsLeft: number;
   connected: boolean; admitted: boolean;
   initHost: (roomId: string, name: string, formUrl: string, durationMins: number) => void;
@@ -42,6 +52,7 @@ interface InterviewContextType {
   startExam: () => void; endExam: () => void;
   openForm: () => void; disconnect: () => void;
   sendVisibilityEvent: (hidden: boolean) => void;
+  sendChat: (text: string) => void;
 }
 
 const Ctx = createContext<InterviewContextType | null>(null);
@@ -173,6 +184,7 @@ export function InterviewProvider({ children }: { children: React.ReactNode }) {
   const [screenStream,    setScreenStream]    = useState<MediaStream | null>(null);
   const [candidates,      setCandidates]      = useState<Map<string, CandidateState>>(new Map());
   const [auditLog,        setAuditLog]        = useState<AuditEvent[]>([]);
+  const [chatMessages,    setChatMessages]    = useState<ChatMessage[]>([]);
   const [examActive,      setExamActive]      = useState(false);
   const [examFormUrl,     setExamFormUrl]     = useState("");
   const [examDuration,    setExamDuration]    = useState(3600);
@@ -384,6 +396,18 @@ export function InterviewProvider({ children }: { children: React.ReactNode }) {
     }
     if (event === "host-joined" && r === "candidate") {
       bcast("joined", { id: me, name: nameRef.current, email: emailRef.current });
+      return;
+    }
+
+    if (event === "chat") {
+      const { senderId, senderName, senderRole, text, ts, id: msgId } =
+        raw as { senderId: string; senderName: string; senderRole: ParticipantRole; text: string; ts: number; id: string };
+      // Privacy: candidates only see messages from host OR their own messages
+      if (r === "candidate" && senderRole === "candidate" && senderId !== me) return;
+      setChatMessages(prev => {
+        if (prev.some(m => m.id === msgId)) return prev; // dedup
+        return [...prev, { id: msgId, senderId, senderName, senderRole, text, ts }];
+      });
       return;
     }
   }, [bcast, getPeer, audit, upd]);
@@ -606,6 +630,22 @@ export function InterviewProvider({ children }: { children: React.ReactNode }) {
 
   const openForm = useCallback(() => { if (formRef.current) window.open(formRef.current, "_blank", "noopener,noreferrer"); }, []);
 
+  const sendChat = useCallback((text: string) => {
+    if (!text.trim()) return;
+    const msg: ChatMessage = {
+      id: crypto.randomUUID(),
+      senderId: myIdRef.current,
+      senderName: nameRef.current,
+      senderRole: roleRef.current!,
+      text: text.trim(),
+      ts: Date.now(),
+    };
+    // Add to own state immediately
+    setChatMessages(prev => [...prev, msg]);
+    // Broadcast to room — candidates only send to host (privacy)
+    bcast("chat", { ...msg });
+  }, [bcast]);
+
   const sendVisibilityEvent = useCallback((hidden: boolean) => {
     if (roleRef.current === "candidate") bcast("visibility", { hidden, _from: myIdRef.current });
   }, [bcast]);
@@ -631,11 +671,11 @@ export function InterviewProvider({ children }: { children: React.ReactNode }) {
   return (
     <Ctx.Provider value={{
       role, roomId, myId, myName, localStream, screenStream,
-      candidates, auditLog, examActive, examFormUrl, examDuration, examSecondsLeft,
+      candidates, auditLog, chatMessages, examActive, examFormUrl, examDuration, examSecondsLeft,
       connected, admitted,
       initHost, initCandidate, toggleMic, toggleCam,
       startScreenShare, stopScreenShare, admitCandidate, removeCandidate,
-      startExam, endExam, openForm, disconnect, sendVisibilityEvent,
+      startExam, endExam, openForm, disconnect, sendVisibilityEvent, sendChat,
     }}>
       {children}
     </Ctx.Provider>

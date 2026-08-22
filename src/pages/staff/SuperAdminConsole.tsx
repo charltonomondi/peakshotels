@@ -607,15 +607,16 @@ function CustomersTab() {
 // ─── Interview Platform ───────────────────────────────────────────────────────
 function InterviewTab() {
   const navigate = useNavigate();
-  const [tab, setTab] = useState<"host" | "candidate">("host");
   const [hostName, setHostName] = useState("");
   const [formUrl, setFormUrl] = useState("");
   const [duration, setDuration] = useState("60");
   const [generatedRoom, setGeneratedRoom] = useState("");
   const [copied, setCopied] = useState(false);
-  const [candidateName, setCandidateName] = useState("");
-  const [candidateEmail, setCandidateEmail] = useState("");
-  const [roomCode, setRoomCode] = useState("");
+
+  // Extra exam resources (Google Drive, OneDrive, custom links etc.)
+  const [resources, setResources] = useState<{ label: string; url: string }[]>([]);
+  const [newLabel, setNewLabel] = useState("");
+  const [newUrl, setNewUrl] = useState("");
 
   function generateRoomId() {
     return Math.random().toString(36).substring(2, 8).toUpperCase();
@@ -637,16 +638,17 @@ function InterviewTab() {
   const handleHostJoin = () => {
     if (!generatedRoom || !hostName.trim()) return;
     navigate(`/interview/host/${generatedRoom}`, {
-      state: { name: hostName, formUrl, duration: Number(duration) },
+      state: { name: hostName, formUrl, duration: Number(duration), resources },
     });
   };
 
-  const handleCandidateJoin = () => {
-    if (!candidateName.trim() || !roomCode.trim()) return;
-    navigate(`/interview/candidate/${roomCode.toUpperCase()}`, {
-      state: { name: candidateName, email: candidateEmail.trim() },
-    });
+  const addResource = () => {
+    if (!newLabel.trim() || !newUrl.trim()) return;
+    setResources(r => [...r, { label: newLabel.trim(), url: newUrl.trim() }]);
+    setNewLabel(""); setNewUrl("");
   };
+
+  const removeResource = (i: number) => setResources(r => r.filter((_, idx) => idx !== i));
 
   return (
     <div className="space-y-6 max-w-2xl">
@@ -655,21 +657,19 @@ function InterviewTab() {
           <Video className="h-6 w-6 text-accent" /> Interview &amp; Exam Platform
         </h1>
         <p className="text-sm text-muted-foreground mt-1">
-          Launch a proctored online interview or examination session.
+          Create and manage proctored examination sessions.
         </p>
       </div>
 
       {/* Feature highlights */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
         {[
-          { icon: <Monitor className="h-4 w-4 text-accent" />, title: "Screen Monitoring", desc: "Candidates must share entire screen" },
+          { icon: <Monitor className="h-4 w-4 text-accent" />, title: "Screen Monitoring", desc: "Candidates share their entire screen" },
           { icon: <Shield className="h-4 w-4 text-accent" />, title: "Privacy Enforced", desc: "Candidates cannot see each other" },
-          { icon: <Users className="h-4 w-4 text-accent" />, title: "Audit Log", desc: "All events are recorded in real time" },
+          { icon: <Users className="h-4 w-4 text-accent" />, title: "Audit Log", desc: "All events recorded in real time" },
         ].map(f => (
           <div key={f.title} className="bg-secondary rounded-xl p-3 flex gap-3 items-start">
-            <div className="w-8 h-8 rounded-lg bg-accent/10 flex items-center justify-center shrink-0 mt-0.5">
-              {f.icon}
-            </div>
+            <div className="w-8 h-8 rounded-lg bg-accent/10 flex items-center justify-center shrink-0 mt-0.5">{f.icon}</div>
             <div>
               <p className="text-sm font-semibold text-foreground">{f.title}</p>
               <p className="text-xs text-muted-foreground">{f.desc}</p>
@@ -678,129 +678,99 @@ function InterviewTab() {
         ))}
       </div>
 
-      {/* Tabs */}
-      <div className="flex rounded-xl border border-border overflow-hidden">
-        {(["host", "candidate"] as const).map(t => (
-          <button
-            key={t}
-            onClick={() => setTab(t)}
-            className={`flex-1 py-2.5 text-sm font-medium transition-colors ${
-              tab === t ? "bg-accent text-accent-foreground" : "bg-card text-muted-foreground hover:bg-secondary"
-            }`}
-          >
-            {t === "host" ? "Host / Examiner" : "Join as Candidate"}
-          </button>
-        ))}
-      </div>
+      {/* Host setup */}
+      <Card className="border-0 shadow-sm">
+        <CardHeader className="pb-3">
+          <CardTitle className="text-sm font-semibold flex items-center gap-2">
+            <Video className="h-4 w-4 text-accent" /> Create Meeting Room
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="space-y-1.5">
+            <label className="text-xs font-medium text-muted-foreground">Your Name (Host)</label>
+            <input value={hostName} onChange={e => setHostName(e.target.value)}
+              placeholder="Dr. Jane Smith"
+              className="w-full px-3 py-2 text-sm border border-border rounded-lg bg-background focus:outline-none focus:ring-1 focus:ring-accent" />
+          </div>
 
-      {/* Host form */}
-      {tab === "host" && (
-        <Card className="border-0 shadow-sm">
-          <CardContent className="pt-5 pb-5 space-y-4">
-            <div className="space-y-1.5">
-              <label className="text-xs font-medium text-muted-foreground">Your Name</label>
-              <input
-                value={hostName}
-                onChange={e => setHostName(e.target.value)}
-                placeholder="Dr. Jane Smith"
-                className="w-full px-3 py-2 text-sm border border-border rounded-lg bg-background focus:outline-none focus:ring-1 focus:ring-accent"
-              />
-            </div>
-            <div className="space-y-1.5">
-              <label className="text-xs font-medium text-muted-foreground">Google Form URL (optional)</label>
-              <input
-                value={formUrl}
-                onChange={e => setFormUrl(e.target.value)}
-                placeholder="https://forms.gle/..."
-                className="w-full px-3 py-2 text-sm border border-border rounded-lg bg-background focus:outline-none focus:ring-1 focus:ring-accent"
-              />
-            </div>
-            <div className="space-y-1.5">
-              <label className="text-xs font-medium text-muted-foreground">Exam Duration (minutes)</label>
-              <input
-                type="number"
-                value={duration}
-                onChange={e => setDuration(e.target.value)}
-                min={5}
-                max={300}
-                className="w-full px-3 py-2 text-sm border border-border rounded-lg bg-background focus:outline-none focus:ring-1 focus:ring-accent"
-              />
-            </div>
+          <div className="space-y-1.5">
+            <label className="text-xs font-medium text-muted-foreground">
+              Primary Exam Form URL
+              <span className="ml-1 text-zinc-400 font-normal">(Google Forms, Typeform, etc.)</span>
+            </label>
+            <input value={formUrl} onChange={e => setFormUrl(e.target.value)}
+              placeholder="https://forms.gle/... or https://docs.google.com/forms/..."
+              className="w-full px-3 py-2 text-sm border border-border rounded-lg bg-background focus:outline-none focus:ring-1 focus:ring-accent" />
+          </div>
 
-            {!generatedRoom ? (
-              <Button
-                onClick={handleCreateRoom}
-                disabled={!hostName.trim()}
-                variant="gold"
-                className="w-full"
-              >
-                Create Meeting Room <ArrowRight className="h-4 w-4 ml-2" />
-              </Button>
-            ) : (
-              <div className="space-y-3">
-                <div className="bg-secondary rounded-xl p-3 text-center">
-                  <p className="text-xs text-muted-foreground mb-1">Room Code — share with candidates</p>
-                  <p className="font-mono text-2xl font-bold text-foreground tracking-widest">{generatedRoom}</p>
+          <div className="space-y-1.5">
+            <label className="text-xs font-medium text-muted-foreground">Exam Duration (minutes)</label>
+            <input type="number" value={duration} onChange={e => setDuration(e.target.value)}
+              min={5} max={300}
+              className="w-full px-3 py-2 text-sm border border-border rounded-lg bg-background focus:outline-none focus:ring-1 focus:ring-accent" />
+          </div>
+
+          {/* Additional resource links */}
+          <div className="space-y-2">
+            <label className="text-xs font-medium text-muted-foreground">
+              Additional Resources
+              <span className="ml-1 text-zinc-400 font-normal">(Google Drive, OneDrive, PDFs, instructions…)</span>
+            </label>
+            {resources.map((r, i) => (
+              <div key={i} className="flex items-center gap-2 bg-secondary rounded-lg px-3 py-2 text-xs">
+                <div className="flex-1 min-w-0">
+                  <span className="font-medium text-foreground truncate block">{r.label}</span>
+                  <span className="text-muted-foreground truncate block">{r.url}</span>
                 </div>
-                <Button variant="outline" className="w-full text-xs" onClick={handleCopy}>
-                  {copied
-                    ? <><CheckCircle2 className="h-3.5 w-3.5 mr-1.5 text-green-500" /> Copied!</>
-                    : <><ClipboardCopy className="h-3.5 w-3.5 mr-1.5" /> Copy Candidate Invite Link</>
-                  }
-                </Button>
-                <Button onClick={handleHostJoin} variant="gold" className="w-full">
-                  <Video className="h-4 w-4 mr-2" /> Launch Host Dashboard
-                </Button>
+                <button onClick={() => removeResource(i)}
+                  className="text-red-400 hover:text-red-600 shrink-0 p-1">
+                  <X className="h-3.5 w-3.5" />
+                </button>
               </div>
-            )}
-          </CardContent>
-        </Card>
-      )}
+            ))}
+            <div className="grid grid-cols-[1fr_2fr_auto] gap-2">
+              <input value={newLabel} onChange={e => setNewLabel(e.target.value)}
+                placeholder="Label (e.g. Answer Sheet)"
+                className="px-2 py-1.5 text-xs border border-border rounded-lg bg-background focus:outline-none focus:ring-1 focus:ring-accent" />
+              <input value={newUrl} onChange={e => setNewUrl(e.target.value)}
+                placeholder="https://drive.google.com/..."
+                className="px-2 py-1.5 text-xs border border-border rounded-lg bg-background focus:outline-none focus:ring-1 focus:ring-accent" />
+              <button onClick={addResource} disabled={!newLabel.trim() || !newUrl.trim()}
+                className="px-2 py-1.5 rounded-lg bg-accent text-accent-foreground text-xs font-medium disabled:opacity-40 flex items-center gap-1">
+                <Plus className="h-3.5 w-3.5" /> Add
+              </button>
+            </div>
+          </div>
 
-      {/* Candidate join form */}
-      {tab === "candidate" && (
-        <Card className="border-0 shadow-sm">
-          <CardContent className="pt-5 pb-5 space-y-4">
-            <div className="space-y-1.5">
-              <label className="text-xs font-medium text-muted-foreground">Your Full Name</label>
-              <input
-                value={candidateName}
-                onChange={e => setCandidateName(e.target.value)}
-                placeholder="John Doe"
-                className="w-full px-3 py-2 text-sm border border-border rounded-lg bg-background focus:outline-none focus:ring-1 focus:ring-accent"
-              />
-            </div>
-            <div className="space-y-1.5">
-              <label className="text-xs font-medium text-muted-foreground">Email Address</label>
-              <input
-                type="email"
-                value={candidateEmail}
-                onChange={e => setCandidateEmail(e.target.value)}
-                placeholder="you@example.com"
-                className="w-full px-3 py-2 text-sm border border-border rounded-lg bg-background focus:outline-none focus:ring-1 focus:ring-accent"
-              />
-            </div>
-            <div className="space-y-1.5">
-              <label className="text-xs font-medium text-muted-foreground">Room Code</label>
-              <input
-                value={roomCode}
-                onChange={e => setRoomCode(e.target.value.toUpperCase())}
-                placeholder="ABC123"
-                maxLength={6}
-                className="w-full px-3 py-2 text-sm border border-border rounded-lg bg-background focus:outline-none focus:ring-1 focus:ring-accent font-mono tracking-widest uppercase"
-              />
-            </div>
-            <Button
-              onClick={handleCandidateJoin}
-              disabled={!candidateName.trim() || roomCode.length < 4 || !candidateEmail.trim()}
-              variant="gold"
-              className="w-full"
-            >
-              <Users className="h-4 w-4 mr-2" /> Join Examination
+          {!generatedRoom ? (
+            <Button onClick={handleCreateRoom} disabled={!hostName.trim()} variant="gold" className="w-full">
+              Create Meeting Room <ArrowRight className="h-4 w-4 ml-2" />
             </Button>
-          </CardContent>
-        </Card>
-      )}
+          ) : (
+            <div className="space-y-3">
+              <div className="bg-secondary rounded-xl p-3 text-center">
+                <p className="text-xs text-muted-foreground mb-1">Room Code — share with candidates</p>
+                <p className="font-mono text-2xl font-bold text-foreground tracking-widest">{generatedRoom}</p>
+              </div>
+              <Button variant="outline" className="w-full text-xs" onClick={handleCopy}>
+                {copied
+                  ? <><CheckCircle2 className="h-3.5 w-3.5 mr-1.5 text-green-500" /> Copied!</>
+                  : <><ClipboardCopy className="h-3.5 w-3.5 mr-1.5" /> Copy Candidate Invite Link</>}
+              </Button>
+              <Button onClick={handleHostJoin} variant="gold" className="w-full">
+                <Video className="h-4 w-4 mr-2" /> Launch Host Dashboard
+              </Button>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* Candidate join link hint */}
+      <div className="text-xs text-muted-foreground bg-secondary rounded-xl px-4 py-3">
+        Candidates join via <span className="font-mono font-semibold text-foreground">{window.location.origin}/interview</span>
+        {" "}— the Host / Examiner option has been removed from the public page.
+        Only admins can create rooms.
+      </div>
     </div>
   );
 }
