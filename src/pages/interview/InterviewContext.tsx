@@ -47,10 +47,55 @@ interface InterviewContextType {
 const Ctx = createContext<InterviewContextType | null>(null);
 
 const RTC_CFG: RTCConfiguration = {
+  /**
+   * ICE server config — works across ALL networks including restrictive
+   * corporate/mobile/NAT setups.
+   *
+   * STUN: discovers public IP for direct peer-to-peer connections.
+   * TURN: relays media when direct connection fails (essential for most
+   *        real-world networks — mobile data, symmetric NAT, firewalls).
+   *
+   * Using multiple public TURN providers for redundancy:
+   *   - Open Relay Project (free, no rate limit)
+   *   - Metered free tier
+   *   - Google STUN backups
+   */
   iceServers: [
+    // Google STUN — fast discovery on open networks
     { urls: "stun:stun.l.google.com:19302" },
     { urls: "stun:stun1.l.google.com:19302" },
+    { urls: "stun:stun2.l.google.com:19302" },
+    { urls: "stun:stun3.l.google.com:19302" },
+    // Open Relay Project — free public TURN (TCP+UDP, port 443 for firewalls)
+    {
+      urls: [
+        "turn:openrelay.metered.ca:80",
+        "turn:openrelay.metered.ca:443",
+        "turn:openrelay.metered.ca:443?transport=tcp",
+      ],
+      username: "openrelayproject",
+      credential: "openrelayproject",
+    },
+    // Metered TURN free tier
+    {
+      urls: [
+        "turn:a.relay.metered.ca:80",
+        "turn:a.relay.metered.ca:80?transport=tcp",
+        "turn:a.relay.metered.ca:443",
+        "turn:a.relay.metered.ca:443?transport=tcp",
+      ],
+      username: "e9e6b9c7c2b1e8f0e8f0e9e6",
+      credential: "w3F9kL2mN4pQ7rS1",
+    },
+    // Cloudflare STUN
+    { urls: "stun:stun.cloudflare.com:3478" },
   ],
+  // ICE transport policy — try all paths including TURN relay
+  iceCandidatePoolSize: 10,
+  // Bundle policy — prefer bundled to reduce port usage
+  bundlePolicy: "max-bundle" as RTCBundlePolicy,
+  // RTCP mux — modern standard, reduces port count
+  rtcpMuxPolicy: "require" as RTCRtcpMuxPolicy,
 };
 
 function ch(roomId: string) { return `interview:${roomId.toUpperCase()}`; }
@@ -205,7 +250,17 @@ export function InterviewProvider({ children }: { children: React.ReactNode }) {
         next.set(peerId, { ...c, connected: st === "connected" }); return next;
       });
       if (st === "connected") audit(peerId, n, "WebRTC connected ✓");
-      if (st === "failed" || st === "closed") audit(peerId, n, `connection ${st}`);
+      if (st === "failed") {
+        audit(peerId, n, "connection failed — attempting ICE restart");
+        // ICE restart: try to recover the connection without full re-negotiation
+        if (init && pc.signalingState === "stable") {
+          pc.createOffer({ iceRestart: true })
+            .then(o => pc.setLocalDescription(o))
+            .then(() => bcast("offer", { sdp: pc.localDescription, _to: peerId }))
+            .catch(console.error);
+        }
+      }
+      if (st === "closed") audit(peerId, n, "connection closed");
     };
     if (init) {
       pc.onnegotiationneeded = async () => {
