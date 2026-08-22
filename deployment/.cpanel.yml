@@ -1,25 +1,17 @@
 ---
 deployment:
   tasks:
-    # Exit on any error
-    - /bin/bash -c 'set -e'
-
-    # 1. Copy built frontend to public_html
-    - export DEPLOYPATH=/home/$USER/public_html
-    - /bin/mkdir -p $DEPLOYPATH
-    - /bin/cp -r deployment/public_html/. $DEPLOYPATH/
-    - echo "Frontend deployed to $DEPLOYPATH"
-
-    # 2. Copy server to nodeapp directory (outside public_html)
-    - export SERVERPATH=/home/$USER/nodeapp
-    - /bin/mkdir -p $SERVERPATH
-    - /bin/cp -r deployment/server/. $SERVERPATH/
-    - echo "Server deployed to $SERVERPATH"
-
-    # 3. Install server Node.js dependencies
-    - cd $SERVERPATH && npm install --omit=dev
-    - echo "Server dependencies installed"
-
-    # 4. Restart Node.js app (cPanel Passenger/Node.js restart trigger)
-    - /bin/touch $SERVERPATH/tmp/restart.txt 2>/dev/null || true
-    - echo "Node.js app restart triggered"
+    - export REPO=$(pwd)
+    - export PUB=~/public_html
+    - /bin/mkdir -p $PUB
+    - /bin/cp -rf $REPO/deployment/public_html/. $PUB/
+    - echo "Frontend deployed"
+    - export APP=~/nodeapp
+    - /bin/mkdir -p $APP
+    - /bin/cp -rf $REPO/deployment/server/. $APP/
+    - echo "Server copied"
+    - /bin/bash -c 'cd ~/nodeapp && npm install --omit=dev 2>&1 | tail -3'
+    - echo "npm install done"
+    - /bin/mkdir -p ~/nodeapp/tmp
+    - /bin/touch ~/nodeapp/tmp/restart.txt
+    - echo "App restart triggered"

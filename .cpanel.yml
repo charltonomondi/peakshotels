@@ -1,24 +1,28 @@
 ---
 deployment:
   tasks:
-    # ── Frontend ──────────────────────────────────────────────────────────────
-    # Copy the pre-built React app from deployment/public_html into public_html
-    - /bin/mkdir -p /home/$USER/public_html
-    - /bin/cp -r deployment/public_html/. /home/$USER/public_html/
-    - echo "✓ Frontend deployed to /home/$USER/public_html"
+    # NOTE: Tasks run inside the cloned repository directory on the cPanel server.
+    # Paths like "deployment/public_html" are relative to the repo root.
+    # We use $(pwd) to get the repo path and ~ for the home directory.
 
-    # ── Node.js server ────────────────────────────────────────────────────────
-    # Copy server source files into the nodeapp directory
-    - /bin/mkdir -p /home/$USER/nodeapp
-    - /bin/cp -r deployment/server/. /home/$USER/nodeapp/
-    - echo "✓ Server files copied to /home/$USER/nodeapp"
+    # ── 1. Frontend → public_html ─────────────────────────────────────────────
+    - export REPO=$(pwd)
+    - export PUB=~/public_html
+    - /bin/mkdir -p $PUB
+    - /bin/cp -rf $REPO/deployment/public_html/. $PUB/
+    - echo "Frontend deployed"
 
-    # Install production Node.js dependencies
-    - /bin/bash -c 'cd /home/$USER/nodeapp && npm install --omit=dev --prefer-offline 2>&1 | tail -5'
-    - echo "✓ npm install complete"
+    # ── 2. Server → nodeapp ───────────────────────────────────────────────────
+    - export APP=~/nodeapp
+    - /bin/mkdir -p $APP
+    - /bin/cp -rf $REPO/deployment/server/. $APP/
+    - echo "Server copied"
 
-    # ── Restart Node.js application ───────────────────────────────────────────
-    # cPanel Node.js Selector watches for this file to trigger a restart
-    - /bin/mkdir -p /home/$USER/nodeapp/tmp
-    - /bin/touch /home/$USER/nodeapp/tmp/restart.txt
-    - echo "✓ Node.js app restart triggered"
+    # ── 3. Install dependencies ───────────────────────────────────────────────
+    - /bin/bash -c 'cd ~/nodeapp && npm install --omit=dev 2>&1 | tail -3'
+    - echo "npm install done"
+
+    # ── 4. Restart Node.js app ────────────────────────────────────────────────
+    - /bin/mkdir -p ~/nodeapp/tmp
+    - /bin/touch ~/nodeapp/tmp/restart.txt
+    - echo "App restart triggered"
