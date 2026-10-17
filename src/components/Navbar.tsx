@@ -99,37 +99,52 @@ const UKFlag = () => (
   </svg>
 );
 
-// ── SVG Logo Badge ─────────────────────────────────────────────────────────────
+// ── Logo Badge using real logo image ──────────────────────────────────────────
+import logoImg from "/logo.jpeg";
+
 const LogoBadge = () => (
-  <svg className="pn-badge" viewBox="0 0 500 208" role="img" aria-label="Peaks Hotels Ltd — Beauty & Taste with Nature">
+  <svg className="pn-badge" viewBox="0 0 500 208" role="img" aria-label="Peaks Hotels Ltd">
     <defs>
       <linearGradient id="pn-gold-edge" x1="0" y1="0" x2="1" y2="1">
         <stop offset="0%" stopColor="#f0be62" />
         <stop offset="55%" stopColor="#c58a3a" />
         <stop offset="100%" stopColor="#8f5a22" />
       </linearGradient>
+      {/* Clip the logo image to the badge body shape */}
+      <clipPath id="pn-logo-clip">
+        <path d="M80 4Q84 1 94 1H366Q376 1 384 9L506 146L440 200Q432 207 420 207H100Q90 207 84 200L0 134V130Z" />
+      </clipPath>
     </defs>
-    {/* olive sliver behind the badge, left edge */}
+
+    {/* Olive sliver behind badge, left edge */}
     <path d="M0 33H56Q74 33 82 28L0 134Z" fill="#7b6b2b" />
-    {/* grey underside shadow */}
-    <path d="M508 150L442 204Q434 210 422 211H300" fill="none" stroke="#cfcfcf" strokeWidth="6" strokeLinecap="round" opacity="0.8" />
-    {/* gold bevel on slanted right edge */}
-    <path d="M372 0Q384 0 392 8L510 146" fill="none" stroke="url(#pn-gold-edge)" strokeWidth="10" strokeLinecap="round" />
-    {/* cream badge body */}
-    <path d="M80 4Q84 1 94 1H366Q376 1 384 9L506 146L440 200Q432 207 420 207H100Q90 207 84 200L0 134V130Z" fill="#fdf6ea" />
-    {/* sun */}
-    <circle cx="230" cy="41" r="33" fill="#f8b53a" />
-    {/* mountains */}
-    <path d="M137 101L172 66L184 73L232 31L248 48L257 41L283 101Z" fill="#5b2e16" />
-    <path d="M217 47L232 31L246 45L238 49L232 44L226 50Z" fill="#fdf6ea" />
-    {/* pine */}
-    <path d="M302 28L288 56H295L282 78H290L274 100H330L314 78H322L309 56H316Z" fill="#5b2e16" />
-    <rect x="299.5" y="100" width="6" height="7" fill="#5b2e16" />
-    {/* wordmark */}
-    <text className="pn-logo-serif" x="127" y="146" fontSize="64" fontWeight="800" fill="#5b2e16" textLength="220" lengthAdjust="spacingAndGlyphs">PEAKS</text>
-    <text className="pn-logo-sans" x="144" y="172" fontSize="21" fontWeight="700" fill="#5b2e16" textLength="186" lengthAdjust="spacing">HOTELS LTD</text>
-    <text className="pn-logo-serif" x="129" y="196" fontSize="21" fontStyle="italic" fontWeight="500" fill="#5b2e16" textLength="214" lengthAdjust="spacingAndGlyphs">Beauty &amp; Taste with Nature</text>
-    <path d="M87 191H122M350 191H385" stroke="#5b2e16" strokeWidth="1.6" />
+
+    {/* Grey underside shadow */}
+    <path d="M508 150L442 204Q434 210 422 211H300" fill="none" stroke="#cfcfcf"
+      strokeWidth="6" strokeLinecap="round" opacity="0.8" />
+
+    {/* Gold bevel on slanted right edge */}
+    <path d="M372 0Q384 0 392 8L510 146" fill="none" stroke="url(#pn-gold-edge)"
+      strokeWidth="10" strokeLinecap="round" />
+
+    {/* Cream badge body */}
+    <path d="M80 4Q84 1 94 1H366Q376 1 384 9L506 146L440 200Q432 207 420 207H100Q90 207 84 200L0 134V130Z"
+      fill="#fdf6ea" />
+
+    {/* Real logo image, clipped to badge shape and padded */}
+    <image
+      href={logoImg}
+      x="72"
+      y="8"
+      width="310"
+      height="192"
+      preserveAspectRatio="xMidYMid meet"
+      clipPath="url(#pn-logo-clip)"
+    />
+
+    {/* Gold border outline over the badge edge for definition */}
+    <path d="M80 4Q84 1 94 1H366Q376 1 384 9L506 146L440 200Q432 207 420 207H100Q90 207 84 200L0 134V130Z"
+      fill="none" stroke="url(#pn-gold-edge)" strokeWidth="2.5" />
   </svg>
 );
 
