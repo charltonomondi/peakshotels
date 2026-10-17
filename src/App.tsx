@@ -32,6 +32,7 @@ import Spa from "./pages/Spa";
 import MountainClimbing from "./pages/MountainClimbing";
 import NotFound from "./pages/NotFound";
 import RoomFeatures from "./pages/RoomFeatures";
+import PeaksChallenge from "./pages/PeaksChallenge";
 import LoyaltySignup from "./pages/loyalty/Signup";
 import LoyaltyLogin from "./pages/loyalty/Login";
 import LoyaltyDashboard from "./pages/loyalty/Dashboard";
@@ -93,6 +94,7 @@ const App = () => {
                   <Route path="/beauty-parlour" element={<BeautyParlour />} />
                   <Route path="/spa" element={<Spa />} />
                   <Route path="/mountain-climbing" element={<MountainClimbing />} />
+                  <Route path="/peaks-challenge" element={<PeaksChallenge />} />
                   <Route path="/room-features/:roomNumber" element={<RoomFeatures />} />
                   <Route path="/loyalty/signup" element={<LoyaltySignup />} />
                   <Route path="/loyalty/login" element={<LoyaltyLogin />} />

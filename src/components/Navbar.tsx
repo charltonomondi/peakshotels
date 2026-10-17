@@ -27,6 +27,7 @@ const NAV_ITEMS: NavItem[] = [
   { label: "Conference",          to: "/facilities" },
   { label: "Outdoor Activities",  to: "/activities" },
   { label: "Mt. Kenya Climbing",  to: "/mountain-climbing" },
+  { label: "Peaks Challenge",     to: "/peaks-challenge" },
   { label: "Wellness Centre", to: "/gym",
     children: [
       { label: "Gym",            to: "/gym" },
