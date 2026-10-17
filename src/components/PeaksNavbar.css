@@ -1,0 +1,386 @@
+@import url("https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=Playfair+Display:ital,wght@0,800;1,500&family=Poppins:wght@600;700&display=swap");
+
+/*
+  Everything is sized in "design pixels" (--u).
+  The artwork was drawn on a 2172px-wide canvas,
+  so 1 design pixel = 0.7px on large screens.
+*/
+.pn-root {
+  --u: min(0.7px, calc(100vw / 2172));
+  --pn-brown: #5b2e16;
+  --pn-cream: #fdf3e4;
+  --pn-text: #fff3e0;
+  --pn-yellow: #fbb63a;
+  --pn-gold: #d9982d;
+  --pn-icon-gold: #d4922a;
+
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 50;
+  width: 100%;
+  height: calc(var(--u) * 208);
+  font-family: "Plus Jakarta Sans", "Segoe UI", system-ui, sans-serif;
+  box-sizing: border-box;
+}
+
+.pn-root *,
+.pn-root *::before,
+.pn-root *::after {
+  box-sizing: border-box;
+}
+
+.pn-root ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+/* ---------- logo badge ---------- */
+.pn-badge {
+  position: absolute;
+  left: 0;
+  top: 0;
+  z-index: 3;
+  width: calc(var(--u) * 500);
+  height: calc(var(--u) * 208);
+  overflow: visible;
+  filter: drop-shadow(0 calc(var(--u) * 6) calc(var(--u) * 8) rgba(0, 0, 0, 0.18));
+}
+
+.pn-logo-serif {
+  font-family: "Playfair Display", Georgia, "Times New Roman", serif;
+}
+
+.pn-logo-sans {
+  font-family: "Poppins", "Plus Jakarta Sans", sans-serif;
+}
+
+/* ---------- brown bar ---------- */
+.pn-bar {
+  position: absolute;
+  z-index: 1;
+  left: calc(var(--u) * 415);
+  right: 0;
+  top: calc(var(--u) * 36);
+  height: calc(var(--u) * 114);
+  background: var(--pn-brown);
+  border-radius: 0 calc(var(--u) * 57) calc(var(--u) * 57) 0;
+}
+
+/* ---------- utility row (language + hours) ---------- */
+.pn-utility {
+  position: absolute;
+  top: calc(var(--u) * 8);
+  right: calc(var(--u) * 78);
+  height: calc(var(--u) * 24);
+  display: flex;
+  align-items: center;
+  color: #f3e6d3;
+  font-size: calc(var(--u) * 16);
+  font-weight: 400;
+  z-index: 4;
+}
+
+.pn-divider {
+  display: block;
+  width: calc(var(--u) * 1.5);
+  height: calc(var(--u) * 22);
+  background: rgba(243, 230, 211, 0.45);
+}
+
+.pn-lang {
+  position: relative;
+  margin: 0 calc(var(--u) * 25) 0 calc(var(--u) * 28);
+}
+
+.pn-lang-btn {
+  display: flex;
+  align-items: center;
+  gap: calc(var(--u) * 8);
+  padding: 0;
+  background: none;
+  border: 0;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+}
+
+.pn-flag {
+  width: calc(var(--u) * 26);
+  height: calc(var(--u) * 16);
+  display: block;
+}
+
+.pn-hours {
+  display: flex;
+  align-items: center;
+  gap: calc(var(--u) * 9);
+  margin-left: calc(var(--u) * 32);
+}
+
+.pn-hours-icon {
+  width: calc(var(--u) * 21);
+  height: calc(var(--u) * 21);
+  color: #f3e6d3;
+}
+
+/* ---------- main nav row ---------- */
+.pn-main {
+  position: absolute;
+  top: calc(var(--u) * 12);
+  bottom: 0;
+  left: calc(var(--u) * 57);
+  right: calc(var(--u) * 14);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: calc(var(--u) * 19);
+}
+
+.pn-links {
+  display: flex;
+  align-items: center;
+}
+
+.pn-li {
+  position: relative;
+}
+
+.pn-link {
+  display: inline-flex;
+  align-items: center;
+  gap: calc(var(--u) * 4);
+  height: calc(var(--u) * 41);
+  padding: 0 calc(var(--u) * 16);
+  border: 0;
+  border-radius: calc(var(--u) * 21);
+  background: none;
+  color: var(--pn-text);
+  font-family: inherit;
+  font-size: calc(var(--u) * 16.5);
+  font-weight: 600;
+  white-space: nowrap;
+  text-decoration: none;
+  cursor: pointer;
+  transition: background-color 0.15s ease;
+}
+
+.pn-link:hover {
+  background: rgba(255, 243, 224, 0.1);
+}
+
+.pn-link--active,
+.pn-link--active:hover {
+  padding: 0 calc(var(--u) * 26);
+  background: var(--pn-yellow);
+  color: var(--pn-brown);
+}
+
+.pn-chevron {
+  width: calc(var(--u) * 10);
+  height: calc(var(--u) * 6);
+  flex: none;
+}
+
+/* ---------- action buttons ---------- */
+.pn-actions {
+  position: relative;
+  top: calc(var(--u) * 4);
+  display: flex;
+  align-items: center;
+  gap: calc(var(--u) * 8);
+}
+
+.pn-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: calc(var(--u) * 8);
+  height: calc(var(--u) * 41);
+  padding: 0 calc(var(--u) * 16);
+  border: calc(var(--u) * 1.5) solid transparent;
+  border-radius: calc(var(--u) * 21);
+  font-family: inherit;
+  font-size: calc(var(--u) * 14);
+  font-weight: 600;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: filter 0.15s ease, background-color 0.15s ease;
+}
+
+.pn-btn:hover {
+  filter: brightness(1.06);
+}
+
+.pn-btn-icon {
+  width: calc(var(--u) * 19);
+  height: calc(var(--u) * 19);
+  flex: none;
+}
+
+.pn-btn--cream {
+  background: var(--pn-cream);
+  color: var(--pn-brown);
+}
+
+.pn-btn--cream .pn-btn-icon {
+  color: var(--pn-icon-gold);
+}
+
+.pn-btn--gold {
+  background: var(--pn-gold);
+  color: #fff8ec;
+}
+
+.pn-btn--gold .pn-btn-icon {
+  color: #fff8ec;
+}
+
+.pn-btn--outline {
+  background: transparent;
+  border-color: rgba(255, 255, 255, 0.85);
+  color: #fff8ec;
+}
+
+.pn-btn--outline .pn-btn-icon {
+  color: #fff8ec;
+}
+
+.pn-btn--outline:hover {
+  background: rgba(255, 255, 255, 0.08);
+  filter: none;
+}
+
+/* ---------- dropdowns ---------- */
+.pn-dropdown {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  z-index: 10;
+  min-width: calc(var(--u) * 230);
+  padding: calc(var(--u) * 10);
+  background: var(--pn-cream);
+  border-radius: calc(var(--u) * 14);
+  box-shadow: 0 calc(var(--u) * 12) calc(var(--u) * 28) rgba(40, 18, 6, 0.28);
+}
+
+.pn-dropdown--lang {
+  min-width: calc(var(--u) * 100);
+  top: calc(100% + 4px);
+}
+
+.pn-dropdown a,
+.pn-dropdown button {
+  display: block;
+  width: 100%;
+  padding: calc(var(--u) * 10) calc(var(--u) * 14);
+  border: 0;
+  border-radius: calc(var(--u) * 9);
+  background: none;
+  color: var(--pn-brown);
+  font-family: inherit;
+  font-size: calc(var(--u) * 15);
+  font-weight: 500;
+  text-align: left;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.pn-dropdown a:hover,
+.pn-dropdown button:hover,
+.pn-dropdown button[aria-selected="true"] {
+  background: rgba(217, 152, 45, 0.18);
+}
+
+/* ---------- mobile hamburger (shown below lg) ---------- */
+.pn-hamburger {
+  display: none;
+  position: absolute;
+  right: calc(var(--u) * 80);
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 6px;
+  z-index: 5;
+  color: var(--pn-text);
+}
+
+.pn-hamburger svg {
+  width: calc(var(--u) * 32);
+  height: calc(var(--u) * 32);
+}
+
+.pn-mobile-menu {
+  display: none;
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  background: var(--pn-brown);
+  z-index: 20;
+  padding: 12px 16px 20px;
+  border-top: 1px solid rgba(255, 243, 224, 0.15);
+}
+
+.pn-mobile-menu a,
+.pn-mobile-menu button {
+  display: block;
+  width: 100%;
+  padding: 10px 12px;
+  background: none;
+  border: none;
+  color: var(--pn-text);
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 600;
+  text-align: left;
+  text-decoration: none;
+  cursor: pointer;
+  border-radius: 8px;
+}
+
+.pn-mobile-menu a:hover,
+.pn-mobile-menu button:hover {
+  background: rgba(255, 243, 224, 0.1);
+}
+
+.pn-mobile-menu--open {
+  display: block;
+}
+
+/* ---------- responsive ---------- */
+@media (max-width: 1200px) {
+  .pn-actions .pn-btn--cream:last-of-type,
+  .pn-actions .pn-btn--outline {
+    display: none;
+  }
+}
+
+@media (max-width: 900px) {
+  .pn-links {
+    display: none;
+  }
+  .pn-actions {
+    display: none;
+  }
+  .pn-hamburger {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+}
+
+/* ---------- keyboard focus ---------- */
+.pn-root a:focus-visible,
+.pn-root button:focus-visible {
+  outline: 2px solid var(--pn-yellow);
+  outline-offset: 2px;
+}
+
+/* Spacer so page content doesn't hide under the fixed navbar */
+.pn-spacer {
+  height: calc(min(0.7px, calc(100vw / 2172)) * 208);
+}

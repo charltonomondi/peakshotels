@@ -10,7 +10,7 @@ import { supabase } from "@/lib/supabase";
 import roomDeluxe from "@/assets/bed.jpg";
 import roomExecutive from "@/assets/bed1.jpg";
 import roomPresidential from "@/assets/bed5.jpg";
-import heroBackground from "@/assets/bed2.jpg";
+import heroBackground from "@/assets/bedr.JPG";
 
 const rooms = [
   {
