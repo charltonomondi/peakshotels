@@ -1,493 +1,317 @@
+/**
+ * Peaks Hotel Navbar
+ * Implements the premium brown-pill + floating SVG logo badge design.
+ * Wired to React Router (Link/useLocation) and existing app hooks.
+ */
+import { useState } from "react";
 import { Link, useLocation } from "react-router-dom";
-import { useState, useRef } from "react";
-import { Menu, X, Phone, Mail, ChevronDown, Star, CreditCard, Waves, Dumbbell, Flame, Wind, Sparkles, Scissors, Newspaper, Images, MessageSquare, Info, ArrowRight, Shield, Briefcase } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { motion, AnimatePresence } from "framer-motion";
+import { Menu, X } from "lucide-react";
 import { useLoyaltyAuth } from "@/lib/loyaltyAuth";
 import { useStaffAuth } from "@/lib/staffAuth";
 import { openLipaModal } from "@/components/LipaMdogoMdogoPopup";
-import logo from "/logo.jpeg";
-import wellnessBanner from "@/assets/swimming/swim1.jpg";
-import moreBanner from "@/assets/facilities/Grounds1.jpg";
+import "./PeaksNavbar.css";
 
-// Primary links shown directly in the navbar
-const primaryNavItems = [
-  { name: "Home", path: "/" },
-  { name: "Accommodation", path: "/rooms" },
-  { name: "Restaurant & Dining", path: "/restaurant" },
-  { name: "Conference", path: "/facilities" },
-  { name: "Outdoor Activities", path: "/activities" },
-  { name: "Mt. Kenya Climbing", path: "/mountain-climbing" },
+// ── Nav structure ──────────────────────────────────────────────────────────────
+interface SubLink { label: string; to: string; }
+interface NavItem  { label: string; to: string; children?: SubLink[]; }
+
+const NAV_ITEMS: NavItem[] = [
+  { label: "Home",               to: "/" },
+  { label: "Accommodation",      to: "/rooms",
+    children: [
+      { label: "Rooms & Suites", to: "/rooms" },
+      { label: "Room Features",  to: "/room-features/101" },
+    ],
+  },
+  { label: "Restaurant & Dining", to: "/restaurant" },
+  { label: "Conference",          to: "/facilities" },
+  { label: "Outdoor Activities",  to: "/activities" },
+  { label: "Mt. Kenya Climbing",  to: "/mountain-climbing" },
+  { label: "Wellness Centre", to: "/gym",
+    children: [
+      { label: "Gym",            to: "/gym" },
+      { label: "Swimming Pool",  to: "/swimming" },
+      { label: "Steam Bath",     to: "/steam-bath" },
+      { label: "Sauna",          to: "/sauna" },
+      { label: "Massage",        to: "/massage" },
+      { label: "Beauty Parlour", to: "/beauty-parlour" },
+      { label: "Spa",            to: "/spa" },
+    ],
+  },
+  { label: "More", to: "#",
+    children: [
+      { label: "News & Updates", to: "/news" },
+      { label: "Careers",        to: "/careers" },
+      { label: "Gallery",        to: "/gallery" },
+      { label: "Contact",        to: "/contact" },
+      { label: "About Us",       to: "/about" },
+    ],
+  },
 ];
 
-const wellnessLinks = [
-  { name: "Gym", path: "/gym", icon: Dumbbell, desc: "State-of-the-art fitness centre" },
-  { name: "Swimming Pool", path: "/swimming", icon: Waves, desc: "Heated outdoor pool" },
-  { name: "Steam Bath", path: "/steam-bath", icon: Wind, desc: "Therapeutic moist heat" },
-  { name: "Sauna", path: "/sauna", icon: Flame, desc: "Traditional Finnish sauna" },
-  { name: "Massage", path: "/massage", icon: Sparkles, desc: "Certified therapists" },
-  { name: "Beauty Parlour", path: "/beauty-parlour", icon: Scissors, desc: "Hair, skin & nail care" },
-];
+const LANGUAGES = ["EN", "SW", "FR", "DE", "ES", "ZH"];
 
-// Secondary links tucked into a "More" dropdown
-const moreNavItems = [
-  { name: "News & Updates", path: "/news",    icon: Newspaper,    desc: "Latest news and events" },
-  { name: "Careers",        path: "/careers", icon: Briefcase,    desc: "Job opportunities at Peaks Hotel" },
-  { name: "Gallery",        path: "/gallery",  icon: Images,       desc: "Photos from around the hotel" },
-  { name: "Contact",        path: "/contact",  icon: MessageSquare,desc: "Get in touch with us" },
-  { name: "About Us",       path: "/about",    icon: Info,         desc: "Our story and values" },
-];
+// ── Icon components ────────────────────────────────────────────────────────────
+const Chevron = () => (
+  <svg className="pn-chevron" viewBox="0 0 10 6" aria-hidden="true">
+    <path d="M1 1l4 4 4-4" fill="none" stroke="currentColor"
+      strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" />
+  </svg>
+);
 
-const languages = [
-  { code: "en", name: "EN", flag: "🇺🇸" },
-  { code: "fr", name: "FR", flag: "🇫🇷" },
-  { code: "es", name: "ES", flag: "🇪🇸" },
-  { code: "hi", name: "HI", flag: "🇮🇳" },
-  { code: "zh", name: "ZH", flag: "🇨🇳" },
-  { code: "de", name: "DE", flag: "🇩🇪" },
-  { code: "it", name: "IT", flag: "🇮🇹" },
-  { code: "pt", name: "PT", flag: "🇵🇹" },
-  { code: "ja", name: "JA", flag: "🇯🇵" },
-  { code: "ko", name: "KO", flag: "🇰🇷" },
-];
+const CalendarIcon = ({ className = "" }: { className?: string }) => (
+  <svg className={className} viewBox="0 0 24 24" aria-hidden="true">
+    <rect x="2.5" y="4" width="19" height="17.5" rx="3" fill="none" stroke="currentColor" strokeWidth="1.8" />
+    <path d="M2.5 9.5h19" stroke="currentColor" strokeWidth="1.8" />
+    <path d="M7.5 2v4M16.5 2v4" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
+    <g fill="currentColor">
+      <circle cx="7.5" cy="13" r="1.1" /><circle cx="12" cy="13" r="1.1" /><circle cx="16.5" cy="13" r="1.1" />
+      <circle cx="7.5" cy="17.2" r="1.1" /><circle cx="12" cy="17.2" r="1.1" /><circle cx="16.5" cy="17.2" r="1.1" />
+    </g>
+  </svg>
+);
 
-const gtCodes: Record<string, string> = {
-  en: "en", fr: "fr", es: "es", hi: "hi",
-  zh: "zh-CN", de: "de", it: "it", pt: "pt", ja: "ja", ko: "ko",
-};
+const StarIcon = ({ className = "" }: { className?: string }) => (
+  <svg className={className} viewBox="0 0 24 24" aria-hidden="true">
+    <path d="M12 2.2l2.9 6.3 6.9.8-5.1 4.7 1.4 6.8L12 17.3 5.9 20.8l1.4-6.8L2.2 9.3l6.9-.8z"
+      fill="currentColor" stroke="currentColor" strokeWidth="1" strokeLinejoin="round" />
+  </svg>
+);
 
-function getActiveLangCode(): string {
-  const match = document.cookie.match(/googtrans=\/en\/([^;]+)/);
-  return match ? match[1] : "en";
-}
+const UserCircleIcon = ({ className = "" }: { className?: string }) => (
+  <svg className={className} viewBox="0 0 24 24" aria-hidden="true">
+    <circle cx="12" cy="12" r="10.5" fill="currentColor" />
+    <circle cx="12" cy="9.4" r="3.4" fill="#5b2e16" />
+    <path d="M5.6 18.6c1.2-3 3.5-4.3 6.4-4.3s5.2 1.3 6.4 4.3c-1.6 1.7-3.9 2.7-6.4 2.7s-4.8-1-6.4-2.7z" fill="#5b2e16" />
+  </svg>
+);
 
+const UKFlag = () => (
+  <svg className="pn-flag" viewBox="0 0 60 36" aria-hidden="true">
+    <clipPath id="pn-flag-clip"><rect width="60" height="36" rx="3" /></clipPath>
+    <g clipPath="url(#pn-flag-clip)">
+      <rect width="60" height="36" fill="#1f3a93" />
+      <path d="M0 0l60 36M60 0L0 36" stroke="#fff" strokeWidth="7.2" />
+      <path d="M0 0l60 36M60 0L0 36" stroke="#d6283b" strokeWidth="2.4" />
+      <path d="M30 0v36M0 18h60" stroke="#fff" strokeWidth="12" />
+      <path d="M30 0v36M0 18h60" stroke="#d6283b" strokeWidth="7" />
+    </g>
+  </svg>
+);
+
+// ── SVG Logo Badge ─────────────────────────────────────────────────────────────
+const LogoBadge = () => (
+  <svg className="pn-badge" viewBox="0 0 500 208" role="img" aria-label="Peaks Hotels Ltd — Beauty & Taste with Nature">
+    <defs>
+      <linearGradient id="pn-gold-edge" x1="0" y1="0" x2="1" y2="1">
+        <stop offset="0%" stopColor="#f0be62" />
+        <stop offset="55%" stopColor="#c58a3a" />
+        <stop offset="100%" stopColor="#8f5a22" />
+      </linearGradient>
+    </defs>
+    {/* olive sliver behind the badge, left edge */}
+    <path d="M0 33H56Q74 33 82 28L0 134Z" fill="#7b6b2b" />
+    {/* grey underside shadow */}
+    <path d="M508 150L442 204Q434 210 422 211H300" fill="none" stroke="#cfcfcf" strokeWidth="6" strokeLinecap="round" opacity="0.8" />
+    {/* gold bevel on slanted right edge */}
+    <path d="M372 0Q384 0 392 8L510 146" fill="none" stroke="url(#pn-gold-edge)" strokeWidth="10" strokeLinecap="round" />
+    {/* cream badge body */}
+    <path d="M80 4Q84 1 94 1H366Q376 1 384 9L506 146L440 200Q432 207 420 207H100Q90 207 84 200L0 134V130Z" fill="#fdf6ea" />
+    {/* sun */}
+    <circle cx="230" cy="41" r="33" fill="#f8b53a" />
+    {/* mountains */}
+    <path d="M137 101L172 66L184 73L232 31L248 48L257 41L283 101Z" fill="#5b2e16" />
+    <path d="M217 47L232 31L246 45L238 49L232 44L226 50Z" fill="#fdf6ea" />
+    {/* pine */}
+    <path d="M302 28L288 56H295L282 78H290L274 100H330L314 78H322L309 56H316Z" fill="#5b2e16" />
+    <rect x="299.5" y="100" width="6" height="7" fill="#5b2e16" />
+    {/* wordmark */}
+    <text className="pn-logo-serif" x="127" y="146" fontSize="64" fontWeight="800" fill="#5b2e16" textLength="220" lengthAdjust="spacingAndGlyphs">PEAKS</text>
+    <text className="pn-logo-sans" x="144" y="172" fontSize="21" fontWeight="700" fill="#5b2e16" textLength="186" lengthAdjust="spacing">HOTELS LTD</text>
+    <text className="pn-logo-serif" x="129" y="196" fontSize="21" fontStyle="italic" fontWeight="500" fill="#5b2e16" textLength="214" lengthAdjust="spacingAndGlyphs">Beauty &amp; Taste with Nature</text>
+    <path d="M87 191H122M350 191H385" stroke="#5b2e16" strokeWidth="1.6" />
+  </svg>
+);
+
+// ── Main component ─────────────────────────────────────────────────────────────
 const Navbar = () => {
-  const [isOpen, setIsOpen] = useState(false);
-  const [wellnessOpen, setWellnessOpen] = useState(false);
-  const [moreOpen, setMoreOpen] = useState(false);
-  const [mobileWellnessOpen, setMobileWellnessOpen] = useState(false);
-  const [logoError, setLogoError] = useState(false);
-  const [logoLoading, setLogoLoading] = useState(true);
   const location = useLocation();
   const { member } = useLoyaltyAuth();
   const { staff } = useStaffAuth();
-  const wellnessTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const moreTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  const activeLangCode = getActiveLangCode();
-  const initialLang = languages.find(l => gtCodes[l.code] === activeLangCode) || languages[0];
-  const [selectedLanguage, setSelectedLanguage] = useState(initialLang);
+  const [openMenu, setOpenMenu] = useState<string | null>(null);
+  const [language, setLanguage] = useState("EN");
+  const [mobileOpen, setMobileOpen] = useState(false);
 
-  const handleLanguageChange = (lang: typeof languages[0]) => {
-    setSelectedLanguage(lang);
-    const gtCode = gtCodes[lang.code] || lang.code;
-    if ((window as any).__translateTo) (window as any).__translateTo(gtCode);
-  };
-
-  const isWellnessActive = wellnessLinks.some(l => location.pathname === l.path);
-  const isMoreActive = moreNavItems.some(i => location.pathname === i.path);
-
-  const openWellness = () => {
-    if (wellnessTimeout.current) clearTimeout(wellnessTimeout.current);
-    setWellnessOpen(true);
-  };
-  const closeWellness = () => {
-    wellnessTimeout.current = setTimeout(() => setWellnessOpen(false), 120);
-  };
-
-  const openMore = () => {
-    if (moreTimeout.current) clearTimeout(moreTimeout.current);
-    setMoreOpen(true);
-  };
-  const closeMore = () => {
-    moreTimeout.current = setTimeout(() => setMoreOpen(false), 120);
-  };
-
-  const renderDesktopItem = (item: any, index: number) => (
-    <Link
-      key={index}
-      to={item.path}
-      className={`text-sm font-bold tracking-wide transition-colors hover:text-accent whitespace-nowrap ${location.pathname === item.path ? "text-accent" : "text-foreground"}`}
-    >
-      {item.name}
-    </Link>
-  );
-
-  const allMobileItems = [...primaryNavItems, ...moreNavItems];
-
-  const renderMobileItem = (item: any, level = 0) => {
-    const pl = 16 + level * 16;
-    return (
-      <Link
-        key={item.name}
-        to={item.path}
-        onClick={() => setIsOpen(false)}
-        className={`block py-2.5 text-sm font-medium rounded-md transition-colors hover:text-accent ${location.pathname === item.path ? "text-accent" : "text-foreground"}`}
-        style={{ paddingLeft: pl }}
-      >
-        {item.name}
-      </Link>
-    );
-  };
+  const isActive = (to: string) =>
+    to === "/" ? location.pathname === "/" : location.pathname.startsWith(to);
 
   return (
     <>
-      {/* Top bar */}
-      <nav className="fixed top-0 left-0 right-0 z-40 bg-primary text-primary-foreground">
-        <div className="container mx-auto px-4">
-          <div className="hidden md:flex items-center justify-between h-8 text-xs">
-            <div className="flex items-center gap-4">
-              <a href="tel:0711969690" className="flex items-center gap-1 hover:text-accent transition-colors">
-                <Phone className="h-3 w-3" /> 0711969690
-              </a>
-              <a href="mailto:info@peakshotels.co.ke" className="flex items-center gap-1 hover:text-accent transition-colors">
-                <Mail className="h-3 w-3" /> info@peakshotels.co.ke
-              </a>
-            </div>
-            <div className="flex items-center gap-3">
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <button className="flex items-center gap-1 hover:text-accent transition-colors">
-                    <span>{selectedLanguage.flag}</span>
-                    <span>{selectedLanguage.name}</span>
-                    <ChevronDown className="h-3 w-3" />
-                  </button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="w-36">
-                  {languages.map((lang) => (
-                    <DropdownMenuItem
-                      key={lang.code}
-                      onClick={() => handleLanguageChange(lang)}
-                      className={selectedLanguage.code === lang.code ? "font-semibold text-accent" : ""}
-                    >
-                      <span className="mr-2">{lang.flag}</span> {lang.name}
-                    </DropdownMenuItem>
+      <header className="pn-root">
+        {/* ── Brown pill bar ────────────────────────────────────────────── */}
+        <div className="pn-bar">
+
+          {/* Utility row: language + divider + hours */}
+          <div className="pn-utility">
+            {/* Language picker */}
+            <div
+              className="pn-lang"
+              onMouseEnter={() => setOpenMenu("lang")}
+              onMouseLeave={() => setOpenMenu(null)}
+            >
+              <button type="button" className="pn-lang-btn"
+                aria-haspopup="listbox" aria-expanded={openMenu === "lang"}
+                onClick={() => setOpenMenu(openMenu === "lang" ? null : "lang")}
+              >
+                <UKFlag />
+                <span>{language}</span>
+                <Chevron />
+              </button>
+              {openMenu === "lang" && (
+                <ul className="pn-dropdown pn-dropdown--lang" role="listbox">
+                  {LANGUAGES.map(l => (
+                    <li key={l}>
+                      <button type="button" role="option" aria-selected={l === language}
+                        onClick={() => { setLanguage(l); setOpenMenu(null); }}>
+                        {l}
+                      </button>
+                    </li>
                   ))}
-                </DropdownMenuContent>
-              </DropdownMenu>
-              <span className="text-primary-foreground/60">Mon – Sun: 24/7</span>
+                </ul>
+              )}
+            </div>
+
+            <span className="pn-divider" aria-hidden="true" />
+
+            <div className="pn-hours">
+              <CalendarIcon className="pn-hours-icon" />
+              <span>Mon – Sun, 24/7</span>
             </div>
           </div>
+
+          {/* Main nav row */}
+          <nav className="pn-main" aria-label="Primary">
+            <ul className="pn-links">
+              {NAV_ITEMS.map(item => {
+                const active = isActive(item.to) && item.to !== "#";
+                const hasChildren = !!item.children;
+                return (
+                  <li key={item.label} className="pn-li"
+                    onMouseEnter={() => hasChildren && setOpenMenu(item.label)}
+                    onMouseLeave={() => hasChildren && setOpenMenu(null)}
+                  >
+                    {hasChildren ? (
+                      <button type="button" className={`pn-link${active ? " pn-link--active" : ""}`}
+                        aria-haspopup="menu" aria-expanded={openMenu === item.label}
+                        onClick={() => setOpenMenu(openMenu === item.label ? null : item.label)}>
+                        {item.label}<Chevron />
+                      </button>
+                    ) : (
+                      <Link to={item.to} className={`pn-link${active ? " pn-link--active" : ""}`}
+                        aria-current={active ? "page" : undefined}>
+                        {item.label}
+                      </Link>
+                    )}
+                    {hasChildren && openMenu === item.label && (
+                      <ul className="pn-dropdown" role="menu">
+                        {item.children!.map(c => (
+                          <li key={c.label} role="none">
+                            <Link to={c.to} role="menuitem"
+                              onClick={() => setOpenMenu(null)}>
+                              {c.label}
+                            </Link>
+                          </li>
+                        ))}
+                      </ul>
+                    )}
+                  </li>
+                );
+              })}
+            </ul>
+
+            {/* Action buttons */}
+            <div className="pn-actions">
+              <button type="button" className="pn-btn pn-btn--cream"
+                onClick={() => openLipaModal?.()}>
+                <CalendarIcon className="pn-btn-icon" />
+                Payment Plan
+              </button>
+
+              <Link to={member ? "/loyalty/dashboard" : "/loyalty/signup"}
+                className="pn-btn pn-btn--cream" style={{ textDecoration: "none" }}>
+                <StarIcon className="pn-btn-icon" />
+                {member ? `${member.points.toLocaleString()} pts` : "Loyalty"}
+              </Link>
+
+              <Link to="/booking" className="pn-btn pn-btn--gold" style={{ textDecoration: "none" }}>
+                <CalendarIcon className="pn-btn-icon" />
+                Book Now
+              </Link>
+
+              <Link
+                to={staff?.status === "active" ? "/staff/dashboard" : "/staff/login"}
+                className="pn-btn pn-btn--outline"
+                style={{ textDecoration: "none" }}
+              >
+                <UserCircleIcon className="pn-btn-icon" />
+                {staff?.status === "active" ? "Dashboard" : "Staff Login"}
+              </Link>
+            </div>
+
+            {/* Mobile hamburger */}
+            <button className="pn-hamburger" aria-label="Toggle menu"
+              onClick={() => setMobileOpen(o => !o)}>
+              {mobileOpen
+                ? <X style={{ width: "24px", height: "24px" }} />
+                : <Menu style={{ width: "24px", height: "24px" }} />}
+            </button>
+          </nav>
         </div>
-      </nav>
 
-      {/* Main navbar */}
-      <nav className="fixed top-0 md:top-8 left-0 right-0 z-50 bg-background/95 backdrop-blur-md border-b border-border">
-        <div className="container mx-auto px-4">
-          <div className="flex items-center justify-between h-16">
+        {/* Floating logo badge — sits over both bar and hero */}
+        <Link to="/" aria-label="Peaks Hotel — Home">
+          <LogoBadge />
+        </Link>
 
-            {/* Logo */}
-            <Link to="/" className="shrink-0">
-              {logoError ? (
-                <div className="h-10 w-10 bg-accent/10 flex items-center justify-center rounded-lg">
-                  <span className="text-accent font-bold text-sm">PH</span>
-                </div>
+        {/* Mobile menu */}
+        <div className={`pn-mobile-menu${mobileOpen ? " pn-mobile-menu--open" : ""}`}>
+          {NAV_ITEMS.map(item => (
+            <div key={item.label}>
+              {item.to !== "#" && !item.children ? (
+                <Link to={item.to} onClick={() => setMobileOpen(false)}>{item.label}</Link>
               ) : (
-                <img
-                  src={logo}
-                  alt="Peaks Hotel"
-                  className={`h-10 w-auto object-contain transition-opacity duration-300 ${logoLoading ? "opacity-0" : "opacity-100"}`}
-                  onLoad={() => setLogoLoading(false)}
-                  onError={() => { setLogoError(true); setLogoLoading(false); }}
-                  loading="eager"
-                  decoding="async"
-                />
+                <>
+                  <button onClick={() => setOpenMenu(openMenu === item.label ? null : item.label)}>
+                    {item.label} {item.children && <Chevron />}
+                  </button>
+                  {item.children && openMenu === item.label && (
+                    <div style={{ paddingLeft: "16px" }}>
+                      {item.children.map(c => (
+                        <Link key={c.label} to={c.to} onClick={() => { setMobileOpen(false); setOpenMenu(null); }}>
+                          {c.label}
+                        </Link>
+                      ))}
+                    </div>
+                  )}
+                </>
               )}
+            </div>
+          ))}
+          <div style={{ marginTop: "12px", paddingTop: "12px", borderTop: "1px solid rgba(255,243,224,0.2)" }}>
+            <button onClick={() => { openLipaModal?.(); setMobileOpen(false); }} className="pn-btn pn-btn--cream" style={{ width: "100%", justifyContent: "center", marginBottom: "8px" }}>
+              <CalendarIcon className="pn-btn-icon" /> Payment Plan
+            </button>
+            <Link to="/booking" className="pn-btn pn-btn--gold" style={{ width: "100%", justifyContent: "center", textDecoration: "none", display: "flex" }}
+              onClick={() => setMobileOpen(false)}>
+              <CalendarIcon className="pn-btn-icon" /> Book Now
             </Link>
-
-            {/* Desktop nav links */}
-            <div className="hidden lg:flex items-center gap-6 xl:gap-8">
-              {primaryNavItems.map((item, i) => renderDesktopItem(item, i))}
-
-              {/* Wellness Centre mega-menu trigger */}
-              <div
-                className="relative"
-                onMouseEnter={openWellness}
-                onMouseLeave={closeWellness}
-              >
-                <button className={`flex items-center gap-1 text-sm font-bold tracking-wide transition-colors hover:text-accent whitespace-nowrap ${isWellnessActive ? "text-accent" : "text-foreground"}`}>
-                  Wellness Centre <ChevronDown className={`h-3.5 w-3.5 opacity-60 transition-transform duration-200 ${wellnessOpen ? "rotate-180" : ""}`} />
-                </button>
-
-                <AnimatePresence>
-                  {wellnessOpen && (
-                    <motion.div
-                      initial={{ opacity: 0, y: 8 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      exit={{ opacity: 0, y: 8 }}
-                      transition={{ duration: 0.18 }}
-                      onMouseEnter={openWellness}
-                      onMouseLeave={closeWellness}
-                      className="absolute top-full left-1/2 -translate-x-1/2 mt-3 w-[780px] bg-background border border-border rounded-2xl shadow-2xl overflow-hidden z-50"
-                    >
-                      <div className="flex">
-                        {/* Banner image */}
-                        <div className="relative w-48 shrink-0">
-                          <img src={wellnessBanner} alt="Wellness Centre" className="w-full h-full object-cover" />
-                          <div className="absolute inset-0 bg-gradient-to-r from-transparent to-background/20" />
-                          <div className="absolute bottom-4 left-4 right-2">
-                            <p className="text-white text-xs font-medium tracking-widest uppercase mb-1">Wellness Centre</p>
-                            <p className="text-white/80 text-xs leading-snug">Relax. Rejuvenate. Restore.</p>
-                          </div>
-                        </div>
-
-                        {/* Links grid */}
-                        <div className="flex-1 p-5 grid grid-cols-2 gap-2">
-                          {wellnessLinks.map(({ name, path, icon: Icon, desc }) => (
-                            <Link
-                              key={name}
-                              to={path}
-                              onClick={() => setWellnessOpen(false)}
-                              className={`flex items-start gap-3 p-3 rounded-xl hover:bg-secondary transition-colors group ${location.pathname === path ? "bg-accent/5" : ""}`}
-                            >
-                              <div className="w-8 h-8 bg-accent/10 rounded-lg flex items-center justify-center shrink-0 group-hover:bg-accent transition-colors">
-                                <Icon className="h-4 w-4 text-accent group-hover:text-accent-foreground transition-colors" />
-                              </div>
-                              <div>
-                                <p className={`text-sm font-bold leading-tight ${location.pathname === path ? "text-accent" : "text-foreground"}`}>{name}</p>
-                                <p className="text-xs text-muted-foreground mt-0.5">{desc}</p>
-                              </div>
-                            </Link>
-                          ))}
-                        </div>
-                      </div>
-                    </motion.div>
-                  )}
-                </AnimatePresence>
-              </div>
-
-              {/* More mega-menu */}
-              <div
-                className="relative"
-                onMouseEnter={openMore}
-                onMouseLeave={closeMore}
-              >
-                <button className={`flex items-center gap-1 text-sm font-bold tracking-wide transition-colors hover:text-accent ${isMoreActive ? "text-accent" : "text-foreground"}`}>
-                  More <ChevronDown className={`h-3.5 w-3.5 opacity-60 transition-transform duration-200 ${moreOpen ? "rotate-180" : ""}`} />
-                </button>
-
-                <AnimatePresence>
-                  {moreOpen && (
-                    <motion.div
-                      initial={{ opacity: 0, y: 8 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      exit={{ opacity: 0, y: 8 }}
-                      transition={{ duration: 0.18 }}
-                      onMouseEnter={openMore}
-                      onMouseLeave={closeMore}
-                      className="absolute top-full right-0 mt-3 w-[520px] bg-background border border-border rounded-2xl shadow-2xl overflow-hidden z-50"
-                    >
-                      <div className="flex">
-                        {/* Banner image */}
-                        <div className="relative w-44 shrink-0">
-                          <img src={moreBanner} alt="Peaks Hotel" className="w-full h-full object-cover" />
-                          <div className="absolute inset-0 bg-gradient-to-r from-transparent to-background/20" />
-                          <div className="absolute bottom-4 left-4 right-2">
-                            <p className="text-white text-xs font-medium tracking-widest uppercase mb-1">Peaks Hotel</p>
-                            <p className="text-white/80 text-xs leading-snug">Nanyuki, Kenya</p>
-                          </div>
-                        </div>
-
-                        {/* Links */}
-                        <div className="flex-1 p-4 flex flex-col gap-1">
-                          {moreNavItems.map(({ name, path, icon: Icon, desc }) => (
-                            <Link
-                              key={name}
-                              to={path}
-                              onClick={() => setMoreOpen(false)}
-                              className={`flex items-center gap-3 p-3 rounded-xl hover:bg-secondary transition-colors group ${location.pathname === path ? "bg-accent/5" : ""}`}
-                            >
-                              <div className="w-8 h-8 bg-accent/10 rounded-lg flex items-center justify-center shrink-0 group-hover:bg-accent transition-colors">
-                                <Icon className="h-4 w-4 text-accent group-hover:text-accent-foreground transition-colors" />
-                              </div>
-                              <div>
-                                <p className={`text-sm font-bold leading-tight ${location.pathname === path ? "text-accent" : "text-foreground"}`}>{name}</p>
-                                <p className="text-xs text-muted-foreground">{desc}</p>
-                              </div>
-                              <ArrowRight className="h-3.5 w-3.5 text-muted-foreground ml-auto opacity-0 group-hover:opacity-100 transition-opacity" />
-                            </Link>
-                          ))}
-                        </div>
-                      </div>
-                    </motion.div>
-                  )}
-                </AnimatePresence>
-              </div>
-            </div>
-
-            {/* Right side actions */}
-            <div className="flex items-center gap-1.5">
-              <button
-                onClick={() => openLipaModal?.()}
-                className="hidden md:flex items-center gap-1.5 px-2.5 py-1.5 bg-amber-500/10 hover:bg-amber-500/20 rounded-full text-xs font-semibold text-amber-600 transition-colors border border-amber-400/30 whitespace-nowrap"
-              >
-                <CreditCard className="h-3.5 w-3.5" />
-                <span className="hidden xl:inline">Payment Plan</span>
-              </button>
-
-              {member ? (
-                <Link
-                  to="/loyalty/dashboard"
-                  className="hidden md:flex items-center gap-1.5 px-2.5 py-1.5 bg-accent/10 hover:bg-accent/20 rounded-full text-xs font-semibold text-accent transition-colors whitespace-nowrap"
-                >
-                  <Star className="h-3.5 w-3.5" />
-                  <span className="hidden xl:inline">{member.points.toLocaleString()} pts</span>
-                  <span className="xl:hidden">Loyalty</span>
-                </Link>
-              ) : (
-                <Link
-                  to="/loyalty/signup"
-                  className="hidden md:flex items-center gap-1.5 px-2.5 py-1.5 bg-accent/10 hover:bg-accent/20 rounded-full text-xs font-semibold text-accent transition-colors whitespace-nowrap"
-                >
-                  <Star className="h-3.5 w-3.5" />
-                  <span className="hidden xl:inline">Loyalty</span>
-                </Link>
-              )}
-
-              <Button variant="gold" size="sm" className="hidden sm:inline-flex text-xs px-3" asChild>
-                <Link to="/booking">Book Now</Link>
-              </Button>
-
-              {/* Staff portal — always visible on sm+ */}
-              {staff?.status === "active" ? (
-                <Link
-                  to="/staff/dashboard"
-                  className="flex items-center gap-1.5 px-2.5 py-1.5 bg-primary/10 hover:bg-primary/20 rounded-full text-xs font-semibold text-primary transition-colors border border-primary/20 whitespace-nowrap"
-                >
-                  <Shield className="h-3.5 w-3.5" />
-                  <span className="hidden xs:inline">Dashboard</span>
-                </Link>
-              ) : (
-                <Link
-                  to="/staff/login"
-                  className="flex items-center gap-1.5 px-2.5 py-1.5 bg-primary/10 hover:bg-primary/20 rounded-full text-xs font-semibold text-primary transition-colors border border-primary/20 whitespace-nowrap"
-                >
-                  <Shield className="h-3.5 w-3.5" />
-                  <span>Staff Login</span>
-                </Link>
-              )}
-
-              <button
-                onClick={() => setIsOpen(!isOpen)}
-                className="lg:hidden p-2 rounded-md hover:bg-secondary transition-colors"
-                aria-label="Toggle menu"
-              >
-                {isOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
-              </button>
-            </div>
           </div>
-
-          {/* Mobile menu */}
-          <AnimatePresence>
-            {isOpen && (
-              <motion.div
-                initial={{ opacity: 0, height: 0 }}
-                animate={{ opacity: 1, height: "auto" }}
-                exit={{ opacity: 0, height: 0 }}
-                className="lg:hidden border-t border-border overflow-hidden"
-              >
-                <div className="py-3 max-h-[75vh] overflow-y-auto">
-                  {allMobileItems.map((item) => renderMobileItem(item))}
-
-                  {/* Wellness Centre in mobile */}
-                  <div>
-                    <button
-                      onClick={() => setMobileWellnessOpen(v => !v)}
-                      className="w-full flex items-center justify-between py-2.5 text-sm font-semibold text-foreground"
-                      style={{ paddingLeft: 16 }}
-                    >
-                      Wellness Centre
-                      <ChevronDown className={`h-4 w-4 mr-4 transition-transform ${mobileWellnessOpen ? "rotate-180" : ""}`} />
-                    </button>
-                    <AnimatePresence>
-                      {mobileWellnessOpen && (
-                        <motion.div
-                          initial={{ height: 0, opacity: 0 }}
-                          animate={{ height: "auto", opacity: 1 }}
-                          exit={{ height: 0, opacity: 0 }}
-                          className="overflow-hidden"
-                        >
-                          {wellnessLinks.map(({ name, path }) => (
-                            <Link
-                              key={name}
-                              to={path}
-                              onClick={() => { setIsOpen(false); setMobileWellnessOpen(false); }}
-                              className={`block py-2 text-sm font-medium hover:text-accent transition-colors ${location.pathname === path ? "text-accent" : "text-muted-foreground"}`}
-                              style={{ paddingLeft: 32 }}
-                            >
-                              {name}
-                            </Link>
-                          ))}
-                        </motion.div>
-                      )}
-                    </AnimatePresence>
-                  </div>
-
-                  <div className="mt-3 pt-3 border-t border-border space-y-2">
-                    <button
-                      onClick={() => { setIsOpen(false); openLipaModal?.(); }}
-                      className="w-full flex items-center justify-center gap-2 py-2.5 rounded-full bg-amber-500/10 border border-amber-400/30 text-amber-600 font-semibold text-sm"
-                    >
-                      <CreditCard className="h-4 w-4" /> Payment Plan
-                    </button>
-
-                    {member ? (
-                      <Link
-                        to="/loyalty/dashboard"
-                        onClick={() => setIsOpen(false)}
-                        className="w-full flex items-center justify-center gap-2 py-2.5 rounded-full bg-accent/10 text-accent font-semibold text-sm border border-accent/20"
-                      >
-                        <Star className="h-4 w-4" /> {member.points.toLocaleString()} pts
-                      </Link>
-                    ) : (
-                      <Link
-                        to="/loyalty/signup"
-                        onClick={() => setIsOpen(false)}
-                        className="w-full flex items-center justify-center gap-2 py-2.5 rounded-full bg-accent/10 text-accent font-semibold text-sm border border-accent/20"
-                      >
-                        <Star className="h-4 w-4" /> Loyalty Programme
-                      </Link>
-                    )}
-
-                    <Button variant="gold" size="lg" className="w-full" asChild>
-                      <Link to="/booking" onClick={() => setIsOpen(false)}>Book Now</Link>
-                    </Button>
-
-                    {staff?.status === "active" ? (
-                      <Link
-                        to="/staff/dashboard"
-                        onClick={() => setIsOpen(false)}
-                        className="w-full flex items-center justify-center gap-2 py-2.5 rounded-full bg-primary/10 text-primary font-semibold text-sm border border-primary/20"
-                      >
-                        <Shield className="h-4 w-4" /> Staff Dashboard
-                      </Link>
-                    ) : (
-                      <Link
-                        to="/staff/login"
-                        onClick={() => setIsOpen(false)}
-                        className="w-full flex items-center justify-center gap-2 py-2.5 rounded-full bg-primary/10 text-primary font-semibold text-sm border border-primary/20"
-                      >
-                        <Shield className="h-4 w-4" /> Staff Login
-                      </Link>
-                    )}
-                  </div>
-
-                  <div className="mt-3 pt-3 border-t border-border flex flex-col gap-1 text-xs text-muted-foreground">
-                    <a href="tel:0711969690" className="flex items-center gap-2"><Phone className="h-3 w-3" />0711969690</a>
-                    <a href="mailto:info@peakshotels.co.ke" className="flex items-center gap-2"><Mail className="h-3 w-3" />info@peakshotels.co.ke</a>
-                  </div>
-                </div>
-              </motion.div>
-            )}
-          </AnimatePresence>
         </div>
-      </nav>
+      </header>
+
+      {/* Spacer so content starts below navbar */}
+      <div className="pn-spacer" />
     </>
   );
 };
