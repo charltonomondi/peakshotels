@@ -5,6 +5,7 @@ import Footer from "@/components/Footer";
 import SEO from "@/components/SEO";
 import { Button } from "@/components/ui/button";
 import MpesaPayment from "@/components/MpesaPayment";
+import beamlift from "@/assets/hero/beamlift.JPG";
 import {
   Mountain, Trophy, Users, Calendar, MapPin, Utensils,
   Bed, ShieldCheck, Camera, ChevronDown, Send, CheckCircle2,
@@ -61,7 +62,7 @@ const EMPTY_FORM: RegForm = {
 
 const CATEGORIES = ["Beginner (10 km)", "Intermediate (20 km)", "Advanced (35 km)", "Elite (50 km)"];
 const SIZES = ["XS", "S", "M", "L", "XL", "XXL"];
-const AMOUNT = 5000;
+const AMOUNT = 500;
 
 export default function PeaksChallenge() {
   const [form, setForm] = useState<RegForm>(EMPTY_FORM);
@@ -137,12 +138,12 @@ export default function PeaksChallenge() {
 
       {/* ── HERO ──────────────────────────────────────────────────────────── */}
       <section className="relative min-h-[70vh] flex items-center justify-center overflow-hidden bg-zinc-950 pt-24">
-        <div className="absolute inset-0 bg-[url('/assets/hero/zipline.JPG')] bg-cover bg-center opacity-30" />
-        <div className="absolute inset-0 bg-gradient-to-b from-zinc-950/60 via-zinc-950/40 to-zinc-950" />
+        <img src={beamlift} alt="Peaks Challenge" className="absolute inset-0 w-full h-full object-cover opacity-40" />
+        <div className="absolute inset-0 bg-gradient-to-b from-zinc-950/50 via-zinc-950/30 to-zinc-950" />
         <div className="relative z-10 text-center px-4 max-w-4xl mx-auto">
           <motion.div initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8 }}>
             <span className="inline-block bg-accent text-accent-foreground text-xs font-bold px-5 py-2 rounded-full uppercase tracking-widest mb-6">
-              3rd Edition · 2025
+              3rd Edition · 2027
             </span>
             <h1 className="font-heading text-5xl sm:text-6xl md:text-7xl font-bold text-white mb-4 leading-tight">
               Peaks<br /><span className="text-accent italic font-light">Challenge</span>
@@ -162,7 +163,7 @@ export default function PeaksChallenge() {
               ))}
             </div>
             <Button variant="gold" size="xl" onClick={() => formRef.current?.scrollIntoView({ behavior: "smooth" })}>
-              Register Now — KES 5,000
+              Register Now — KES 500
             </Button>
           </motion.div>
         </div>
@@ -234,7 +235,7 @@ export default function PeaksChallenge() {
             className="text-center mb-10">
             <span className="text-accent text-xs font-bold uppercase tracking-widest block mb-2">3rd Edition</span>
             <h2 className="font-heading text-3xl sm:text-4xl font-bold text-foreground mb-3">Register Now</h2>
-            <p className="text-muted-foreground text-sm">Registration fee: <strong className="text-foreground">KES 5,000</strong> per person (all inclusive)</p>
+            <p className="text-muted-foreground text-sm">Registration fee: <strong className="text-foreground">KES 500</strong> per person (all inclusive)</p>
           </motion.div>
 
           <div className="bg-card border border-border rounded-3xl shadow-xl overflow-hidden">
